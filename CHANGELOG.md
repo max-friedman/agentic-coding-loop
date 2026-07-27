@@ -8,6 +8,45 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.6.0] — 2026-07-27
+
+This repository starts following its own rules. 0.4.0 shipped "the gate needs a
+home outside your machine" while having no gate; every check had been run by hand,
+in one environment, by the agent that wrote the code.
+
+**Added**
+- **`scripts/check.py`** — the gate. Stdlib only, runs identically on a laptop and
+  in CI. Validates the manifest, every skill's frontmatter, that each skill inlines
+  `LOOP.md` rather than restating it, that all relative links resolve, and that no
+  instruction file loads `proposals/`.
+- **Version-bump enforcement.** A change to `LOOP.md`, `skills/`, or `templates/`
+  without a version bump now fails CI. This was a checkbox in the PR template —
+  prose where a mechanism was available, which the rubric rejects.
+- **`.github/workflows/checks.yml`** — runs the gate on every push and PR.
+- **`LOOP.md` §4: mechanical churn gets its own commit.** Formatting sweeps and
+  regenerated files go in a separate, explicitly behavior-free commit. Mixed into
+  logic changes they make the diff unreviewable and poison `git blame` for every
+  line they touch.
+- **`LOOP.md` §5.4: search for the concept, do not recall which files mention it.**
+  A round shipped a project's most decision-relevant metric, updated two docs from
+  memory, and missed the canonical reference — found rounds later by audit.
+- **Principles 9 and 10** — the reasoning behind the rules proposals 001 and 002
+  put into `LOOP.md`. Both were merged in 0.4.0 with their mechanisms recorded and
+  their justifications nowhere, which is how a rule gets rationalized away later.
+
+**Verified**
+- Every check was confirmed to *fail* on a deliberate violation before being
+  trusted: a behavior change without a bump, a broken link, a skill that stopped
+  inlining the protocol, and an instruction file loading `proposals/`. Two of the
+  four first attempts were flawed test harnesses rather than passing checks, and
+  were redone. A gate that has never failed is not yet known to be a gate.
+
+**Note**
+- Principles 9 and 10 came from downstream proposals; principle 11 as filed was
+  declined, since "never publish a number you did not measure" already exists in
+  principle 5 and in `LOOP.md`'s hard rules. Three copies of one rule is drift with
+  a delay fuse.
+
 ## [0.5.0] — 2026-07-27
 
 Closes the propagation gap and sets the autonomy boundary explicitly. The loop can

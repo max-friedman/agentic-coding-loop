@@ -76,6 +76,13 @@ Keep the repo shippable at every commit. A round that ends mid-refactor produced
 nothing — the next session starts cold and cannot distinguish a deliberate
 half-state from a broken one.
 
+**Mechanical churn gets its own commit.** Formatting sweeps, renames, and
+regenerated files go in a separate commit that is explicitly behavior-free —
+demonstrated by identical gate output before and after. Mixed into a logic change
+they make the diff unreviewable, and they poison `git blame` for every line they
+touch: the next agent tracing why a line exists lands on a whitespace pass instead
+of the reasoning.
+
 ## 5. Verify wider than you changed
 
 1. Run the project's gate command (tests + lint). Both green. No exceptions.
@@ -83,7 +90,11 @@ half-state from a broken one.
    reasonable while the thing underneath is visibly wrong.
 3. Re-run measurements from **earlier** rounds that this change could have moved.
    Silent regressions live here.
-4. Update every document quoting a number you changed.
+4. Update every document quoting a number you changed. Find them by **searching the
+   repo for the concept, not by recalling which files mention it** — more than one
+   doc usually states the same contract, and the one you forget will be the
+   canonical reference. Re-check the *previous* round's doc edits too, not only
+   your own.
 
 ## 6. Write `docs/plans/LOOP_STATE.md` last
 
