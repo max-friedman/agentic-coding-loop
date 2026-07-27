@@ -8,6 +8,40 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.4.0] — 2026-07-27
+
+First release driven by downstream proposals. Both came from one project after
+seven rounds; both were accepted narrower than proposed.
+
+**Added**
+- **§0 precondition 5** — confirm the gate runs somewhere other than this machine
+  (proposal [001](proposals/001-gate-outside-one-machine.md), issue #2). §5 already
+  promised "both green, no exceptions" and never asked where. Escape hatch is
+  "record why", not "add CI", so it cannot block a project where CI cannot run.
+- **Hard rule: a gate that has never failed is not yet known to be a gate.** The
+  more portable half — it survives in projects with no CI at all, and makes a red
+  first run legible as the system working.
+
+**Changed**
+- **The branch step moved to the top of §1** (proposal
+  [002](proposals/002-branch-fires-too-late.md), issue #3). It was in §D under the
+  unattended-run absolutes: scoped to unattended runs only, and firing after the
+  point of no return, since shipping via PR is unfollowable once the work is on the
+  default branch. Landed in §1 rather than the proposed §0 — §0 is reads and
+  checks, and nothing is edited until §3, so the branch still precedes the first
+  change.
+- `proposal-review.yml` is **manual-only**. The primary reviewer is now a scheduled
+  Claude Code Routine needing no `ANTHROPIC_API_KEY`; two reviewers would post
+  competing verdicts. The workflow remains for forks with an API key and no Claude
+  Code, with a comment on how to promote it back. This demotion missed the 0.3.0
+  merge window and is included here.
+
+**Note on the review record**
+- Two proposals reviewed, two merged. That ratio sits badly against a
+  reject-by-default rubric and is called out rather than passed over: both came
+  from a project closely related to this one, submitted on a template written here.
+  Worth watching whether it holds for less closely related submitters.
+
 ## [0.3.0] — 2026-07-27
 
 Closes the loop: projects running the protocol now audit it on a cadence, and

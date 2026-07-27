@@ -21,20 +21,30 @@
 #
 # This runs on issues only — never on pull_request_target — so no untrusted code
 # is ever checked out or executed.
+#
+# MANUAL ONLY, DELIBERATELY.
+#
+# The primary reviewer is a scheduled Claude Code Routine, which needs no
+# ANTHROPIC_API_KEY and bills against Claude Code rather than the API. Two
+# reviewers firing on the same issue would post competing verdicts, so this one
+# has no automatic triggers.
+#
+# Use it when: the Routine is unavailable, you want an immediate review instead of
+# waiting for the next sweep, or someone forked this repo and has an API key but
+# no Claude Code. Requires an ANTHROPIC_API_KEY repository secret.
+#
+# To make this the primary reviewer instead, delete the Routine and restore:
+#   issues:   {types: [opened, reopened, labeled]}
+#   schedule: [{cron: "0 10 * * 1"}]
 
 name: proposal-review
 
 on:
-  issues:
-    types: [opened, reopened, labeled]
-  schedule:
-    # Sweep for proposals a webhook dropped. Mondays 10:00 UTC.
-    - cron: "0 10 * * 1"
   workflow_dispatch:
     inputs:
       issue:
-        description: "Issue number to review"
-        required: true
+        description: "Issue number to review (blank = sweep all unreviewed)"
+        required: false
         type: string
 
 permissions:
@@ -49,10 +59,6 @@ concurrency:
 
 jobs:
   review:
-    # Only proposals. Scheduled and manual runs pass through for the sweep.
-    if: >
-      github.event_name != 'issues' ||
-      contains(github.event.issue.labels.*.name, 'proposal')
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
@@ -68,10 +74,9 @@ jobs:
             REJECT BY DEFAULT. Most proposals should be rejected. A reviewer that
             accepts most of what it sees is not reviewing.
 
-            ${{ github.event_name == 'issues'
-                && format('Review issue #{0}.', github.event.issue.number)
-                || (inputs.issue && format('Review issue #{0}.', inputs.issue)
-                || 'Sweep: review every open issue labelled "proposal" that has no verdict comment yet. One at a time.') }}
+            ${{ inputs.issue
+                && format('Review issue #{0}.', inputs.issue)
+                || 'Sweep: review every open issue labelled "proposal" that has no verdict comment yet — one that already has a comment containing "## Verdict:" is done. One at a time.' }}
 
             Read docs/REVIEW_RUBRIC.md in full and apply it exactly. Also read
             LOOP.md, docs/PRINCIPLES.md, and AGENTS.md so you can judge whether a
