@@ -21,6 +21,9 @@ That file is the memory. Read it first, write it last.
    round, then stop.
 4. If the working tree is dirty, STOP. Report it. A round must start from a clean
    tree or its diff cannot be attributed.
+4a. Review and merge the previous round's pull request first — see §D *Reviewing
+   the previous round*. You are the independent check on work you did not write;
+   there is no other one.
 5. Confirm the gate runs somewhere other than this machine. A gate only ever run
    where it was written is an unverifiable claim, not a check. If the project has
    no CI, adding it is a legitimate round. If CI genuinely cannot run here, record
@@ -344,7 +347,8 @@ When no human is watching — a scheduler, a cron trigger, CI — the additional
 are absolute:
 
 - **Never commit to the default branch.** Work on `loop/round-N` and open a pull
-  request. A human merges.
+  request. You never merge your own round — the next round reviews and merges it,
+  per *Reviewing the previous round* below.
 - **Never force-push.** Never rewrite published history.
 - **Never file, comment, or post outside the repository** except the §C proposal
   path.
@@ -361,6 +365,43 @@ are absolute:
   rules until it lands. An agent that can rewrite its own constraints has none.
 - **Fail loudly.** If you cannot complete the round, say so and stop. A silent
   no-op is indistinguishable from a healthy quiet day, and nobody is watching.
+
+### Reviewing the previous round
+
+A round never merges itself. The **next** round's session reviews and merges it —
+a fresh session that did not write the work and cannot be attached to it. Do this
+before picking up the new item, at the top of §0.
+
+Green CI is not a review. It proves the code runs, not that the round did what its
+writeup says.
+
+Read the diff against the round's own claims:
+
+| check | what fails it |
+|---|---|
+| The finding is supported | The writeup claims a result the diff does not show, or claims a measurement with no measurement in the diff. |
+| A before-number exists | §3 required one and there is none, so "it improved" is unfalsifiable. |
+| One item | The diff sprawls across unrelated concerns — a regression in it cannot be attributed. |
+| Nothing was weakened | An assertion relaxed, a threshold lowered, a test skipped, a new component exempted from an existing check. **Hard stop, regardless of green CI.** |
+| Numbers match | A doc still quotes a figure this diff moved. |
+| The state file is honest | The `## Round N` entry describes what actually shipped, names an ending state, and carries its `Loop:` line. |
+
+Three outcomes, and only the first merges:
+
+- **Merge.** Every check passes. Say in the merge which checks were closest to
+  failing — that is the signal the next reviewer needs.
+- **Request changes.** Comment naming the failed check and what would fix it, and
+  leave the PR open. Add it to the queue as the next round's item.
+- **Close.** The round was wrong-headed, not merely incomplete. Record why in the
+  state file under *Noted, not built*, so it is not re-attempted.
+
+**Do not fix the PR yourself.** Repairing it collapses reviewer and author back
+into one agent and destroys the only independent check in the sequence. Comment,
+leave it, move on — the fix is a round, with its own before and after.
+
+If more than **two** round PRs are open, stop and start no new round. Report that
+rounds are outpacing review. A stream of unread diffs is worse than no diffs, and
+nothing else in the system is positioned to notice.
 
 ### Scheduling
 
