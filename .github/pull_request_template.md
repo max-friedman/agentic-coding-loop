@@ -19,7 +19,7 @@
 
 ## Release
 
-- [ ] `version` bumped in `plugins/loop/.claude-plugin/plugin.json` — **without this, downstream projects never receive the change**
+- [ ] `version` bumped in `.claude-plugin/marketplace.json` — **without this, downstream projects never receive the change**
 - [ ] `CHANGELOG.md` entry added
 - [ ] Proposal status updated (`accepted` / `released`), if this implements one
 

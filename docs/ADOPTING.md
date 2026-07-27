@@ -1,101 +1,131 @@
 # Adopting the loop in a project
 
-Three ways in, depending on what you're running. All three produce the same
-artifact: a `docs/plans/LOOP_STATE.md` your project owns.
+Three ways in. All produce the same artifact: a `docs/plans/LOOP_STATE.md` the
+target project owns.
 
 ---
 
-## 1. Claude Code plugin (recommended)
+## 1. Any agent, any harness — read one file
+
+The loop assumes nothing about the harness. Point the agent at:
 
 ```
-/plugin marketplace add max-friedman/agentic-coding-loop
-/plugin install loop@agentic-coding-loop
+https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md
 ```
 
-Then, in any project:
+`LOOP.md` is self-contained: round steps, hard rules, ending states, the audit
+round, bootstrap, feedback, and continuous operation. Nothing else needs fetching.
 
-| command | what it does |
-|---|---|
-| `/loop-init` | Reads the project, drafts `docs/plans/LOOP_STATE.md`, adds the loop section to `CLAUDE.md`. Refuses to overwrite an existing state file. |
-| `/loop-round` | Runs one round. Takes an optional item: `/loop-round tighten the retry test`. |
-| `/loop-audit` | Ships nothing. Measures whether the project's strongest claim still holds. |
-| `/loop-feedback` | Packages a learning about the loop as an upstream proposal. |
+Two placements, and both matter:
 
-All four are `/`-invocable only — Claude won't start a round on its own, since a
-round mutates the repo and costs a session.
-
-**Updates.** The plugin is pinned to an explicit `version`, so pushes to `main`
-don't reach you until a release. Pull one with:
-
-```
-/plugin marketplace update agentic-coding-loop
-/plugin update loop
-```
-
-Pinning is deliberate. The loop's instructions execute inside your repo; you should
-choose when they change. See [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
-
----
-
-## 2. Copy the templates
-
-No plugin, no dependency, nothing to update. Good for a repo where you want the
-loop's text under your own version control.
-
-```bash
-mkdir -p docs/plans
-curl -o docs/plans/LOOP_STATE.md \
-  https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/LOOP_STATE.template.md
-```
-
-Fill it in, add the pointer block to your `CLAUDE.md` / `AGENTS.md` (see
-[`../templates/PROJECT_RULES.template.md`](../templates/PROJECT_RULES.template.md)),
-and paste [`../prompts/ROUND.md`](../prompts/ROUND.md) to run a round.
-
-The tradeoff: your copy diverges from upstream and you won't notice. Watch
-`CHANGELOG.md` if you care.
-
----
-
-## 3. Another agent or tool
-
-The loop is plain markdown and assumes nothing about the harness. For Cursor,
-Aider, Codex, a custom agent, or a CI job:
-
-- **Persistent rules file** → the pointer block from
-  [`../templates/PROJECT_RULES.template.md`](../templates/PROJECT_RULES.template.md),
-  placed wherever that tool reads standing instructions.
-- **Per-round prompt** → the body of
-  [`../plugins/loop/skills/loop-round/SKILL.md`](../plugins/loop/skills/loop-round/SKILL.md),
-  minus the YAML frontmatter. That file is the canonical round instructions; the
-  Claude Code skill and the manual prompt are the same text.
-- **Feedback** → open a Loop proposal issue by hand.
+- **Standing rules** (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, whatever the tool
+  reads every session) → the pointer block from
+  [`../templates/PROJECT_RULES.template.md`](../templates/PROJECT_RULES.template.md).
+  This is what makes a cold agent find the state file at all.
+- **Per-round prompt** → "Fetch `LOOP.md` and run §1–§7. Round budget: N."
 
 The only hard requirement is that the agent can read and write
 `docs/plans/LOOP_STATE.md` in the same session.
 
 ---
 
+## 2. Claude Code plugin
+
+```
+/plugin marketplace add max-friedman/agentic-coding-loop
+/plugin install loop@agentic-coding-loop
+```
+
+| skill | what it does |
+|---|---|
+| `loop-init` | Bootstraps the state file from the real project. Refuses to overwrite. |
+| `loop-run` | Repeated rounds until a stop condition fires. Optional budget: `loop-run 5`. |
+| `loop-round` | Exactly one round. Optional item: `loop-round tighten the retry test`. |
+| `loop-audit` | Ships nothing. Measures whether a claim still holds. |
+| `loop-feedback` | Files a proposal upstream about the protocol. |
+
+Each skill inlines `LOOP.md` at load time via
+`` !`cat "${CLAUDE_PLUGIN_ROOT}/LOOP.md"` ``, so the protocol has exactly one copy
+and a skill cannot drift from it.
+
+All five carry `when_to_use` triggers and are model-invocable — an agent picks the
+right one from intent ("run the loop", "does that claim still hold") without a human
+typing a slash command.
+
+**Updates** are pinned to an explicit `version`, so pushes to `main` do not reach
+you until a release:
+
+```
+/plugin marketplace update agentic-coding-loop
+/plugin update loop
+```
+
+Pinning is deliberate. These instructions execute inside your repo; you choose when
+they change. See [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
+
+---
+
+## 3. Copy the templates
+
+No dependency, nothing to update, the text under your own version control.
+
+```bash
+mkdir -p docs/plans
+curl -o docs/plans/LOOP_STATE.md \
+  https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/LOOP_STATE.template.md
+curl -o LOOP.md \
+  https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md
+```
+
+The tradeoff: your copy diverges from upstream and you will not notice. Watch
+`CHANGELOG.md` if that matters.
+
+---
+
+## Running rounds repeatedly
+
+A round is the unit of work, not the job. `LOOP.md` §D defines the round boundary,
+the context-hygiene rule between rounds, the stop conditions, and the extra
+constraints for unattended runs.
+
+| mechanism | fit |
+|---|---|
+| `loop-run` skill | Repeated rounds in one session, with a budget. Supervised. |
+| Claude Code `/loop` bundled skill | Interval runs inside a session. |
+| Claude Code scheduled tasks | Recurring unattended runs on a repository. |
+| GitHub Actions `schedule` | Fully unattended, one pull request per firing. Template: [`../templates/loop-workflow.template.yml`](../templates/loop-workflow.template.yml). |
+
+Cadence should track how fast the project's ground truth changes. Each firing costs
+a session and produces a diff someone must read — prefer fewer, larger-signal
+rounds.
+
+---
+
 ## Pointing several projects at one loop
 
 Each project keeps its **own** `LOOP_STATE.md`. Nothing is shared between them —
-the state file is project memory, not global memory, and merging them would
-produce a queue no single round can act on.
+the state file is project memory, not global memory, and merging them would produce
+a queue no single round can act on.
 
 What is shared is the protocol. When a project learns something about the protocol
-itself, that goes upstream via `/loop-feedback` and comes back to every project on
-the next release. That is the only channel between them, and it runs through human
+itself, that goes upstream via `loop-feedback` and returns to every project on the
+next release. That is the only channel between them, and it runs through human
 review by design.
 
 ---
 
 ## Verifying a change to the plugin
 
-If you fork or edit the plugin:
-
 ```bash
-claude plugin validate ./plugins/loop --strict
+claude plugin validate . --strict
 ```
 
-`--strict` turns unrecognized-field warnings into errors, which catches a
-misspelled manifest key before it silently does nothing.
+`--strict` turns unrecognized-field warnings into errors, catching a misspelled
+manifest key before it silently does nothing. To check discovery end to end, install
+from a local path and confirm all five skills appear:
+
+```bash
+claude plugin marketplace add /absolute/path/to/agentic-coding-loop
+claude plugin install loop@agentic-coding-loop
+claude plugin list
+```

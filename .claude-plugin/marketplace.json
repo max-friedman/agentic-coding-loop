@@ -9,8 +9,18 @@
   "plugins": [
     {
       "name": "loop",
-      "source": "./plugins/loop",
-      "description": "Run the improvement loop in this project: scaffold the state file, run a round, audit a claim, or submit a learning upstream.",
+      "displayName": "Agentic Coding Loop",
+      "source": "./",
+      "strict": false,
+      "version": "0.2.0",
+      "description": "Run the improvement loop in a repository: bootstrap the LOOP_STATE.md spine, run a falsifiable round against it, audit a claim, or send a learning upstream. The protocol is LOOP.md; every skill inlines it.",
+      "homepage": "https://github.com/max-friedman/agentic-coding-loop",
+      "repository": "https://github.com/max-friedman/agentic-coding-loop",
+      "license": "MIT",
+      "author": {
+        "name": "Max Friedman",
+        "url": "https://github.com/max-friedman"
+      },
       "category": "workflow",
       "tags": ["loop", "planning", "long-running", "state", "governance"]
     }

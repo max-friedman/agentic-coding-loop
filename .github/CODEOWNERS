@@ -1,4 +1,4 @@
-# Every change to the loop's instructions goes through review. Files here execute
+# Every change to the loop's instructions goes through review. These files execute
 # inside other people's repositories.
 #
 # CODEOWNERS only requests review. To make it a gate, enable branch protection on
@@ -6,8 +6,8 @@
 
 *                       @max-friedman
 
-# The parts that actually change downstream behavior.
-/plugins/               @max-friedman
-/prompts/               @max-friedman
+# The files that actually change downstream behavior.
+/LOOP.md                @max-friedman
+/skills/                @max-friedman
 /templates/             @max-friedman
-/docs/                  @max-friedman
+/.claude-plugin/        @max-friedman
