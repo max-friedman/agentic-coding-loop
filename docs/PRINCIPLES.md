@@ -1,7 +1,12 @@
 # Principles
 
-Eight rules. Each one names a specific failure it prevents. None of them are
+Ten rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
+
+Rules 9 and 10 arrived differently from the rest: they came from projects running
+the loop, as proposals, and were accepted narrower than filed. Their mechanisms
+live in [`../LOOP.md`](../LOOP.md); the reasoning is here, because a rule whose
+justification exists nowhere is a rule that gets rationalized away.
 
 ---
 
@@ -87,6 +92,14 @@ than a missing one, because it carries the credibility of a measurement while
 being a fossil. And in a project whose output *is* numbers, a stale table is
 indistinguishable from a fabricated one.
 
+Find the affected docs by **searching the repo for the concept, not by recalling
+which files mention it.** More than one doc usually states the same contract, and
+the one you forget will be the canonical reference. A round that shipped a
+project's most decision-relevant metric updated two docs from memory and missed
+the metrics reference entirely — discovered rounds later, by audit rather than by
+use. Each round should also re-check the *previous* round's doc edits, not only
+make its own.
+
 ## 8. Scope stays honest in both directions
 
 A capability shipped moves the corresponding limitation out of the limitations
@@ -97,6 +110,52 @@ individual round has a small incentive to describe its own work generously.
 Compounded over ten rounds, the project's self-description and the project stop
 being the same thing — and the docs are the only thing a cold agent has to
 navigate by.
+
+## 9. The gate needs a home outside your machine
+
+"The gate is green" is a claim. If it can only be checked where it was written, it
+is an unverifiable one, and step 5 rests on it.
+
+The failure it prevents: **green on one machine**. A project ran five rounds
+reporting a green suite, then added CI and watched it fail on the first run — dev
+tooling was declared as an extras group the runner never installed, so the tests
+had never once executed in a clean checkout. Nothing had been dishonest. The claim
+was simply never checkable, so nobody checked it.
+
+The corollary matters as much: **a gate that has never failed is not yet known to
+be a gate.** When CI goes red on its first run, that is the system working.
+
+This repository ran the same way for six releases. `scripts/check.py` and
+`.github/workflows/checks.yml` exist because writing the principle and not
+following it would have been the more embarrassing outcome. Each of its checks was
+verified to fail on a deliberate violation before it was trusted.
+
+*Arrived as [proposal 001](../proposals/001-gate-outside-one-machine.md). Accepted
+narrower than filed: the escape hatch is "record why", not "add CI", so it cannot
+become a blocker for a project where CI genuinely cannot run.*
+
+## 10. Enforce structure where it becomes impossible to add later
+
+Some rules can only be followed if they fire early. Put them where skipping them
+forecloses the option, not where they read most naturally.
+
+The canonical case is the branch. A protocol saying "ship via a pull request" at
+step seven is unfollowable if step five already committed to the default branch —
+by then there is nothing left to open a PR *from*, and the only recovery is the
+history surgery the same protocol forbids.
+
+The failure it prevents: **the well-stated, never-followed rule**. A project ran
+four rounds committing straight to `main` while its own protocol said "open a PR"
+the entire time. The rule was written, correct, and read. It was also placed where
+it could no longer be acted on.
+
+**The fix is never to restate it more loudly.** This is principle 4 applied to
+instructions rather than tests: relocate the rule, or encode it as a mechanism.
+Prose that has already been ignored once will be ignored again.
+
+*Arrived as [proposal 002](../proposals/002-branch-fires-too-late.md). Accepted at
+a different step than proposed, on the strength of the submitter's own objection to
+their primary placement.*
 
 ---
 

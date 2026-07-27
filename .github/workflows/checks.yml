@@ -1,0 +1,40 @@
+# The gate.
+#
+# This exists because 0.4.0 shipped a rule — "the gate needs a home outside your
+# machine" — while this repository had no gate at all. Every check had been run by
+# hand, in one environment, by the agent that wrote the code. That is the exact
+# failure proposal 001 describes, reproduced in the repo that accepted it.
+#
+# scripts/check.py runs identically here and on a laptop. Keep it that way: a gate
+# that behaves differently in CI is two gates, and you are only testing one.
+
+name: checks
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # The version-bump check diffs against the base branch, which needs
+          # more than a shallow clone.
+          fetch-depth: 0
+
+      - name: Structural checks
+        run: python3 scripts/check.py
+
+      - name: Version bump required for behavior changes
+        if: github.event_name == 'pull_request'
+        run: |
+          git fetch --no-tags origin "${{ github.base_ref }}"
+          python3 scripts/check.py --base "origin/${{ github.base_ref }}"
