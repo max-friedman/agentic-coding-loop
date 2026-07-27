@@ -86,7 +86,13 @@ Append:
 **Shipped:** files, tests, docs.
 **Consequences:** knock-on effects, verified — not predicted.
 **Noted, not built:** ideas examined and rejected, with reasoning.
+**Loop:** friction in the protocol itself this round, or `nothing`.
 ```
+
+The **Loop** line is required and `nothing` is a valid, common answer. It exists so
+that protocol friction is recorded while it is still concrete, rather than
+reconstructed from memory five rounds later. §C turns accumulated lines into
+proposals.
 
 Then update, in place:
 
@@ -197,26 +203,74 @@ Verdict is one of: `holds`, `fails`, `unmeasurable as stated`.
 
 ---
 
-## §C Feedback on the loop itself
+## §C Auditing the loop, and proposing changes
 
-If a round surfaced a problem with **this protocol** — not with the project it ran
-on — file it upstream at `max-friedman/agentic-coding-loop` using the *Loop
-proposal* issue form.
+Auditing the protocol is part of running it, not a favour to its maintainer. A
+project running the loop is the only thing that ever observes the loop under load.
+
+### Cadence
+
+Run a loop audit when **any** of these is true:
+
+- Every **fifth** round.
+- A round hit a §D stop condition.
+- A round's **Loop:** line was non-`nothing` twice in a row — the same friction
+  recurring is the signal that distinguishes a pattern from an incident.
+
+The audit costs a few minutes inside an ordinary round. It is not its own round.
+
+### What to examine
+
+Read the **Loop:** lines from every round since the last audit, then check:
+
+| question | what a bad answer looks like |
+|---|---|
+| Which step consumed effort disproportionate to what it produced? | A step that is always performed and never changes an outcome. |
+| Which step was skipped, and was that skipping *possible* or *tempting*? | A rule placed where it can no longer be acted on. Rules must fire while the option they govern still exists. |
+| Which section of the state file is never read on the next round? | A section written every round and used by none. |
+| Did any round end in a state §D does not name? | A missing ending state, or one being forced into the wrong bucket. |
+| Did a stop condition fire late, or fail to fire when it should have? | Continuing past a condition, or halting on something not listed. |
+| Was any instruction ambiguous enough that two rounds read it differently? | Divergent behavior on identical input. |
+
+Record the answers on the **Loop:** line. Most audits find nothing, and finding
+nothing is a result — record it as one rather than manufacturing a proposal.
+
+### Filing
+
+Only file when there is a **pattern with a cost**. A single awkward round is not a
+proposal.
+
+File an issue at `max-friedman/agentic-coding-loop` using the *Loop proposal* form.
 
 - MUST NOT edit this protocol locally to compensate. A local fork is invisible to
-  every other project running the loop and is overwritten on update.
-- MUST NOT open a pull request. Proposals enter as issues.
+  every other project running the loop and is overwritten on the next update.
+- MUST NOT open a pull request. Proposals are issues; the reviewer writes the
+  change itself, in the protocol's voice. Your text is evidence, not copy.
 - MUST redact repository names, paths, code, credentials, and business specifics.
-  The upstream repo is public.
-- Search existing issues first; add to an existing proposal rather than duplicating.
+  The upstream repository is public.
+- MUST search existing issues first. Add evidence to an existing proposal rather
+  than opening a second one — two thin proposals lose where one well-evidenced
+  proposal wins.
 - If a human is present, show the full text and get approval before filing.
 
-Required content: what happened (which step), what it cost, how often, the narrowest
-change that would have prevented it, blast radius on projects that never had the
-problem, and the strongest argument against your own proposal.
+Required: what happened and which step, what it cost, how often and across how many
+rounds, the narrowest change that would have prevented it, blast radius on projects
+that never had the problem, and the strongest argument against your own proposal.
 
-Nothing filed takes effect until a maintainer reviews it, writes the change, and
-releases a version bump.
+### What happens next
+
+The proposal is audited against
+[`docs/REVIEW_RUBRIC.md`](https://github.com/max-friedman/agentic-coding-loop/blob/main/docs/REVIEW_RUBRIC.md),
+whose posture is **reject by default**. Expect rejection; it costs one round trip
+and is recoverable by resubmitting with better evidence.
+
+Rejections name the criterion that failed and what would change the answer. Read
+the criterion — the most common failures are *no evidence* (a preference in
+evidence's clothing), *growth without deletion*, and proposing prose where a
+mechanism was available.
+
+Nothing filed takes effect until it is accepted, written, released as a version
+bump, and pulled by each project.
 
 ---
 

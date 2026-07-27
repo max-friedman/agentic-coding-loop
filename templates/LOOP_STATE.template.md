@@ -44,6 +44,10 @@ this project makes about itself.
 Without this, the next round rediscovers the same dead end and spends a session
 on it.
 
+**Loop:** friction in the protocol itself this round, or `nothing`. Required, and
+`nothing` is the common answer. Recorded while it is still concrete rather than
+reconstructed five rounds later; §C turns accumulated lines into proposals.
+
 ---
 
 ## Coverage map

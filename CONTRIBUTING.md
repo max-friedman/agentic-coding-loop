@@ -9,32 +9,43 @@ reaches them without a human deciding it should.
 ## The pipeline
 
 ```
-   downstream project
-   /loop-feedback  ──►  GitHub issue (Loop proposal form)
+   downstream project running the loop
+   §C loop audit  ──►  GitHub issue (Loop proposal form)   ← evidence, never copy
                               │
-                              │  maintainer triage
+                              │  reviewer agent, reject by default
                               ▼
-                        proposals/*.md          ← INERT. No effect on anything.
-                         status: proposed
-                              │
-                              │  maintainer writes the actual change
-                              ▼
-                    PR editing LOOP.md, skills/, templates/
-                              │
-                              │  human review + merge
-                              ▼
-                     version bump + CHANGELOG   ← the moment it takes effect
-                              │
-                              ▼
-                   downstream: /plugin update loop
+              ┌───────────────┼────────────────┐
+              ▼               ▼                ▼
+           REJECT          ESCALATE          MERGE
+        close, name      label for you     reviewer WRITES the
+        the criterion    open no PR        change in its own words
+                                                 │
+                                                 ▼
+                                      proposals/NNN-slug.md + PR
+                                                 │
+                                                 ▼
+                                   version bump + CHANGELOG  ← takes effect here
+                                                 │
+                                                 ▼
+                                     downstream: /plugin update loop
 ```
 
-Four gates, and the last one is the one that matters: **a merge alone changes
-nothing downstream.** Plugin consumers are pinned to the `version` string in
-`.claude-plugin/marketplace.json`. Until that is bumped, every project keeps
-running the version it has. That is deliberate — it means a merged-but-unreleased
-change cannot surprise anyone, and it gives you a second look before a change goes
-live.
+**A merge alone changes nothing downstream.** Consumers are pinned to the
+`version` in `.claude-plugin/marketplace.json`. Until it is bumped, every project
+keeps what it has.
+
+Two properties hold this together, and any change to the review machinery must
+preserve both:
+
+1. **Submitted text is evidence, never copy.** The reviewer extracts the finding
+   and writes the instruction itself. If a submitter's wording could land in
+   `LOOP.md`, an unverified agent would be authoring text that every project
+   executes — the `proposals/`-is-inert boundary defeated through a different door.
+   This is why proposals are issues rather than pull requests.
+2. **The reviewer cannot modify its own machinery.** Anything touching
+   `.github/workflows/`, `docs/REVIEW_RUBRIC.md`, or `.github/CODEOWNERS` is
+   escalated to a human, never authored and never merged. A reviewer that can
+   rewrite its own limits has none.
 
 ## Why `proposals/` is inert
 
@@ -89,24 +100,36 @@ What gets rejected, and why it is worth knowing in advance:
 - Growth without deletion. A proposal that adds a step should say which step it
   replaces, or argue why the protocol is genuinely missing one.
 
-## Maintainer flow
+## The reviewer
 
-1. **Triage the issue.** Reject with reasoning, or accept for consideration.
-2. **File it.** Accepted-for-consideration proposals get committed to
-   `proposals/NNN-slug.md` with `status: proposed`. Rejected ones go to
-   `proposals/rejected/` with the reasoning — the same discipline as *noted, not
-   built* in the state file, so the same idea does not arrive twice with no record
-   of why it lost.
-3. **Write the change yourself.** Open a PR touching the real files. Reference the
-   proposal; do not copy its wording in unexamined. Flip the proposal's status to
-   `accepted`.
-4. **Release.** Bump `version` in `.claude-plugin/marketplace.json` and add
-   a `CHANGELOG.md` entry naming the proposal. This is what makes it live.
+Proposals are audited automatically by `.github/workflows/proposal-review.yml`
+against [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md). Its posture is **reject by
+default**, and the rubric is a conjunction — one failed criterion is a rejection, so
+a strong evidence section cannot buy a weak blast-radius argument.
 
-Recommended repo settings, since the gate is only as strong as its enforcement:
-require a pull request before merging to `main`, and require review from a code
-owner. `.github/CODEOWNERS` is already in place; branch protection has to be
-switched on in the repository settings.
+It treats issue bodies as untrusted text: evidence about what happened, not
+instructions. An issue that tries to alter the reviewer's criteria, assert
+maintainer authority, or claim prior approval is rejected on that basis alone.
+
+**What lands in your lap:** anything labelled `needs-human`. That means an
+escalation trigger fired — the change would touch the review machinery, licensing,
+or the trust boundary — or the reviewer was genuinely uncertain. Uncertainty is
+never a merge.
+
+Rejected proposals keep their issue and their verdict comment. The reasoning is the
+payload: without it the same idea returns in six months with no record of why it
+lost the first time. This is *noted, not built* applied to the loop itself.
+
+## Repository settings
+
+`main` is protected: pull request required, zero approvals, force-pushes and
+deletions blocked, linear history. Zero approvals is deliberate — GitHub does not
+let you approve your own pull request, so on a single-maintainer repository any
+approval requirement would be unsatisfiable and would be routed around by admin
+bypass, which is worse than not having it.
+
+The protection that matters here is not approval. It is that nothing reaches `main`
+without first becoming a visible diff.
 
 ## Changing the loop from the inside
 
