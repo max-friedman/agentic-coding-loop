@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agentic-coding-loop",
+  "description": "The continuous-improvement loop: a persistent state file, a round protocol, and invariants that survive context resets.",
+  "owner": {
+    "name": "Max Friedman",
+    "url": "https://github.com/max-friedman"
+  },
+  "plugins": [
+    {
+      "name": "loop",
+      "source": "./plugins/loop",
+      "description": "Run the improvement loop in this project: scaffold the state file, run a round, audit a claim, or submit a learning upstream.",
+      "category": "workflow",
+      "tags": ["loop", "planning", "long-running", "state", "governance"]
+    }
+  ]
+}

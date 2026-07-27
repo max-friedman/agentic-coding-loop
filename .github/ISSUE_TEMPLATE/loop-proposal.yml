@@ -1,0 +1,117 @@
+name: Loop proposal
+description: Report something you learned about the loop itself, or suggest a change to it.
+title: "[proposal] "
+labels: ["proposal", "needs-triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For learnings about **the loop** — the round protocol, the state file, the
+        principles, the skills. Findings about the project you ran it on belong in
+        that project's own `LOOP_STATE.md`.
+
+        Nothing filed here changes the loop's behavior. A proposal becomes a change
+        only when a maintainer reviews it, writes the change, and releases a version
+        bump. See [CONTRIBUTING.md](../blob/main/CONTRIBUTING.md).
+
+        **This repository is public.** Redact repository names, file paths, code,
+        credentials, and business specifics before submitting.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which part of the loop does this concern?
+      options:
+        - Round protocol (the seven steps)
+        - State file (LOOP_STATE.md structure)
+        - Principles
+        - Skills (/loop-init, /loop-round, /loop-audit, /loop-feedback)
+        - Templates
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Is this evidence or preference?
+      description: Both are welcome. Evidence is ranked first, so be honest here — mislabeling is caught in review and costs you a round trip.
+      options:
+        - Evidence — something was actually lost
+        - Preference — nothing broke, but this would be better
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: The concrete sequence, and which step of the protocol was involved.
+      placeholder: Describe the shape of the problem, not the codebase.
+    validations:
+      required: true
+
+  - type: textarea
+    id: cost
+    attributes:
+      label: What it cost
+      description: Wasted work, a missed catch, a wrong turn taken. If nothing was lost, say so.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: frequency
+    attributes:
+      label: How often
+      options:
+        - Once
+        - A few times
+        - Every round
+    validations:
+      required: true
+
+  - type: input
+    id: rounds-run
+    attributes:
+      label: Rounds run
+      description: Roughly how many rounds have you run with this loop? Context for judging the frequency above.
+      placeholder: "e.g. 6"
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposed-change
+    attributes:
+      label: Proposed change
+      description: The narrowest edit that would have prevented it. Quote current and replacement text where you can. If it adds a step, say which one it replaces.
+    validations:
+      required: true
+
+  - type: textarea
+    id: blast-radius
+    attributes:
+      label: Blast radius
+      description: What this costs a project that never had your problem. Every project running the loop gets this change.
+    validations:
+      required: true
+
+  - type: textarea
+    id: might-be-wrong
+    attributes:
+      label: Why this might be wrong
+      description: The strongest argument against your own proposal. This speeds up review rather than hurting your case.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I removed repository names, paths, code, and business specifics.
+          required: true
+        - label: This is about the loop itself, not about the project I ran it on.
+          required: true
+        - label: I understand this changes nothing until a maintainer reviews, merges, and releases it.
+          required: true

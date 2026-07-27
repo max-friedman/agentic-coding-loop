@@ -1,0 +1,13 @@
+# Every change to the loop's instructions goes through review. Files here execute
+# inside other people's repositories.
+#
+# CODEOWNERS only requests review. To make it a gate, enable branch protection on
+# main: require a pull request, and require review from code owners.
+
+*                       @max-friedman
+
+# The parts that actually change downstream behavior.
+/plugins/               @max-friedman
+/prompts/               @max-friedman
+/templates/             @max-friedman
+/docs/                  @max-friedman

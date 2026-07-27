@@ -1,0 +1,8 @@
+blank_issues_enabled: true
+contact_links:
+  - name: How the review gate works
+    url: https://github.com/max-friedman/agentic-coding-loop/blob/main/CONTRIBUTING.md
+    about: What gets accepted, what gets rejected, and why a merge alone changes nothing downstream.
+  - name: Adopting the loop in a project
+    url: https://github.com/max-friedman/agentic-coding-loop/blob/main/docs/ADOPTING.md
+    about: Setup for Claude Code and for other agents. Read this before filing a setup question.

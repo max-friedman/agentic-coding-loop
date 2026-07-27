@@ -13,32 +13,42 @@ agent must read before acting and write before stopping, holding the queue, the
 coverage map, the blocked items, and the invariants that may not be weakened.
 Everything else in this repo exists to support that file.
 
+## Install
+
+```
+/plugin marketplace add max-friedman/agentic-coding-loop
+/plugin install loop@agentic-coding-loop
+```
+
+Then, in any project:
+
+| command | what it does |
+|---|---|
+| `/loop-init` | Reads the project, drafts its `docs/plans/LOOP_STATE.md`, adds the loop section to `CLAUDE.md`. Won't overwrite an existing state file. |
+| `/loop-round` | Runs one round. Optional argument overrides the queue: `/loop-round tighten the retry test`. |
+| `/loop-audit` | Ships nothing. Measures whether the project's strongest claim still holds. |
+| `/loop-feedback` | Packages a learning about the loop as a proposal for upstream review. |
+
+All four are `/`-invocable only — Claude won't start a round on its own, since a
+round mutates the repo and costs a session.
+
+Not using Claude Code? The loop is plain markdown and assumes nothing about the
+harness — see [`docs/ADOPTING.md`](docs/ADOPTING.md) for the copy-the-templates and
+other-agent paths.
+
 ## What's here
 
 | file | what it is |
 |---|---|
-| [`templates/LOOP_STATE.template.md`](templates/LOOP_STATE.template.md) | The spine. Copy this into your repo first. |
+| [`plugins/loop/`](plugins/loop) | The four skills. `skills/loop-round/SKILL.md` is the canonical round text. |
+| [`templates/LOOP_STATE.template.md`](templates/LOOP_STATE.template.md) | The spine, blank, with per-section guidance. |
 | [`templates/PROJECT_RULES.template.md`](templates/PROJECT_RULES.template.md) | The `CLAUDE.md` / `AGENTS.md` the agent reads on every session. |
-| [`prompts/ROUND.md`](prompts/ROUND.md) | The prompt that starts a round. Verbatim, copy-pasteable. |
-| [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | What one round is, step by step, and how it ends. |
-| [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | The eight rules the loop actually runs on, and what each one prevents. |
-| [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Four real rounds on a real project, including the round that proved the project's central claim false. |
+| [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | What one round is, step by step, and the four ways it can end. |
+| [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | The eight rules the loop runs on, and what each one prevents. |
+| [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Four real rounds, including the one that proved the project's central claim false. |
+| [`docs/ADOPTING.md`](docs/ADOPTING.md) | Setup for Claude Code, for copy-paste, and for other agents. |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | How feedback flows in, and why a merge alone changes nothing downstream. |
 | [`examples/tactbench-LOOP_STATE.md`](examples/tactbench-LOOP_STATE.md) | A real, filled-in state file after four rounds. |
-
-## Setup, in full
-
-```bash
-# 1. the spine
-mkdir -p docs/plans
-curl -o docs/plans/LOOP_STATE.md \
-  https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/LOOP_STATE.template.md
-
-# 2. the standing rules, at the top of your CLAUDE.md or AGENTS.md
-#    (see templates/PROJECT_RULES.template.md)
-
-# 3. run a round
-#    paste prompts/ROUND.md into a fresh agent session
-```
 
 The first line of your project rules should be the pointer, because it is the
 only thing a cold agent is guaranteed to read:
@@ -97,6 +107,36 @@ is always the locally cheapest way to make a round pass.
 
 **Noted, not built.** A section for ideas examined and deliberately rejected,
 with the reasoning. Without it, every round rediscovers the same dead end.
+
+## Feedback, and why it goes through review
+
+Projects running the loop learn things about the loop. `/loop-feedback` packages
+one as a proposal and files it as an issue here.
+
+It does not take effect. That is the design:
+
+```
+/loop-feedback  →  issue  →  proposals/*.md  →  maintainer writes the change
+                             (inert)             →  PR + review  →  version bump
+                                                                    ↑
+                                                        the moment it goes live
+```
+
+Two properties worth stating plainly.
+
+**`proposals/` is inert, and that is a security boundary rather than a filing
+convention.** Downstream agents write proposals; upstream agents read this repo. If
+proposals were read as instructions, any project running the loop could change how
+the loop behaves in *every other project running it*, unreviewed. So nothing in
+this repo loads or executes anything from `proposals/`, and the only path from a
+suggestion to a behavior change runs through a human writing that change by hand.
+
+**A merge alone changes nothing downstream.** The plugin carries an explicit
+`version`, so consumers keep what they have until it is bumped and released. That
+costs a version bump per release and buys a second look before anything reaches
+someone else's repository.
+
+Full flow, and what gets accepted or rejected: [`CONTRIBUTING.md`](CONTRIBUTING.md).
 
 ## License
 

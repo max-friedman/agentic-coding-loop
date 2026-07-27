@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "loop",
+  "displayName": "Agentic Coding Loop",
+  "version": "0.1.0",
+  "description": "A continuous-improvement loop for coding agents. Keeps a persistent LOOP_STATE.md spine, runs falsifiable rounds against it, and routes learnings back upstream for human review.",
+  "author": {
+    "name": "Max Friedman",
+    "url": "https://github.com/max-friedman"
+  },
+  "homepage": "https://github.com/max-friedman/agentic-coding-loop",
+  "repository": "https://github.com/max-friedman/agentic-coding-loop",
+  "license": "MIT",
+  "keywords": ["loop", "continuous-improvement", "planning", "state", "governance"]
+}
