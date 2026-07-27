@@ -93,7 +93,7 @@ constraints for unattended runs.
 | `loop-run` skill | Repeated rounds in one session, with a budget. Supervised. |
 | Claude Code `/loop` bundled skill | Interval runs inside a session. |
 | Claude Code scheduled tasks | Recurring unattended runs on a repository. |
-| Claude Code Routine, fresh session per firing | Unattended, no API key — bills against Claude Code. This is how the upstream proposal reviewer runs. |
+| Claude Code Routine, fresh session per firing | Unattended, no API key — bills against Claude Code. This is how the upstream proposal reviewer runs. Setup: [`../templates/PROJECT_ROUTINE.md`](../templates/PROJECT_ROUTINE.md). |
 | GitHub Actions `schedule` | Fully unattended, one pull request per firing. Needs an `ANTHROPIC_API_KEY` secret. Template: [`../templates/loop-workflow.template.yml`](../templates/loop-workflow.template.yml). |
 
 Cadence should track how fast the project's ground truth changes. Each firing costs
