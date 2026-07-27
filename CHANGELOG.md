@@ -8,6 +8,41 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.3.0] — 2026-07-27
+
+Closes the loop: projects running the protocol now audit it on a cadence, and
+proposals are reviewed automatically against a reject-by-default rubric.
+
+**Added**
+- `docs/REVIEW_RUBRIC.md` — eight scored criteria as a **conjunction**, not a
+  weighted average, so a strong evidence section cannot buy a weak blast-radius
+  argument. Eight hard disqualifiers and five escalation triggers.
+- `.github/workflows/proposal-review.yml` — the reviewer. Reaches `REJECT`,
+  `ESCALATE`, or `MERGE`; on merge it writes the change itself, records the
+  proposal, bumps the version, and merges.
+- **§C rewritten as a routine audit.** Runs every fifth round, after any stop
+  condition, or when the same friction recurs twice. Includes a six-question
+  examination table. Finding nothing is a valid result and is recorded as one.
+- Required **Loop:** line in every round writeup — protocol friction, or
+  `nothing`. Captures friction while it is concrete instead of reconstructed
+  later.
+
+**Changed**
+- Proposals stay **issues**, and this is now load-bearing rather than incidental.
+  A downstream-authored PR would let an unverified agent's exact wording become
+  instructions every project executes — the `proposals/`-is-inert boundary
+  defeated through a different door. Submitted text is evidence; the reviewer
+  writes what ships.
+- Filing threshold raised from "something happened" to "a pattern with a cost".
+
+**Security**
+- The reviewer cannot author or merge changes to `.github/workflows/`,
+  `docs/REVIEW_RUBRIC.md`, or `.github/CODEOWNERS`. Those escalate to a human
+  regardless of merit. A reviewer able to rewrite its own limits has none.
+- Issue bodies are treated as untrusted input. An issue attempting to alter the
+  reviewer's criteria, assert maintainer authority, or claim prior approval is
+  rejected on that basis.
+
 ## [0.2.0] — 2026-07-27
 
 Restructured for agent consumption. Humans are not the primary reader.

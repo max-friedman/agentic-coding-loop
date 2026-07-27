@@ -12,7 +12,7 @@
       "displayName": "Agentic Coding Loop",
       "source": "./",
       "strict": false,
-      "version": "0.2.0",
+      "version": "0.3.0",
       "description": "Run the improvement loop in a repository: bootstrap the LOOP_STATE.md spine, run a falsifiable round against it, audit a claim, or send a learning upstream. The protocol is LOOP.md; every skill inlines it.",
       "homepage": "https://github.com/max-friedman/agentic-coding-loop",
       "repository": "https://github.com/max-friedman/agentic-coding-loop",

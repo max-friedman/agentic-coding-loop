@@ -22,6 +22,7 @@ repository, read LOOP.md and nothing else — it is self-contained.
 - [docs/PRINCIPLES.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/PRINCIPLES.md): Why each rule exists and the failure it prevents. Read only when a rule seems wrong — the reasoning is the argument against relaxing it.
 - [examples/tactbench-LOOP_STATE.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/examples/tactbench-LOOP_STATE.md): A real state file after four rounds. Useful as a filled-in reference.
 - [docs/ADOPTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/ADOPTING.md): Installation paths for Claude Code and other harnesses.
+- [docs/REVIEW_RUBRIC.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/REVIEW_RUBRIC.md): The standard a proposal must clear. Reject by default. Read before filing feedback under LOOP.md section C.
 - [CONTRIBUTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/CONTRIBUTING.md): How proposals are reviewed. Read before filing feedback.
 - [docs/CASE_STUDY.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/CASE_STUDY.md): Evidence that the loop works. Narrative, not instructions — skip unless evaluating whether to adopt.
 
