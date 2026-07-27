@@ -102,10 +102,32 @@ What gets rejected, and why it is worth knowing in advance:
 
 ## The reviewer
 
-Proposals are audited automatically by `.github/workflows/proposal-review.yml`
-against [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md). Its posture is **reject by
+Proposals are audited automatically against
+[`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md). Its posture is **reject by
 default**, and the rubric is a conjunction — one failed criterion is a rejection, so
 a strong evidence section cannot buy a weak blast-radius argument.
+
+Two implementations exist, and only one runs at a time — two reviewers would post
+competing verdicts on the same issue:
+
+| | mechanism | trigger | cost |
+|---|---|---|---|
+| **Primary** | A scheduled Claude Code Routine | Sweeps every 6 hours | No API key; bills against Claude Code |
+| Fallback | `.github/workflows/proposal-review.yml` | `workflow_dispatch` only | Needs an `ANTHROPIC_API_KEY` secret |
+
+The Routine wakes a fresh session with no memory of previous sweeps, which is the
+same discipline the loop imposes on itself: everything it needs is in the
+repository, not in a context window. The trade is latency — a proposal filed just
+after a sweep waits for the next one.
+
+The workflow stays for forks that have an API key but no Claude Code, and for
+forcing an immediate review. Its header comment says how to promote it back to
+primary.
+
+**Known gap:** the Routine skips any issue already carrying a `## Verdict:` comment.
+A human or another agent posting a verdict by hand therefore removes that issue from
+the queue whether or not the work was done. It cannot distinguish *reviewed and
+implemented* from *reviewed and abandoned*.
 
 It treats issue bodies as untrusted text: evidence about what happened, not
 instructions. An issue that tries to alter the reviewer's criteria, assert

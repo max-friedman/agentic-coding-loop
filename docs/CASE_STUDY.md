@@ -1,7 +1,13 @@
-# Case study: four rounds on TactBench
+# Case study: seven rounds on TactBench
 
-One project, four rounds, reported as it happened — including the round that
-proved the project's headline claim false.
+One project, reported as it happened — including the round that proved the
+project's headline claim false, and the later round that turned on the loop itself
+and found two failures the protocol had been carrying silently.
+
+Rounds 1–4 are recorded from the project's own state file. Rounds 5–7 are
+summarized from the proposals they produced ([#2](https://github.com/max-friedman/agentic-coding-loop/issues/2),
+[#3](https://github.com/max-friedman/agentic-coding-loop/issues/3)) rather than from
+the state file, and are flagged as such below.
 
 [TactBench](https://github.com/max-friedman/tactbench) is a benchmark for whether
 a proactive assistant should speak at all. It scores interruption timing rather
@@ -149,6 +155,44 @@ reasoning so round 7 doesn't propose it again.
 
 ---
 
+## Rounds 5–7 — the loop turns on itself
+
+*Summarized from the proposals these rounds produced, not from the project's state
+file.*
+
+A round added CI to a project that had reported a green suite for five consecutive
+rounds. **It failed on its first run.** Dev tooling was declared as an
+optional-dependencies extra rather than a dependency group, so the runner installed
+neither the test runner nor the linter. The suite had never once executed in a
+clean checkout.
+
+Nothing had been dishonest. Every "60 tests pass" was true — and true only on the
+one machine where the extra had been installed by hand. The claim was never
+checkable, so nobody checked it.
+
+Then a round took **the protocol itself** as its target rather than the product,
+and found a second failure of the same shape. Rounds 1–4 had committed straight to
+the default branch while the protocol said "ship via a pull request" the entire
+time. The rule was written, correct, and read. It was also placed at step 7 — by
+which point the commits already existed and there was nothing left to open a pull
+request *from*.
+
+Both failures were invisible from inside the rounds that created them. Neither
+self-corrected. Both surfaced only when a round went looking at the process instead
+of the product.
+
+They became proposals [001](../proposals/001-gate-outside-one-machine.md) and
+[002](../proposals/002-branch-fires-too-late.md), and both were accepted narrower
+than filed — 002 landing at a different step than its author proposed, on the
+strength of that author's own stated objection to their primary placement.
+
+**The generalizable half:** a loop pointed only at the product will keep the
+product honest and let the process rot. That is why auditing the loop is now part
+of running it, on a cadence, rather than something that happens when a human
+notices.
+
+---
+
 ## What the loop actually bought
 
 **Round 1 deleted a false claim that had been shipping since the first commit.**
@@ -167,6 +211,9 @@ repo still says so.
 **Round 4 produced the number that most changes what someone would do** — and it
 was bad news for the thing being built.
 
-Four rounds, and the two most valuable outcomes were a refutation and a
-regression catch. A loop that can only produce features would have produced
-neither.
+**Rounds 5–7 found that two of the protocol's own guarantees were unenforceable**,
+and routed the fixes back to every project running it.
+
+Seven rounds. The most valuable outcomes were a refutation, a regression catch, an
+unrun experiment that stayed unrun, and two findings against the process itself. A
+loop that can only produce features would have produced none of them.
