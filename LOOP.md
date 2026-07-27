@@ -21,12 +21,22 @@ That file is the memory. Read it first, write it last.
    round, then stop.
 4. If the working tree is dirty, STOP. Report it. A round must start from a clean
    tree or its diff cannot be attributed.
+5. Confirm the gate runs somewhere other than this machine. A gate only ever run
+   where it was written is an unverifiable claim, not a check. If the project has
+   no CI, adding it is a legitimate round. If CI genuinely cannot run here, record
+   *why* in the state file rather than letting "the gate is green" quietly mean
+   "green once, locally."
 
 The loop runs **repeatedly**. One round is the unit; §D governs the sequence.
 
 ---
 
 ## 1. Pick exactly one item
+
+**Cut the round's branch before the first edit:** `git checkout -b loop/round-N`.
+Do this now, not at the end. Shipping via pull request is unfollowable once the
+work is already committed to the default branch — there is nothing left to open a
+PR from, and the recovery is history surgery §D forbids.
 
 Take the top queue item, unless the last round's finding makes another clearly more
 urgent — then take that and record why.
@@ -124,6 +134,7 @@ report which.
 | **A false claim found is the round.** Report it, fix what you can, correct the docs. | Deleting a false claim beats adding a feature. |
 | **Blocked is not stopped.** Needs a human? Add to NEEDS-MAX with the exact unblocking command, then build around the block. | Halting burns the round. |
 | **Never publish a number you did not measure.** No estimating a blocked result, however obvious. | A guessed number is worse than a missing one. |
+| **A gate that has never failed is not yet known to be a gate.** | Until it fails once, "green" is untested tooling, not evidence. A red first CI run is the system working. |
 | **Never edit past round sections.** | The wrong turn is the only reason the next agent won't take it. |
 | **Record rejected ideas** in *Noted, not built*, with reasoning. | Otherwise the same dead end is rediscovered every few rounds. |
 
