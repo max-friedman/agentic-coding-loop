@@ -22,7 +22,7 @@ Everything else in this repo exists to support that file.
 | [`prompts/ROUND.md`](prompts/ROUND.md) | The prompt that starts a round. Verbatim, copy-pasteable. |
 | [`docs/PROTOCOL.md`](docs/PROTOCOL.md) | What one round is, step by step, and how it ends. |
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | The eight rules the loop actually runs on, and what each one prevents. |
-| [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Four real rounds on a real project, including the round that proved the project's central claim false. |
+| [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Five real rounds on a real project — including the round that proved the project's central claim false, and the round that caught the loop skipping its own rules. |
 | [`examples/tactbench-LOOP_STATE.md`](examples/tactbench-LOOP_STATE.md) | A real, filled-in state file after four rounds. |
 
 ## Setup, in full

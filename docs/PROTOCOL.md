@@ -21,6 +21,12 @@ One item. The temptation is three, because each looks small. Three half-landed
 changes leave the next round unable to attribute a regression to any of them,
 and the writeup degrades into a changelog.
 
+Then **cut the branch, before the first edit** — `git checkout -b <type>/<slug>`.
+Step 7 ships via a pull request, and that is unfollowable if the work is already
+committed to the default branch. See principle 10: this is placed here, rather
+than next to the instruction it serves, precisely because here is the last moment
+it can still be acted on.
+
 ### 3. Ask what would prove it wrong
 
 This step is the difference between a loop and a task list.
@@ -50,6 +56,13 @@ is added later, it must be added to the check — never exempted from it.
 Every commit leaves the gate green. A round that ends mid-refactor has produced
 nothing, because the next session starts cold and cannot tell a deliberate
 half-state from a broken one.
+
+**Mechanical churn gets its own commit.** Formatting sweeps, renames, and
+regenerated files go in a separate commit that is explicitly behavior-free —
+demonstrated by running the gate before and after and confirming the numbers are
+identical. Mixed into a logic change they make the diff unreviewable, and they
+poison `git blame` for every line they touch: the next agent tracing why a line
+exists lands on a whitespace pass instead of the reasoning.
 
 ### 6. Verify wider than you changed
 
