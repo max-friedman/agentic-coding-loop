@@ -8,6 +8,32 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.6.1] — 2026-07-27
+
+**Changed**
+- `templates/PROJECT_ROUTINE.md` now states that a project running the loop must
+  not depend on this repository to function, and shows how to stay that way.
+
+  The upstream watchdog had briefly been extended to check a downstream project's
+  pull requests. That was backwards coupling: it would grow a hardcoded branch per
+  adopting project, make every project depend on infrastructure it does not
+  control, and put one repository in the position of knowing about all the others.
+  The state file is project memory, not global memory, and the same applies to
+  everything around it. Upstream now ships the protocol and this page — no central
+  scheduler, no shared watchdog, no list of adopting projects.
+
+- **Merging folds into the round rather than into a second Routine.** The previous
+  round's PR is merged at the start of the next one. The gap between firings is
+  then the veto window with no timer to configure, and the same step can notice
+  when rounds are being produced faster than they are reviewed.
+
+- **Liveness checks file issues, not notifications.** A push notification is
+  ephemeral — miss it and the finding is gone, with no state and nothing to close
+  when fixed. An issue persists, dedupes if it searches before filing, and closes
+  when the failure clears. It must also distinguish *broken* from *legitimately
+  idle*: an empty queue is a correct stop, and the response is pausing the Routine,
+  not repairing it.
+
 ## [0.6.0] — 2026-07-27
 
 This repository starts following its own rules. 0.4.0 shipped "the gate needs a

@@ -57,26 +57,69 @@ progress. Each firing costs a session and produces a diff someone must read.
 The failure mode of a scheduled loop is not running too rarely. It is producing a
 pull request every day that nobody reads, until the whole stream is ignored.
 
+## Keep the project self-contained
+
+A project running the loop must not depend on the loop's own repository to
+function. Upstream ships the protocol and nothing else — no central scheduler, no
+shared watchdog, no list of adopting projects.
+
+This is not tidiness. A watchdog upstream that babysits each downstream project
+grows a hardcoded branch per project, makes every project depend on infrastructure
+it does not control, and puts one repository in the position of knowing about all
+the others. The state file is project memory, not global memory; the same applies
+to everything around it.
+
+So each project owns its own scheduling, its own merging, and its own liveness
+check. What upstream provides is this page.
+
+## Merging: fold it into the round, don't add a Routine
+
+The cleanest place to merge the previous round's pull request is the *start of the
+next round*. Add a step before §0:
+
+```
+Before starting, look at open pull requests whose head branch starts with
+`round` or `loop/`. Merge the oldest ONLY if CI is green, no review comment
+requests changes, and it does not weaken a standing invariant or edit the
+project's rules to make a round pass — green CI does not override that last one.
+
+If more than TWO round PRs are open, STOP and start no new round. Report that
+rounds are being produced faster than they are reviewed.
+```
+
+Two things fall out of this for free. The gap between firings *is* the veto window,
+with no timer to configure. And the backlog check makes the Routine notice its own
+overproduction — a stream of unread diffs is worse than no diffs, and nothing else
+in the system is positioned to see it.
+
+The invariant carve-out is not optional. An agent that can merge changes to its own
+constraints is unconstrained, and a green suite is exactly how a weakened assertion
+gets through.
+
+## Watch for silence
+
+A scheduled loop that has stopped working looks exactly like one with nothing to
+do. Both produce silence. A dead Routine cannot report that it is dead.
+
+Pick one:
+
+- **Push notifications on completion.** Cheapest. The weakness is that a
+  notification is ephemeral — miss it and the finding is gone, with no state and
+  nothing to close when fixed.
+- **A second Routine** that checks whether round pull requests have appeared on
+  schedule and **files an issue** when they have not. An issue persists, dedupes if
+  it searches before filing, and closes when the failure clears.
+
+Whichever you choose, it must distinguish *broken* from *legitimately idle*: read
+the state file, and treat an empty queue or everything-blocked-on-NEEDS-MAX as a
+correct stop. The right response to that is pausing the Routine, not repairing it.
+
 ## What still needs a human
 
 Two things, deliberately:
 
 - **`NEEDS-MAX` items** — credentials, spend approval, decisions that are not the
-  agent's. These accumulate in the state file with the exact command that unblocks
+  agent's. They accumulate in the state file with the exact command that unblocks
   each one. Read them when convenient; the loop keeps running around them.
-- **Merging.** The round opens a pull request. Reviewing the diff is the point of
-  the pull request existing.
-
-If you want merging automated too, gate it: only branches the loop itself created,
-only after a veto window, and never a change touching the project's rules,
-invariants, or CI configuration. An agent that can merge changes to its own
-constraints is unconstrained.
-
-## Watch for silence
-
-A scheduled loop that stops working looks exactly like a scheduled loop with
-nothing to do. Both produce nothing.
-
-Give the Routine a way to be noticed: push notifications on completion, or a second
-Routine that checks whether pull requests have appeared recently and reports when
-they have not. Absence of output is a signal only if something is looking for it.
+- **Reading the diffs.** Merging can be automated, as above. Knowing whether the
+  project is going somewhere good cannot.
