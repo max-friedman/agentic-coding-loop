@@ -8,6 +8,38 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.7.0] — 2026-07-27
+
+Rounds are now **reviewed** before they merge, not merely gated.
+
+**Added**
+- **§D *Reviewing the previous round*.** A round never merges itself; the next
+  round's session reviews and merges it — a fresh session that did not write the
+  work and cannot be attached to it. Six checks read the diff against the round's
+  own claims: the finding is supported, a before-number exists, the change is one
+  item, nothing was weakened, docs quoting moved numbers were updated, and the
+  state file entry is honest.
+- **Three outcomes, only one of which merges** — merge, request changes (comment,
+  leave open, queue the fix), or close as wrong-headed with the reasoning recorded
+  under *Noted, not built*.
+- **§0 step 4a** — review the previous round before picking up the new item.
+
+**Why**
+- Merging was already autonomous, but its conditions were mechanical: green CI, no
+  change-requests, no weakened invariant. Green CI proves the code runs, not that
+  the round did what its writeup says. A PR whose finding the diff did not support,
+  or that skipped the §3 before-number, would have merged.
+- The asymmetry was the tell: proposals to change the *protocol* got a
+  reject-by-default rubric and a real audit, while rounds changing *a project* got
+  a checklist — and the checklist path is the one that runs several times a week.
+- The independence needed for this already existed and was going unused: round
+  N's PR is merged by round N+1's session.
+
+**Constraint**
+- The reviewing session must **not fix the PR itself.** Repairing it collapses
+  reviewer and author into one agent and destroys the only independent check in the
+  sequence. Comment, leave it, queue the fix as a round with its own before/after.
+
 ## [0.6.1] — 2026-07-27
 
 **Changed**

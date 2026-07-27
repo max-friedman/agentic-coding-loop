@@ -23,6 +23,12 @@ Round budget: 1.
 If the repository has no docs/plans/LOOP_STATE.md, run §B Bootstrap instead of a
 round, then stop. Do not run a round in the same session.
 
+FIRST, review and merge the previous round's pull request per §D "Reviewing the
+previous round". Read the diff against that round's own claims, not just its CI
+status. Merge only if every check passes; if one fails, comment naming it, leave
+the PR open, and queue the fix. Do NOT fix the PR yourself. If more than TWO
+round PRs are open, stop and start no new round.
+
 The §D unattended rules are in force and are absolute:
 - Cut the branch before the first edit (§1). Never commit to the default branch.
 - Never force-push, never rewrite published history.
@@ -33,7 +39,8 @@ The §D unattended rules are in force and are absolute:
 - Fail loudly. A silent no-op is indistinguishable from a healthy quiet day.
 
 End by opening a pull request whose body is the round's writeup: question, method,
-finding, shipped, consequences, ending state. A human merges it.
+finding, shipped, consequences, ending state. Do not merge it — the next round
+reviews and merges it.
 
 If §C says a loop audit is due, do that inside this round and file a proposal only
 if there is a pattern with a cost. Most audits find nothing; report nothing found.
@@ -72,29 +79,36 @@ to everything around it.
 So each project owns its own scheduling, its own merging, and its own liveness
 check. What upstream provides is this page.
 
-## Merging: fold it into the round, don't add a Routine
+## Reviewing and merging: fold both into the round
 
-The cleanest place to merge the previous round's pull request is the *start of the
-next round*. Add a step before §0:
+A round never merges itself. The next round's session reviews and merges it — a
+fresh session that did not write the work and cannot be attached to it. That is the
+only independent check in an unattended sequence, so use it as one.
+
+Add a step before §0:
 
 ```
-Before starting, look at open pull requests whose head branch starts with
-`round` or `loop/`. Merge the oldest ONLY if CI is green, no review comment
-requests changes, and it does not weaken a standing invariant or edit the
-project's rules to make a round pass — green CI does not override that last one.
+Before starting, review and merge the previous round's pull request per §D
+"Reviewing the previous round" — read the diff against the round's own claims,
+not just its CI status. Green CI proves the code runs, not that the round did
+what its writeup says.
 
-If more than TWO round PRs are open, STOP and start no new round. Report that
-rounds are being produced faster than they are reviewed.
+Merge only if every check passes. If one fails, comment naming it, leave the PR
+open, and queue the fix as the next round's item. Do NOT fix the PR yourself —
+that collapses reviewer and author into one agent.
+
+If more than TWO round PRs are open, STOP and start no new round.
 ```
 
-Two things fall out of this for free. The gap between firings *is* the veto window,
-with no timer to configure. And the backlog check makes the Routine notice its own
-overproduction — a stream of unread diffs is worse than no diffs, and nothing else
-in the system is positioned to see it.
+Three things fall out of this for free. The gap between firings is the veto window,
+with no timer to configure. The backlog check makes the Routine notice its own
+overproduction. And review costs no extra Routine, because the session that would
+have merged anyway is already reading the diff.
 
-The invariant carve-out is not optional. An agent that can merge changes to its own
-constraints is unconstrained, and a green suite is exactly how a weakened assertion
-gets through.
+The *nothing was weakened* check is the one that cannot be skipped: an assertion
+relaxed or a test exempted, **regardless of green CI**. An agent that can merge
+changes to its own constraints is unconstrained, and a green suite is exactly how a
+weakened assertion gets through.
 
 ## Watch for silence
 
