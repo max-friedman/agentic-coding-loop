@@ -160,6 +160,18 @@ It deliberately does **not** review proposals itself. Doing so would hide the
 failure it exists to detect, and would post the very `## Verdict:` comment that
 removes the issue from the reviewer's queue forever.
 
+A failure that will still be true tomorrow gets an **issue**, labelled `watchdog`,
+not just a notification — a notification is ephemeral, and if it is missed the
+finding is gone with no state and nothing to close when fixed. It searches before
+filing and comments on the existing issue rather than opening a second, then closes
+the issue when the failure clears.
+
+Its scope is **this repository only**. Projects running the loop are independent and
+keep their own liveness checks; see
+[`templates/PROJECT_ROUTINE.md`](templates/PROJECT_ROUTINE.md). A watchdog here that
+babysat each adopting project would grow a hardcoded branch per project and make
+every project depend on infrastructure it does not control.
+
 It reports `All healthy, nothing to do.` and nothing more on quiet days. A watchdog
 that speaks every day trains you to stop reading it.
 
