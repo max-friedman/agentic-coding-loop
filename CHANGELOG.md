@@ -8,6 +8,41 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.5.0] — 2026-07-27
+
+Closes the propagation gap and sets the autonomy boundary explicitly. The loop can
+now run unattended end to end, with two human touchpoints kept on purpose.
+
+**Added**
+- **§0 precondition 6** — check for a newer protocol release and take it before
+  starting. Previously a released change reached a project only when someone
+  manually ran `/plugin update`, so the last mile of the loop was never automated.
+  Non-blocking: a release you cannot reach is not a reason to skip the round.
+- **Two §D unattended absolutes.** *Never weaken your own limits* — an unattended
+  sequence may not edit the project rules, invariants, stop conditions, or this
+  protocol to make its own work easier; propose via §C and keep running under
+  current rules. *Fail loudly* — a silent no-op is indistinguishable from a healthy
+  quiet day when nobody is watching.
+- **`templates/PROJECT_ROUTINE.md`** — one scheduled Routine per project, with the
+  paste-in prompt, cadence guidance, and what must stay human. The failure mode of a
+  scheduled loop is not running too rarely; it is producing a diff every day that
+  nobody reads until the whole stream is ignored.
+- **A watchdog Routine** (documented in `CONTRIBUTING.md`). Checks outcomes rather
+  than processes: a `proposal` issue past 12 hours with no verdict means the
+  reviewer is not working. Merges loop-authored PRs after a 24-hour veto window,
+  never those touching the lockout paths. Says `All healthy, nothing to do.` and
+  nothing more on quiet days.
+- **Reviewer self-audit** — monthly, or every tenth proposal, against five
+  questions including which criterion has never rejected anything. The first audit
+  is already owed.
+
+**Deliberately not automated**
+- `ESCALATE` verdicts. If the reviewer could merge changes to its own rubric,
+  workflows, or CODEOWNERS, the governance would be decorative.
+- `NEEDS-MAX` items — credentials, spend, decisions that are not the agent's.
+
+These two are what keep the system bounded. Everything else is now closed.
+
 ## [0.4.0] — 2026-07-27
 
 First release driven by downstream proposals. Both came from one project after

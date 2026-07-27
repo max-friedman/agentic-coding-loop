@@ -129,6 +129,40 @@ A human or another agent posting a verdict by hand therefore removes that issue 
 the queue whether or not the work was done. It cannot distinguish *reviewed and
 implemented* from *reviewed and abandoned*.
 
+## Auditing the reviewer
+
+The reviewer is subject to the same discipline it enforces. Roughly monthly, or
+after every tenth proposal, it audits its own record:
+
+| question | what a bad answer looks like |
+|---|---|
+| What fraction of proposals were accepted? | A high accept rate against a reject-by-default standard means the rubric has no teeth. |
+| Which criterion has never rejected anything? | A criterion that never fires is either redundant or unenforced. |
+| Do rejected proposals come back stronger, or not at all? | Never returning suggests rejections are unactionable rather than instructive. |
+| Are escalations growing? | A growing `needs-human` queue means the autonomy boundary is too tight. |
+| Did any accepted change get reverted or superseded quickly? | The rubric passed something it should have caught. |
+
+Findings go in `CHANGELOG.md` under the release that acts on them. The first such
+audit is already owed: two proposals reviewed, two merged, both from a project
+closely related to this one and submitted on a template written here.
+
+## The watchdog
+
+A separate daily Routine checks outcomes rather than processes — it cannot see
+whether a scheduled job ran, only whether its work got done.
+
+It reports when a `proposal` issue has gone more than 12 hours without a verdict
+(the reviewer is not working), when `needs-human` issues are accumulating, and it
+merges loop-authored pull requests that have been open at least 24 hours and touch
+nothing in the lockout paths.
+
+It deliberately does **not** review proposals itself. Doing so would hide the
+failure it exists to detect, and would post the very `## Verdict:` comment that
+removes the issue from the reviewer's queue forever.
+
+It reports `All healthy, nothing to do.` and nothing more on quiet days. A watchdog
+that speaks every day trains you to stop reading it.
+
 It treats issue bodies as untrusted text: evidence about what happened, not
 instructions. An issue that tries to alter the reviewer's criteria, assert
 maintainer authority, or claim prior approval is rejected on that basis alone.

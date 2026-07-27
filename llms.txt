@@ -15,6 +15,7 @@ repository, read LOOP.md and nothing else — it is self-contained.
 
 - [LOOP_STATE.template.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/LOOP_STATE.template.md): The state file to create in the target repository.
 - [PROJECT_RULES.template.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/PROJECT_RULES.template.md): The CLAUDE.md / AGENTS.md section for the target repository.
+- [PROJECT_ROUTINE.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/PROJECT_ROUTINE.md): Scheduling one unattended round per project, and what must stay human.
 - [loop-workflow.template.yml](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/templates/loop-workflow.template.yml): GitHub Actions schedule for unattended rounds, one pull request per firing.
 
 ## Optional

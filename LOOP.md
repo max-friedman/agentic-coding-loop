@@ -26,6 +26,10 @@ That file is the memory. Read it first, write it last.
    no CI, adding it is a legitimate round. If CI genuinely cannot run here, record
    *why* in the state file rather than letting "the gate is green" quietly mean
    "green once, locally."
+6. Check for a newer protocol release and take it before starting. Plugin users:
+   `/plugin marketplace update agentic-coding-loop && /plugin update loop`. Others:
+   compare against the upstream `CHANGELOG.md`. Skip and proceed if the check fails
+   — a release you cannot reach is not a reason to skip the round.
 
 The loop runs **repeatedly**. One round is the unit; §D governs the sequence.
 
@@ -340,6 +344,12 @@ are absolute:
   a red gate produces a pull request nobody can review.
 - Reduce the round budget to **1** unless configured otherwise. One reviewable pull
   request per firing beats a batch nobody reads.
+- **Never weaken your own limits.** An unattended sequence may not edit the project
+  rules, the standing invariants, the stop conditions, or this protocol to make its
+  own work easier. Propose the change through §C and keep running under the current
+  rules until it lands. An agent that can rewrite its own constraints has none.
+- **Fail loudly.** If you cannot complete the round, say so and stop. A silent
+  no-op is indistinguishable from a healthy quiet day, and nobody is watching.
 
 ### Scheduling
 
