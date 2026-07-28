@@ -5,11 +5,24 @@
 > until a stop condition fires.
 
 Consumed by coding agents. If you are an agent adopting this loop in another
-repository, read LOOP.md and nothing else — it is self-contained.
+repository, read LOOP.md — it is self-contained for the core protocol. Then check
+the Domains table below; it is the one additional thing worth reading before you
+bootstrap.
 
 ## Start here
 
 - [LOOP.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md): The complete protocol. Round steps, hard rules, ending states, audit round, bootstrap, feedback, continuous operation. One fetch, no dependencies.
+
+## Domains (optional, additive — check before bootstrapping)
+
+Each domain layers onto LOOP.md's round steps and §E; it does not replace them.
+Fetch a domain's DOMAIN.md only if the target project clearly matches its
+description. No clear match, or it's a stretch → proceed core-only. Never force a
+fit — an unmatched domain is not a gap, it's the correct answer.
+
+| domain | fetch if the target project... | file |
+|---|---|---|
+| ux-roast | is a user-facing product (an app, a site) doing continuous UX-driven improvement and wants stricter roast mechanics than core §E alone — independent verification triage at scale, parallelized fixes for disjoint findings, a coverage map keyed by user-facing surface | [domains/ux-roast/DOMAIN.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/domains/ux-roast/DOMAIN.md) |
 
 ## Templates
 

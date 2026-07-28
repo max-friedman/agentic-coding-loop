@@ -27,12 +27,17 @@ considering it._
 
 <!-- Every row must cite something a user could hit: a command and its real
      output, a page they land on, a step they must perform. A complaint supported
-     only by the round history or an internal doc is struck before it gets here. -->
+     only by the round history or an internal doc is struck before it gets here.
+     Every row must also be checked against ground truth (§E step 2) — real,
+     critic-mistake, or environment-artifact. Only "real" rows proceed to the
+     falsifiability test. -->
 
-| # | complaint, in the user's voice | evidence cited | falsifiable? | disposition |
-|---|---|---|---|---|
-| 1 | _"..."_ | _`the command you ran` → what happened_ | yes | queued as Q3 |
-| 2 | _"..."_ | _the page a user lands on_ | no | noted, not queued |
+| # | complaint, in the user's voice | evidence cited | verified | falsifiable? | disposition |
+|---|---|---|---|---|---|
+| 1 | _"..."_ | _`the command you ran` → what happened_ | real | yes | queued as Q3 |
+| 2 | _"..."_ | _the page a user lands on_ | real | no | noted, not queued |
+| 3 | _"..."_ | _what the critic saw_ | critic-mistake — _actual cause_ | — | noted, not queued |
+| 4 | _"..."_ | _what the critic saw_ | environment-artifact — _what actually happened_ | — | noted, not queued |
 
 **Queued:** _items added to the state file, each phrased as a question with what a
 negative result would look like._

@@ -101,7 +101,10 @@ force-pushes and deletions blocked.
 
 Every skill inlines [`LOOP.md`](LOOP.md) at load time, so the protocol has exactly
 one copy and no skill can drift from it. Other harnesses — any agent, any tool —
-read `LOOP.md` directly; it is self-contained in a single fetch. See
+read `LOOP.md` directly; it is self-contained in a single fetch. Then check the
+**Domains** table in [`llms.txt`](llms.txt) — optional, additive layers (e.g. a
+UX-roast domain for user-facing products) that a matching project should fetch
+alongside `LOOP.md`, before bootstrapping. No match → proceed core-only. See
 [`docs/ADOPTING.md`](docs/ADOPTING.md).
 
 ## The design decisions worth defending
@@ -138,6 +141,7 @@ The repo's credibility rests on this section being accurate rather than short.
 |---|---|
 | [`LOOP.md`](LOOP.md) | The protocol. Self-contained, one fetch, written to be executed. |
 | [`skills/`](skills) | Six Claude Code skills; each inlines `LOOP.md`. |
+| [`domains/`](domains) | Optional, additive layers for project-shaped rules — e.g. `ux-roast`. See `llms.txt`'s Domains table. |
 | [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md) | The standard a proposal must clear. Reject by default. |
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Each rule and the specific failure it prevents. |
 | [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | The rounds above, in full, including what they cost. |

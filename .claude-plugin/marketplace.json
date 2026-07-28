@@ -12,7 +12,7 @@
       "displayName": "Agentic Coding Loop",
       "source": "./",
       "strict": false,
-      "version": "0.8.0",
+      "version": "0.10.0",
       "description": "Run the improvement loop in a repository: bootstrap the LOOP_STATE.md spine, run a falsifiable round against it, audit a claim, or send a learning upstream. The protocol is LOOP.md; every skill inlines it.",
       "homepage": "https://github.com/max-friedman/agentic-coding-loop",
       "repository": "https://github.com/max-friedman/agentic-coding-loop",
@@ -23,6 +23,23 @@
       },
       "category": "workflow",
       "tags": ["loop", "planning", "long-running", "state", "governance"]
+    },
+    {
+      "name": "loop-ux-roast",
+      "displayName": "Agentic Coding Loop — UX Roast domain",
+      "source": "./domains/ux-roast",
+      "strict": false,
+      "version": "0.1.0",
+      "description": "Optional domain layer for the agentic coding loop, for user-facing products doing continuous UX-driven improvement: a coverage map keyed by surface, verification at scale for multi-complaint roast passes, and parallelized maker+checker fixes for disjoint findings. Additive to core §E, never a replacement; requires the core `loop` plugin.",
+      "homepage": "https://github.com/max-friedman/agentic-coding-loop",
+      "repository": "https://github.com/max-friedman/agentic-coding-loop",
+      "license": "MIT",
+      "author": {
+        "name": "Max Friedman",
+        "url": "https://github.com/max-friedman"
+      },
+      "category": "workflow",
+      "tags": ["loop", "ux", "domain", "roast", "product"]
     }
   ]
 }

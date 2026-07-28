@@ -8,6 +8,77 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.10.0] — 2026-07-27
+
+Optional domains: a project can layer project-shaped rules onto the core
+protocol without the core protocol ever naming one.
+
+**Added**
+- **Domain discovery.** A Domains table in `llms.txt`, a domain-check step in §B
+  Bootstrap (step 2) and §0 Preconditions (step 1), and a `**Layers:**` field in
+  `templates/LOOP_STATE.template.md`. An agent adopting the loop reads one table
+  and decides whether a domain fits — no plugin install required just to
+  discover one, and no forcing a fit when none does.
+- **`domains/ux-roast`** — the first domain, shipped as its own marketplace
+  plugin (`loop-ux-roast`, versioned independently of `loop`), additive to core
+  via a symlinked `LOOP.md` and its own `DOMAIN.md`: parallelized maker+checker
+  fixes for disjoint findings, and a coverage map keyed by user-facing surface.
+  Deliberately does not redefine roasting or verification — §E and its step 2
+  already cover that generically as of 0.9.0; the domain only adds what's still
+  genuinely project-shaped on top.
+
+**Why**
+- The review rubric's own posture (`docs/REVIEW_RUBRIC.md`, hard disqualifier 6)
+  is that project-specific workflow belongs in a project's own rules, not a
+  proposal to the shared protocol every project must read. A domain plugin is
+  the mechanism for exactly that gap: rules real enough to be worth sharing, but
+  shaped for one kind of project rather than every project running the loop.
+  Nothing here is a proposal to LOOP.md's required steps; a project that never
+  opts in behaves exactly as before.
+- Explicitly excluded from the domain: an unattended auto-merge tier without a
+  separate review session. §D's current MUST (0.7.0) is that a round never
+  merges itself — that is a stop condition's cousin, not a project-specific
+  workflow choice, and disqualifier 1 rejects weakening a MUST "as an escape
+  hatch" even when the escape hatch is opt-in. A project that wants this stays
+  on it as a documented local divergence, not a shared plugin setting.
+
+**Blast radius**
+- Zero for a project that never fetches a domain — llms.txt gains one table, and
+  §B/§0 gain a check that resolves to "no match, proceed core-only" immediately
+  for any project without a fitting domain.
+
+## [0.9.0] — 2026-07-27
+
+A roast can cite something real and still be wrong about it. Now it has to survive
+a second check before it reaches the queue.
+
+**Added**
+- **§E step 2 — Verify against ground truth.** Every complaint that survives
+  step 1's citation requirement is checked against application state, logs, or a
+  second run, and tagged `real`, `critic-mistake`, or `environment-artifact`. Only
+  `real` complaints shape the verdict (now step 3) or reach the queue.
+- **`docs/PRINCIPLES.md` §11** — citing something is not the same as diagnosing it
+  correctly, with the anti-laundering guardrail: ground truth may correct or drop
+  an unreal complaint, never explain away one a real user would still hit.
+- `templates/ROAST_LOG.template.md`'s complaint table gained a `verified` column.
+
+**Why**
+- §E's existing rule — every complaint must cite something a user could hit —
+  catches fabrication. It does not catch misattribution: a critic can genuinely
+  see a real screen and still guess wrong about why it looks wrong, or be looking
+  at a test-harness artifact no real user could reach. [Proposal
+  003](proposals/003-roast-findings-need-verification.md) evidenced a recurring
+  pattern of exactly this across many rounds of one project's history, predating
+  this repository's own §E.
+- Verification is placed *before* the verdict, not after, so a complaint later
+  found to be an environment-artifact never shapes what the roast claims a real
+  user would experience.
+
+**Blast radius**
+- One additional step per roast, one additional table column. Near-zero cost for
+  a roaster that already has ground-truth access while roasting; this is the step
+  that catches the failure for a roaster deliberately kept blind to internals.
+
 ## [0.8.0] — 2026-07-28
 
 An empty queue can now refill itself — **opt-in, and off by default**.

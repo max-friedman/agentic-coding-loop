@@ -53,12 +53,31 @@ All six carry `when_to_use` triggers and are model-invocable — an agent picks 
 right one from intent ("run the loop", "does that claim still hold") without a human
 typing a slash command.
 
-**Updates** are pinned to an explicit `version`, so pushes to `main` do not reach
-you until a release:
+**Domain plugins are separate, optional installs** — layers on top of these same
+six skills, for projects that fit a specific domain. Currently:
+
+```
+/plugin install loop-ux-roast@agentic-coding-loop
+```
+
+| skill | what it does |
+|---|---|
+| `loop-init-ux` | Bootstraps the state file with `Layers: core + ux-roast` declared, CUJ-framed queue, coverage map by surface. |
+| `loop-roast-ux` | A roast round using core §E, specialized with verification-at-scale and parallelized maker+checker fixes for disjoint findings. |
+
+Install this only if the target project is a user-facing product doing
+continuous UX-driven improvement — see the Domains table in
+[`../llms.txt`](../llms.txt) for the fit criteria. A domain's skills inline both
+`LOOP.md` and its own `DOMAIN.md`, so core and domain stay separately versioned
+and neither can drift from the other.
+
+**Updates** are pinned to an explicit `version` per plugin, so pushes to `main` do
+not reach you until a release:
 
 ```
 /plugin marketplace update agentic-coding-loop
 /plugin update loop
+/plugin update loop-ux-roast
 ```
 
 Pinning is deliberate. These instructions execute inside your repo; you choose when
@@ -124,10 +143,11 @@ claude plugin validate . --strict
 
 `--strict` turns unrecognized-field warnings into errors, catching a misspelled
 manifest key before it silently does nothing. To check discovery end to end, install
-from a local path and confirm all six skills appear:
+from a local path and confirm all six core skills (and any domain plugin's) appear:
 
 ```bash
 claude plugin marketplace add /absolute/path/to/agentic-coding-loop
 claude plugin install loop@agentic-coding-loop
+claude plugin install loop-ux-roast@agentic-coding-loop
 claude plugin list
 ```
