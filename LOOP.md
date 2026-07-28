@@ -15,7 +15,11 @@ That file is the memory. Read it first, write it last.
 ## 0. Preconditions
 
 1. Read `docs/plans/LOOP_STATE.md` in full, including the bottom sections. The
-   standing invariants are at the bottom and are the most important part.
+   standing invariants are at the bottom and are the most important part. If
+   `## Current status` declares a `**Layers:**` beyond core, fetch that domain's
+   `DOMAIN.md` (see §B step 2) and apply it for the rest of this round — the
+   declaration was made once at bootstrap precisely so later rounds don't re-derive
+   it.
 2. Read the project rules (`CLAUDE.md` or `AGENTS.md`) if present.
 3. If `docs/plans/LOOP_STATE.md` does not exist, run **§B Bootstrap** instead of a
    round, then stop.
@@ -216,13 +220,20 @@ Verdict is one of: `holds`, `fails`, `unmeasurable as stated`.
 ## §B Bootstrap (no state file yet)
 
 1. If `docs/plans/LOOP_STATE.md` exists, STOP. Never overwrite it.
-2. Read enough to fill it honestly: README and purpose docs; the exact gate command
+2. Check for a domain fit before reading further. Fetch the Domains table in
+   `llms.txt` (`https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/llms.txt`)
+   and compare its descriptions against the target project. A clear match → fetch
+   that domain's `DOMAIN.md` too and layer it in for the rest of bootstrap and every
+   round after. No clear match, or it's a stretch → proceed core-only. Record the
+   choice as a `**Layers:**` line in `## Current status` — never guess silently and
+   never force a fit. A domain is additive to the steps above; it never replaces one.
+3. Read enough to fill it honestly: README and purpose docs; the exact gate command
    (from `package.json`, `pyproject.toml`, `Makefile`, CI config); tests asserting
    *properties* rather than behavior (candidate invariants); TODO/FIXME clusters and
    known-weakness sections (candidate queue items).
-3. Write `docs/plans/LOOP_STATE.md` with every section from step 6 above. Round 0.
+4. Write `docs/plans/LOOP_STATE.md` with every section from step 6 above. Round 0.
    Headline is often "unmeasured" — say so.
-4. Add to the project rules file, at the very top:
+5. Add to the project rules file, at the very top:
 
    ```markdown
    **Working the improvement loop? Read [`docs/plans/LOOP_STATE.md`](docs/plans/LOOP_STATE.md)
@@ -230,9 +241,10 @@ Verdict is one of: `holds`, `fails`, `unmeasurable as stated`.
    and the standing invariants. Context is lost between rounds; that file is not.
    ```
 
-5. Write only rules you can justify from code you read. An invented rule is worse
+6. Write only rules you can justify from code you read. An invented rule is worse
    than no rule — it gets cited later as if load-bearing.
-6. Report the drafted queue and invariants, and say which sections you guessed at.
+7. Report the drafted queue and invariants, which domain (if any) was matched, and
+   say which sections you guessed at.
 
 ---
 
@@ -496,18 +508,45 @@ read only the docs a user would actually find.
 Where the roast and the project's own docs disagree, the roast is the evidence —
 the docs were written by whoever built the thing.
 
-### 2. Write the verdict before the fixes
+### 2. Verify against ground truth
 
-One honest paragraph in the user's voice: what this is, whether it did the job,
-and what you would say about it to someone considering it. Write it before
-proposing a single improvement — a verdict written afterward is shaped to justify
-the fixes already in mind.
+Every complaint that survived step 1's citation requirement still gets checked
+against what the blind pass didn't have — application state, logs, or a second
+independent run — and tagged one of three ways:
+
+- **Real.** The cause is correctly attributed, and a user could genuinely
+  encounter it.
+- **Critic-mistake.** Something was seen, but the roast misattributed the cause.
+- **Environment-artifact.** The cause is real but a user would never hit it — a
+  test-harness quirk, leftover state from a previous pass, tooling noise. Not
+  something this product does to a user; something this *check* did to itself.
+
+Citing something you saw is not the same as diagnosing it correctly. A critic can
+genuinely observe a real screen and still guess wrong about why it looks wrong —
+step 1's bar catches fabrication, not misattribution.
+
+**The guardrail this step must not become:** ground-truth access explaining away a
+complaint a real user would still experience, just because the internal cause
+differs from what the critic guessed. Only *environment-artifact* — a cause a user
+could never reach — drops a complaint. A *critic-mistake* keeps the observation
+and corrects the cause; it does not disappear.
+
+Only **real** complaints proceed to step 3's verdict and step 5's queue.
+Critic-mistakes and environment-artifacts are recorded in the roast log with their
+disposition, so the same false alarm is not re-diagnosed from scratch next time.
+
+### 3. Write the verdict before the fixes
+
+One honest paragraph in the user's voice, built from the **real** complaints only:
+what this is, whether it did the job, and what you would say about it to someone
+considering it. Write it before proposing a single improvement — a verdict written
+afterward is shaped to justify the fixes already in mind.
 
 Be specific and unkind. "The quickstart is confusing" is not a complaint. "The
 quickstart's first command fails because it assumes a config file that step 4
 creates" is.
 
-### 3. Deduplicate against the roast log
+### 4. Deduplicate against the roast log
 
 Read `docs/plans/ROAST_LOG.md`. A complaint already recorded there and deliberately
 not queued MUST NOT be re-queued without **new** evidence — say what changed.
@@ -515,10 +554,10 @@ not queued MUST NOT be re-queued without **new** evidence — say what changed.
 Without this, an indefinite loop cycles on the same three complaints forever and
 reports motion.
 
-### 4. Convert only what is falsifiable
+### 5. Convert only what is falsifiable
 
-Each surviving complaint faces one test: **can it be phrased as a question with a
-measurement that could come back bad?**
+Each surviving **real** complaint faces one test: **can it be phrased as a
+question with a measurement that could come back bad?**
 
 - Passes → queue it, in §2's form: the question, and what a negative result looks
   like. It is now an ordinary queue item and the next round is an ordinary round.
@@ -528,7 +567,7 @@ measurement that could come back bad?**
 A complaint that cannot be made falsifiable is not thereby wrong. It is not yet a
 round.
 
-### 5. Write the roast log
+### 6. Write the roast log
 
 Append to `docs/plans/ROAST_LOG.md` — create it from
 [`templates/ROAST_LOG.template.md`](templates/ROAST_LOG.template.md) if absent.
@@ -539,17 +578,17 @@ edited afterward.
 ## Roast N — <date> — <one-line verdict>
 
 **Ran as:** the journey actually performed — commands, entry points, what a user was assumed to want.
-**Verdict:** the honest paragraph from step 2.
-**Complaints:** table of complaint | evidence cited | falsifiable | disposition.
+**Verdict:** the honest paragraph from step 3, built from real complaints only.
+**Complaints:** table of complaint | evidence cited | verified (real / critic-mistake / environment-artifact) | falsifiable | disposition.
 **Queued:** items added, each as a question.
-**Noted, not queued:** complaints that could not be made falsifiable, with why.
+**Noted, not queued:** complaints that could not be made falsifiable, or that verification found was a critic-mistake or environment-artifact, with why.
 **New this roast:** how many complaints do not already appear above. Zero means stop.
 ```
 
 Then update `## Queue — next rounds` in the state file and record the roast on the
 current round's **Loop:** line. Never write `## Loop configuration`.
 
-### 6. Decide whether to continue
+### 7. Decide whether to continue
 
 | condition | action |
 |---|---|

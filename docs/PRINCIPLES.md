@@ -1,6 +1,6 @@
 # Principles
 
-Ten rules. Each one names a specific failure it prevents. None of them are
+Eleven rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
 
 Rules 9 and 10 arrived differently from the rest: they came from projects running
@@ -156,6 +156,36 @@ Prose that has already been ignored once will be ignored again.
 *Arrived as [proposal 002](../proposals/002-branch-fires-too-late.md). Accepted at
 a different step than proposed, on the strength of the submitter's own objection to
 their primary placement.*
+
+## 11. Citing something is not the same as diagnosing it correctly
+
+A roast's one honesty rule — every complaint must cite something a user could
+hit — catches fabrication. It does not catch misattribution: a critic can
+genuinely see a real screen and still guess wrong about why it looks wrong, or be
+looking at a test-harness artifact a real user could never reach.
+
+The failure it prevents: **the confidently wrong complaint**. A project running an
+informal predecessor of the roast round for months found a recurring minority of
+complaints that passed the citation bar and were still wrong — a thing that looked
+like two conflicting UI elements was two legitimate ones; a thing that looked like
+data corruption was stale state left by a previous test pass; a thing that looked
+like a dropped-input bug was an artifact of the harness driving the product, not
+something a real user would ever hit. Every one satisfied "cite what you saw,"
+because the critic genuinely did see it.
+
+**The fix is a second check, not a stricter first one.** No citation requirement
+distinguishes a correct diagnosis from a plausible-sounding wrong one; only
+comparing the complaint against ground truth — state, logs, a second run — does.
+The check may only correct or drop a complaint that turns out to be unreal. It may
+never use internal knowledge to explain away a complaint a real user would still
+experience — that would turn a truth check into a laundering step, which is the
+one failure mode worse than not checking at all.
+
+*Arrived as [proposal 003](../proposals/003-roast-findings-need-verification.md),
+filed as evidence from a project's own history running that informal predecessor.
+Accepted with the anti-laundering guardrail the submitter flagged against their own
+proposal — the strongest objection to a proposal is sometimes the reason to keep it,
+narrowed.*
 
 ---
 

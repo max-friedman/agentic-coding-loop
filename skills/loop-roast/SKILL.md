@@ -31,6 +31,16 @@ an internal design doc is struck before it reaches the table.
 
 You are roasting the product, not the code. Run the thing.
 
+## Citing something is not the same as diagnosing it correctly
+
+Before the verdict, check each surviving complaint against ground truth (state,
+logs, a second run) and tag it real, critic-mistake, or environment-artifact.
+Only *real* complaints shape the verdict or reach the queue — a critic can
+genuinely see a real screen and still guess wrong about why it looks wrong, or be
+looking at a test-harness artifact a real user could never hit. Ground truth may
+only correct or drop a complaint that turns out to be unreal; it may never explain
+away a complaint a real user would still experience.
+
 ## Finding nothing is a result
 
 A roast that produces no complaint not already in the log means the loop is
