@@ -100,3 +100,26 @@ code is wrong, not the assertion.
      silently stop working while still looking fine. -->
 
 - _<property>_ — _<the test that enforces it>_
+
+---
+
+## Loop configuration
+
+**Human-set. A round never writes this section** — an agent that can enable its
+own `indefinite` setting has no limit on it. See `LOOP.md` §D and §E.
+
+| setting | value | meaning |
+|---|---|---|
+| `roast-on-empty` | `off` | When the queue empties, run §E (roast round) instead of stopping. |
+| `indefinite` | `off` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
+| `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+
+<!-- Defaults are off. Leaving them off is the recommended posture: an empty queue
+     is normally a correct stop, and turning it into a trigger for generated work
+     is a deliberate trade, not an upgrade.
+
+     `indefinite` lifts ONLY the empty-queue stop condition. A red gate, a
+     would-be-weakened invariant, two consecutive blocked rounds, a round with no
+     commit, an item attempted twice, a dirty tree, and more than two open round
+     PRs all still halt the sequence. -->
+

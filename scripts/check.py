@@ -30,7 +30,7 @@ BEHAVIOR_PATHS = ("LOOP.md", "skills/", "templates/")
 MANIFEST = ".claude-plugin/marketplace.json"
 
 # Resolved relative to the repo that ADOPTS the loop, not this one.
-EXPECTED_DANGLING = {"docs/plans/LOOP_STATE.md"}
+EXPECTED_DANGLING = {"docs/plans/LOOP_STATE.md", "docs/plans/ROAST_LOG.md"}
 
 failures: list[str] = []
 checks_run = 0

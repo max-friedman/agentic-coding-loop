@@ -26,15 +26,18 @@ round, then stop. Do not run a round in the same session.
 FIRST, review and merge the previous round's pull request per §D "Reviewing the
 previous round". Read the diff against that round's own claims, not just its CI
 status. Merge only if every check passes; if one fails, comment naming it, leave
-the PR open, and queue the fix. Do NOT fix the PR yourself. If more than TWO
-round PRs are open, stop and start no new round.
+the PR open, and queue the fix naming that PR's number. Do NOT fix the PR
+yourself. Then close any older round PR whose queued fix has already merged — it
+is superseded, and nothing else will ever revisit it. If more than TWO round PRs
+are open after that, stop and start no new round.
 
 The §D unattended rules are in force and are absolute:
 - Cut the branch before the first edit (§1). Never commit to the default branch.
 - Never force-push, never rewrite published history.
 - Never spend money — anything metered is a NEEDS-MAX item, not a decision.
-- Never weaken the project's rules, invariants, or stop conditions to make this
-  round easier. Propose upstream via §C and keep running under current rules.
+- Never weaken the project's rules, invariants, stop conditions, or the state
+  file's `## Loop configuration` to make this round easier. Propose upstream via
+  §C and keep running under current rules.
 - Stop at the first stop condition and name which one fired.
 - Fail loudly. A silent no-op is indistinguishable from a healthy quiet day.
 
@@ -46,7 +49,9 @@ If §C says a loop audit is due, do that inside this round and file a proposal o
 if there is a pattern with a cost. Most audits find nothing; report nothing found.
 
 If there is no work — empty queue, nothing actionable — say so and stop. Do not
-invent a round to justify the firing.
+invent a round to justify the firing. The one exception is an empty queue when the
+state file's `## Loop configuration` sets `roast-on-empty` to on: run §E instead.
+Never enable that setting yourself.
 ```
 
 ## Cadence
@@ -59,7 +64,7 @@ progress. Each firing costs a session and produces a diff someone must read.
 | Active, queue full | Daily on weekdays |
 | Steady | Two or three times a week |
 | Mature, queue thin | Weekly |
-| Queue empty | Pause the Routine. A loop with nothing to do should stop, not generate work. |
+| Queue empty | Pause the Routine. A loop with nothing to do should stop, not generate work — unless you have deliberately enabled `roast-on-empty` (§E), which trades that stop for generated work with evidence behind it. |
 
 The failure mode of a scheduled loop is not running too rarely. It is producing a
 pull request every day that nobody reads, until the whole stream is ignored.
@@ -94,10 +99,14 @@ not just its CI status. Green CI proves the code runs, not that the round did
 what its writeup says.
 
 Merge only if every check passes. If one fails, comment naming it, leave the PR
-open, and queue the fix as the next round's item. Do NOT fix the PR yourself —
-that collapses reviewer and author into one agent.
+open, and queue the fix as the next round's item, naming that PR's number. Do NOT
+fix the PR yourself — that collapses reviewer and author into one agent.
 
-If more than TWO round PRs are open, STOP and start no new round.
+Then close any older round PR whose queued fix has already merged. The review
+step only ever looks at the previous round, so a request-changes PR is never
+revisited and would otherwise consume a slot forever.
+
+If more than TWO round PRs are open after that, STOP and start no new round.
 ```
 
 Three things fall out of this for free. The gap between firings is the veto window,

@@ -8,6 +8,67 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.8.0] — 2026-07-28
+
+An empty queue can now refill itself — **opt-in, and off by default**.
+
+**Added**
+- **§E Roast round.** When the queue empties and `roast-on-empty` is enabled, the
+  loop meets the product as a first-time user with no goodwill, writes an unkind
+  verdict, and turns the complaints that survive a falsifiability test into queue
+  items. Ships no features; the deliverable is the critique.
+- **`## Loop configuration`** in the state file — three human-set settings:
+  `roast-on-empty`, `indefinite`, `roast-budget`. All default off. A round may
+  never write this section, and §D's *never weaken your own limits* now names it
+  explicitly.
+- **`docs/plans/ROAST_LOG.md`** — an append-only changelog of roasts, with a
+  template. Every roast deduplicates against it.
+- **`loop-roast` skill**, and `loop-run` now consults the configuration when the
+  queue empties.
+- **A new stop condition:** a roast producing no complaint absent from the roast
+  log ends the sequence regardless of `indefinite`.
+
+**Why**
+- The empty-queue stop is correct for most projects and stays the default. But it
+  is also the condition a long-running project hits first, and the honest options
+  at that point were "stop" or "invent work". §E is a third: generate work, but
+  only from evidence a user could hit.
+- Three mechanisms keep this from becoming the work-invention machine the
+  empty-queue stop was written against. Every complaint must cite a command,
+  page, or step a user could actually reach — a complaint supported only by the
+  round history is struck. Only complaints that survive rephrasing as a
+  falsifiable question reach the queue; the rest are recorded as *noted, not
+  queued*. And a roast that finds nothing new stops the loop, so exhaustion is
+  detectable rather than papered over.
+- `indefinite` lifts **only** the empty-queue stop. A red gate, a would-be-weakened
+  invariant, two consecutive blocked rounds, an uncommitted round, a twice-attempted
+  item, a dirty tree, and a PR backlog above two all still halt the sequence.
+
+**Fixed**
+- **Orphaned round PRs no longer deadlock the loop.** The review step only ever
+  looks at the *previous* round's pull request, so a PR left open by a
+  request-changes verdict was never revisited — its fix landed on a separate
+  branch as a separate round, and nothing connected the two. Each one permanently
+  consumed a slot against the two-open-PR backlog rule, so two of them halted the
+  sequence for good with no failing check to explain why. Review now closes
+  superseded PRs, and a request-changes verdict records the PR number in the queue
+  entry so the fix can be traced back to it. Applies to every project, not only
+  those enabling §E — but it matters more under `indefinite`, where more firings
+  means more request-changes verdicts.
+
+**Blast radius**
+- Zero for projects that do not opt in to §E. A state file with no `## Loop
+  configuration` section behaves exactly as it did on 0.7.0 — the settings default
+  off and the empty-queue stop fires as written. No existing state file needs to
+  change. The PR fix above changes review behavior for everyone, in the direction
+  of closing fewer sequences.
+
+**Known limitation, stated rather than buried**
+- A roast is a model's impression of a user, not a user. It finds broken
+  quickstarts, unexplained errors, and undocumented assumptions. It does not find
+  what users want, because it has never wanted anything. Roast-derived items are
+  maintenance work with evidence behind them, not a roadmap.
+
 ## [0.7.0] — 2026-07-27
 
 Rounds are now **reviewed** before they merge, not merely gated.

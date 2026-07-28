@@ -34,6 +34,18 @@ rounds, a round with no commit, or the same item attempted twice without shippin
 Report which condition fired. Do not push through it, and do not substitute
 invented work for an empty queue.
 
+## When the queue empties
+
+Read `## Loop configuration` in the state file. If `roast-on-empty` is on, run
+**§E** — a roast round — instead of stopping, then continue only if `indefinite`
+is also on. If the section is absent or the setting is off, the empty-queue stop
+condition applies as written.
+
+Stop regardless of configuration when a roast produces no complaint that is not
+already in `docs/plans/ROAST_LOG.md`. That is the loop telling you it is exhausted.
+
+Never enable either setting yourself.
+
 ## If unattended
 
 No human in the session means the §D unattended rules are in force: work on
