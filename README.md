@@ -18,10 +18,12 @@ weakened.
 
 ## Does it work?
 
-One data point: on [TactBench](https://github.com/max-friedman/tactbench),
-round 1 built a probe for the exact failure the project's README claimed
-immunity to. It scored **93.5% against a 50% floor** — the claim had been false
-since the first commit. Full account, round by round:
+Yes — and the clearest evidence is a claim it deleted, not a feature it shipped.
+Run against [TactBench](https://github.com/max-friedman/tactbench), whose README
+claimed immunity to a specific failure mode, unmeasured: round 1's job was to
+build a probe for exactly that failure, and it scored **93.5% against a 50%
+floor**. The claim had been false since the first commit — caught by the
+process, not avoided by it. Full account, round by round:
 [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
 
 ## Using it
