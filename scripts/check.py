@@ -180,6 +180,48 @@ def check_inertness() -> None:
     check("no instruction file loads proposals/", not offenders, "; ".join(offenders))
 
 
+def check_evals() -> None:
+    """The reviewer eval's fixtures must stay well-formed and non-gameable.
+
+    The MERGE controls are the load-bearing ones: without them a reviewer that
+    rejects every proposal scores 86% and looks excellent, which is exactly the
+    failure a reject-by-default posture invites. Losing them would not break the
+    harness — it would silently make the number meaningless.
+    """
+    print("\nevals")
+    fixtures_dir = os.path.join(ROOT, "evals", "reviewer", "fixtures")
+    if not os.path.isdir(fixtures_dir):
+        check("reviewer fixtures exist", False, "evals/reviewer/fixtures missing")
+        return
+
+    names = sorted(f for f in os.listdir(fixtures_dir) if f.endswith(".md"))
+    check("reviewer fixtures exist", bool(names))
+
+    verdicts = {"MERGE", "REJECT", "ESCALATE"}
+    malformed: list[str] = []
+    labels: list[str] = []
+    for name in names:
+        front = parse_frontmatter(read(os.path.join("evals", "reviewer", "fixtures", name)))
+        if front is None or front.get("expect") not in verdicts or not front.get("id"):
+            malformed.append(name)
+            continue
+        labels.append(front["expect"])
+    check("every fixture carries a valid label", not malformed, "; ".join(malformed[:5]))
+
+    # A suite of only-REJECT fixtures cannot distinguish a working rubric from a
+    # reviewer that says no to everything.
+    check(
+        "suite has MERGE controls",
+        labels.count("MERGE") >= 2,
+        f"found {labels.count('MERGE')} — a reject-everything reviewer would score clean",
+    )
+    check(
+        "suite has ESCALATE fixtures",
+        "ESCALATE" in labels,
+        "the autonomy boundary would go unprobed",
+    )
+
+
 def check_version_bump(base: str) -> None:
     print("\nrelease")
 
@@ -237,6 +279,7 @@ def main() -> int:
     check_skills()
     check_links()
     check_inertness()
+    check_evals()
     if args.base:
         check_version_bump(args.base)
 
