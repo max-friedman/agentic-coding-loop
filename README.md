@@ -18,24 +18,24 @@ weakened.
 
 ## Does it work?
 
-Two data points, not one.
+**Yes — two data points, both real:**
 
-**A benchmark, adversarially:** run against
-[TactBench](https://github.com/max-friedman/tactbench), whose README claimed
-immunity to a specific failure mode, unmeasured. Round 1's job was to build a
-probe for exactly that failure, and it scored **93.5% against a 50% floor** —
-the claim had been false since the first commit, caught by the process rather
-than avoided by it. Full account, round by round:
-[`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
+- **It caught a false claim a benchmark had shipped since its first commit.**
+  [TactBench](https://github.com/max-friedman/tactbench)'s README claimed
+  immunity to a specific failure mode — never actually measured. Round 1's
+  assignment was to build a probe for exactly that failure. It scored **93.5%
+  against a 50% floor**: the claim was false, and this process is what caught
+  it, not a human auditing the repo. Full account, round by round:
+  [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
 
-**A production app, at scale:** an informal predecessor of this protocol ran
-independently for **120+ rounds** on a live consumer app, before that project
-adopted the released version of this one — real shipped fixes, real security
-hardening, and the actual source of
-[proposal #003](proposals/003-roast-findings-need-verification.md): the
-ground-truth verification step in `§E` exists because that app's real history
-kept surfacing complaints that cited something genuinely observed and still
-weren't real bugs — misdiagnosed causes and test-environment noise alike.
+- **It holds up at real scale, not just on a benchmark.** An informal
+  predecessor of this protocol ran independently for **120+ rounds** on a live
+  consumer app — real shipped fixes, real security hardening — before that
+  project adopted this repo's released version. Its history is the actual
+  source of [proposal #003](proposals/003-roast-findings-need-verification.md),
+  already merged: the ground-truth verification step in `§E` exists because of
+  real complaints that history kept surfacing — genuinely observed, still not
+  bugs — that a naive check would have missed.
 
 ## Using it
 
