@@ -52,16 +52,23 @@ All five carry `when_to_use` triggers and are model-invocable — an agent picks
 right one from intent ("run the loop", "does that claim still hold") without a human
 typing a slash command.
 
-**Updates** are pinned to an explicit `version`, so pushes to `main` do not reach
-you until a release:
+**Updates behave differently on this path.** The plugin carries an explicit
+`version`, so it does not change under you until you pull one:
 
 ```
 /plugin marketplace update agentic-coding-loop
 /plugin update loop
 ```
 
-Pinning is deliberate. These instructions execute inside your repo; you choose when
-they change. See [`../CONTRIBUTING.md`](../CONTRIBUTING.md).
+That is the opposite of path 1, and the difference is deliberate rather than an
+oversight. The plugin is for interactive use, where a human is present and can
+choose when their tools change. **Path 1 — fetching `LOOP.md` from `main` — is the
+primary path**, and it updates automatically because propagating accepted
+improvements to every project is the point of the system. See
+[`../CONTRIBUTING.md`](../CONTRIBUTING.md).
+
+If you want an unattended project to hold still, point it at a tag or commit SHA
+instead of `main`. Nothing here does.
 
 ---
 

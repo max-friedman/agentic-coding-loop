@@ -1,12 +1,41 @@
 # Changelog
 
-Downstream projects are pinned to the `version` in
-`.claude-plugin/marketplace.json`. A change reaches them when that version
-is bumped and released — not when it is merged. Every release gets an entry here.
+Projects fetching `LOOP.md` from `main` — the primary path — receive an accepted
+change on their **next round**. Merging is the release. This file is the record of
+what changed and why, not a gate on it; the gate is the review that preceded the
+merge.
+
+Plugin installs are the exception: they pin to the `version` in
+`.claude-plugin/marketplace.json` and update on `/plugin update`.
 
 Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
+
+## [Unreleased] — docs correction, 2026-07-27
+
+**Fixed — the docs described the opposite of the design.**
+
+`CONTRIBUTING.md`, `README.md`, and `docs/ADOPTING.md` all presented **pinning** as
+the safety property: "a merge alone changes nothing downstream." That is true only
+for plugin installs. Projects that consume the protocol the primary way — fetching
+`LOOP.md` from `main` at the start of each round — are not pinned and receive an
+accepted change on their next round.
+
+That is the intended behavior, not a leak. The gate belongs at **review**, not at
+consumption: decide once, upstream, carefully, then let the improvement reach every
+project. Describing it as gated at consumption misrepresented what the system does
+and undersold why the rubric is reject-by-default.
+
+The corollary is now stated where the guarantee used to be: a mistake merged here
+executes downstream within days, with nothing in between. The version bump and
+`CHANGELOG` are a record of what changed, not a brake on it.
+
+The plugin path keeps its explicit `version` — it serves interactive use, where a
+human is present and can choose when their tools change. `docs/ADOPTING.md` now says
+so, and names the raw-`main` fetch as the primary path.
+
+No protocol change, so no version bump.
 
 ## [0.7.0] — 2026-07-27
 
