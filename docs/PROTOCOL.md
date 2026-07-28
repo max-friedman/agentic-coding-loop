@@ -22,10 +22,11 @@ changes leave the next round unable to attribute a regression to any of them,
 and the writeup degrades into a changelog.
 
 Then **cut the branch, before the first edit** — `git checkout -b <type>/<slug>`.
-Step 7 ships via a pull request, and that is unfollowable if the work is already
-committed to the default branch. See principle 10: this is placed here, rather
-than next to the instruction it serves, precisely because here is the last moment
-it can still be acted on.
+Shipping (§7, and §D for unattended runs) assumes the round's work sits on its own
+branch, and that assumption is unfollowable if the work is already committed to
+the default branch. See principle 10: this is placed here, rather than next to the
+instruction it serves, precisely because here is the last moment it can still be
+acted on.
 
 ### 3. Ask what would prove it wrong
 
@@ -76,6 +77,13 @@ Run the gate: tests and lint, both green. Then:
 - Update every document quoting a number you changed. Stale numbers are worse
   than no numbers: they carry the authority of a measurement without being one.
 
+Two gate-mechanics failure modes are easy to miss because they don't show up in
+the diff: a gate command and a merge command chained in one script block that
+runs the merge even after the gate fails (check the exit status explicitly,
+merge as a separate step), and a red result on code the round didn't touch,
+which is a flake suspect, not a verdict, until it's been rerun 3× plus a clean
+full suite.
+
 ### 7. Write the state file last, as the deliverable
 
 Not a summary of the work — part of the work. Append the round section, rewrite
@@ -83,7 +91,8 @@ current status, update the coverage map, re-rank the queue against what you just
 learned, record new invariants, add anything blocked to NEEDS-MAX.
 
 Treat the writeup as being read by a stranger with no context, because it will
-be.
+be. Then merge the round's branch — directly on local green if a human is
+driving, or as a pull request under §D's unattended rules if not.
 
 ## How a round ends
 

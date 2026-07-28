@@ -15,6 +15,8 @@ Context is lost between rounds; this file is not.
      has never seen this project. -->
 
 - **Round:** 0 — not yet started
+- **Layers:** _core, or "core + <domain>" if §B Bootstrap matched a domain in
+  `llms.txt`'s Domains table. Set once at bootstrap; do not re-derive each round._
 - **Gate:** _the command that must be green before any commit, and its current
   state, e.g. "green — 60 tests, ruff clean"_
 - **Artifact:** _the thing being improved, and its current size/version_

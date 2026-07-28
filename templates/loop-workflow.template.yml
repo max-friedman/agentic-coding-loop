@@ -1,0 +1,71 @@
+# Unattended loop rounds on a schedule.
+#
+# Copy to .github/workflows/loop.yml in a project that has docs/plans/LOOP_STATE.md.
+# Produces one pull request per firing. A human merges — that is the review gate.
+#
+# Requires an ANTHROPIC_API_KEY repository secret. Spend is real; start on a weekly
+# cadence and tighten only once you have seen what a round costs on this project.
+
+name: loop
+
+on:
+  schedule:
+    # Mondays 09:00 UTC. Cadence should track how fast the project's ground truth
+    # moves — each firing costs a session and produces a diff someone must read.
+    - cron: "0 9 * * 1"
+  workflow_dispatch:
+    inputs:
+      item:
+        description: "Specific queue item to run (blank = take the top of the queue)"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  # Two rounds writing LOOP_STATE.md concurrently would corrupt the spine.
+  group: loop-${{ github.repository }}
+  cancel-in-progress: false
+
+jobs:
+  round:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Verify the state file exists
+        run: |
+          test -f docs/plans/LOOP_STATE.md || {
+            echo "::error::No docs/plans/LOOP_STATE.md. Run loop-init first."
+            exit 1
+          }
+
+      - name: Run one round
+        uses: anthropics/claude-code-action@v1
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        with:
+          prompt: |
+            Run ONE round of the improvement loop, unattended.
+
+            The protocol is at:
+            https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md
+            Fetch it and follow it. Round budget: 1.
+
+            ${{ inputs.item && format('This round: {0}. Ignore the queue ordering.', inputs.item) || '' }}
+
+            Unattended rules from §D are in force:
+            - Work on branch loop/round-N. Never commit to the default branch.
+            - Never force-push.
+            - No spending beyond this session. Anything metered goes to NEEDS-MAX.
+            - Stop at the first stop condition and report which one fired.
+            - No human is present, so file nothing outside this repository except
+              the §C proposal path.
+
+            End by opening a pull request whose body is the round's writeup:
+            question, method, finding, shipped, consequences, ending state.

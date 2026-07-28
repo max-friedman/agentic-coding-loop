@@ -1,0 +1,45 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "agentic-coding-loop",
+  "description": "The continuous-improvement loop: a persistent state file, a round protocol, and invariants that survive context resets.",
+  "owner": {
+    "name": "Max Friedman",
+    "url": "https://github.com/max-friedman"
+  },
+  "plugins": [
+    {
+      "name": "loop",
+      "displayName": "Agentic Coding Loop",
+      "source": "./",
+      "strict": false,
+      "version": "0.2.0",
+      "description": "Run the improvement loop in a repository: bootstrap the LOOP_STATE.md spine, run a falsifiable round against it, audit a claim, or send a learning upstream. The protocol is LOOP.md; every skill inlines it.",
+      "homepage": "https://github.com/max-friedman/agentic-coding-loop",
+      "repository": "https://github.com/max-friedman/agentic-coding-loop",
+      "license": "MIT",
+      "author": {
+        "name": "Max Friedman",
+        "url": "https://github.com/max-friedman"
+      },
+      "category": "workflow",
+      "tags": ["loop", "planning", "long-running", "state", "governance"]
+    },
+    {
+      "name": "loop-ux-roast",
+      "displayName": "Agentic Coding Loop — UX Roast domain",
+      "source": "./domains/ux-roast",
+      "strict": false,
+      "version": "0.1.0",
+      "description": "Optional domain layer for the agentic coding loop: blind-critic/context-aware-verifier discovery, maker+checker parallel worktree fixes, coverage-map-by-surface, and tiered ship policy, for products doing continuous UX-driven improvement. Requires the core `loop` plugin; DOMAIN.md is additive to LOOP.md, never a replacement.",
+      "homepage": "https://github.com/max-friedman/agentic-coding-loop",
+      "repository": "https://github.com/max-friedman/agentic-coding-loop",
+      "license": "MIT",
+      "author": {
+        "name": "Max Friedman",
+        "url": "https://github.com/max-friedman"
+      },
+      "category": "workflow",
+      "tags": ["loop", "ux", "domain", "critique", "product"]
+    }
+  ]
+}

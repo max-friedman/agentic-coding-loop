@@ -1,0 +1,13 @@
+# Every change to the loop's instructions goes through review. These files execute
+# inside other people's repositories.
+#
+# CODEOWNERS only requests review. To make it a gate, enable branch protection on
+# main: require a pull request, and require review from code owners.
+
+*                       @max-friedman
+
+# The files that actually change downstream behavior.
+/LOOP.md                @max-friedman
+/skills/                @max-friedman
+/templates/             @max-friedman
+/.claude-plugin/        @max-friedman

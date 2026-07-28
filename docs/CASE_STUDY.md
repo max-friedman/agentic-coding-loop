@@ -1,8 +1,7 @@
-# Case study: five rounds on TactBench
+# Case study: four rounds on TactBench
 
-One project, five rounds, reported as it happened — including the round that
-proved the project's headline claim false, and the round that caught the loop
-skipping its own rules.
+One project, four rounds, reported as it happened — including the round that
+proved the project's headline claim false.
 
 [TactBench](https://github.com/max-friedman/tactbench) is a benchmark for whether
 a proactive assistant should speak at all. It scores interruption timing rather
@@ -150,47 +149,6 @@ reasoning so round 7 doesn't propose it again.
 
 ---
 
-## Round 5 — the round that audited the loop, not the project
-
-**Question:** four rounds had reported a green gate. Was it green anywhere except
-one laptop?
-
-This round is the only one whose target was the *process* rather than the
-product, and it found two failures the previous four had been carrying silently.
-
-**Finding 1 — the gate had never run in a clean checkout.** CI was added and
-**failed on its first run.** The dev tooling was declared as an extras group that
-the runner installs only on request, so `pytest` and `ruff` did not exist in a
-fresh clone. Every "60 tests pass" in four rounds of writeups was true, and true
-only on the machine that had once installed the extra by hand. Nothing had been
-dishonest; the claim was simply never checkable. → principle 9.
-
-**Finding 2 — the protocol's own PR rule had been skipped four times.** Rounds 1
-through 4 committed straight to `main` while step 7 said "ship via a pull
-request" the entire time. The rule was written, correct, and read. It was also
-placed where it could no longer be acted on — by step 7 the commits already
-existed on the default branch. The fix was to move the branch step to step 2,
-not to restate the rule. → principle 10.
-
-**Also found, by auditing the previous round's paperwork rather than the code:**
-round 4 shipped the project's most decision-relevant metric, updated two docs,
-and missed the canonical metrics reference entirely. → principle 7's corollary:
-grep the concept, don't recall the filenames.
-
-**Shipped:** CI across three Python versions, plus two jobs specific to the
-project being a benchmark — one that regenerates the dataset and fails if the
-committed copy differs, and one that surfaces the shortcut-audit numbers in the
-run log. Contributor docs stating the invariants and that a PR loosening a
-threshold to go green will be sent back. The formatting sweep was isolated in its
-own behavior-free commit, verified by identical gate output before and after.
-
-**What this round argues:** a loop pointed only at the product will keep the
-product honest and let the process rot. Every few rounds, make the round's target
-the loop itself — and audit the previous round's paperwork, not just its code.
-Both failures here were invisible from inside the rounds that created them.
-
----
-
 ## What the loop actually bought
 
 **Round 1 deleted a false claim that had been shipping since the first commit.**
@@ -209,10 +167,6 @@ repo still says so.
 **Round 4 produced the number that most changes what someone would do** — and it
 was bad news for the thing being built.
 
-**Round 5 turned the loop on itself and found that two of the previous four
-rounds' claims were unverifiable** — a suite green on one machine, and a shipping
-rule skipped four times while sitting in the protocol.
-
-Five rounds, and the most valuable outcomes were a refutation, a regression
-catch, and an audit that indicted the process rather than the code. A loop that
-can only produce features would have produced none of them.
+Four rounds, and the two most valuable outcomes were a refutation and a
+regression catch. A loop that can only produce features would have produced
+neither.

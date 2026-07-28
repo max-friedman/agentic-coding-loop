@@ -1,6 +1,6 @@
 # Principles
 
-Eight rules. Each one names a specific failure it prevents. None of them are
+Twelve rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
 
 ---
@@ -153,6 +153,31 @@ measurement has no natural discovery path — it looks exactly like a real one, 
 the only person who could ever detect it is the one who wrote it. Being blocked
 is not embarrassing and is covered by principle 5. Papering over being blocked is
 the one failure the loop cannot self-correct.
+
+## 12. A claim of "green" must be unable to survive on a lie
+
+Two more ways "the gate is green" quietly stops meaning what it says, both
+distinct from principle 9's CI-existence failure: a merge that runs anyway when
+the gate failed, and a single red result mistaken for a verdict.
+
+A gate command and a merge command chained in one sequential script block will
+run the merge even when the gate exits non-zero — the failure scrolls past in a
+long log and is invisible until someone reads it after the fact, by which point
+it already shipped. The fix is structural, not diligence: check the gate's exit
+status explicitly, then merge as a separate step, so the merge is unreachable on
+red.
+
+The other half: a red result on code the round didn't touch is a flake suspect,
+not a verdict. A real regression and an infrastructure flake look identical from
+a single run — only repetition (three reruns plus one clean full suite) tells
+them apart. Deciding on one run either ships past a real break or quietly starts
+the habit of ignoring red, and an ignored flake becomes a false "green" the next
+round trusts.
+
+The failure it prevents: **the claim nobody actually checked**. Both failure
+modes let "gate is green" survive a state where it should not have — the first
+because the check was structurally skippable, the second because a single
+sample was mistaken for a population.
 
 ---
 
