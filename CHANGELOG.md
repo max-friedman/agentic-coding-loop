@@ -44,11 +44,24 @@ An empty queue can now refill itself — **opt-in, and off by default**.
   invariant, two consecutive blocked rounds, an uncommitted round, a twice-attempted
   item, a dirty tree, and a PR backlog above two all still halt the sequence.
 
+**Fixed**
+- **Orphaned round PRs no longer deadlock the loop.** The review step only ever
+  looks at the *previous* round's pull request, so a PR left open by a
+  request-changes verdict was never revisited — its fix landed on a separate
+  branch as a separate round, and nothing connected the two. Each one permanently
+  consumed a slot against the two-open-PR backlog rule, so two of them halted the
+  sequence for good with no failing check to explain why. Review now closes
+  superseded PRs, and a request-changes verdict records the PR number in the queue
+  entry so the fix can be traced back to it. Applies to every project, not only
+  those enabling §E — but it matters more under `indefinite`, where more firings
+  means more request-changes verdicts.
+
 **Blast radius**
-- Zero for projects that do not opt in. A state file with no `## Loop
+- Zero for projects that do not opt in to §E. A state file with no `## Loop
   configuration` section behaves exactly as it did on 0.7.0 — the settings default
   off and the empty-queue stop fires as written. No existing state file needs to
-  change.
+  change. The PR fix above changes review behavior for everyone, in the direction
+  of closing fewer sequences.
 
 **Known limitation, stated rather than buried**
 - A roast is a model's impression of a user, not a user. It finds broken

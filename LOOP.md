@@ -398,15 +398,27 @@ Three outcomes, and only the first merges:
 - **Merge.** Every check passes. Say in the merge which checks were closest to
   failing — that is the signal the next reviewer needs.
 - **Request changes.** Comment naming the failed check and what would fix it, and
-  leave the PR open. Add it to the queue as the next round's item.
+  leave the PR open. Add it to the queue as the next round's item, **naming this
+  PR's number in the queue entry** — the fix is a separate round on a separate
+  branch, so without that number nothing connects the two and this PR is orphaned.
 - **Close.** The round was wrong-headed, not merely incomplete. Record why in the
   state file under *Noted, not built*, so it is not re-attempted.
+
+**Then close what the sequence has outgrown.** After handling the previous round's
+PR, check every older open round PR: if its queued fix has since merged, the PR is
+superseded — close it, referencing the round that replaced it.
+
+This is not tidying. A request-changes PR is never revisited by the review step
+above, which only ever looks at the *previous* round. Left alone it stays open
+forever and permanently consumes one of the three slots the backlog rule allows.
+Two of them and the loop halts for good, with no failing check to explain why.
 
 **Do not fix the PR yourself.** Repairing it collapses reviewer and author back
 into one agent and destroys the only independent check in the sequence. Comment,
 leave it, move on — the fix is a round, with its own before and after.
 
-If more than **two** round PRs are open, stop and start no new round. Report that
+If more than **two** round PRs are open *after* closing superseded ones, stop and
+start no new round. Report that
 rounds are outpacing review. A stream of unread diffs is worse than no diffs, and
 nothing else in the system is positioned to notice.
 

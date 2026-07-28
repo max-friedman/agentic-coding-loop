@@ -26,8 +26,10 @@ round, then stop. Do not run a round in the same session.
 FIRST, review and merge the previous round's pull request per §D "Reviewing the
 previous round". Read the diff against that round's own claims, not just its CI
 status. Merge only if every check passes; if one fails, comment naming it, leave
-the PR open, and queue the fix. Do NOT fix the PR yourself. If more than TWO
-round PRs are open, stop and start no new round.
+the PR open, and queue the fix naming that PR's number. Do NOT fix the PR
+yourself. Then close any older round PR whose queued fix has already merged — it
+is superseded, and nothing else will ever revisit it. If more than TWO round PRs
+are open after that, stop and start no new round.
 
 The §D unattended rules are in force and are absolute:
 - Cut the branch before the first edit (§1). Never commit to the default branch.
@@ -97,10 +99,14 @@ not just its CI status. Green CI proves the code runs, not that the round did
 what its writeup says.
 
 Merge only if every check passes. If one fails, comment naming it, leave the PR
-open, and queue the fix as the next round's item. Do NOT fix the PR yourself —
-that collapses reviewer and author into one agent.
+open, and queue the fix as the next round's item, naming that PR's number. Do NOT
+fix the PR yourself — that collapses reviewer and author into one agent.
 
-If more than TWO round PRs are open, STOP and start no new round.
+Then close any older round PR whose queued fix has already merged. The review
+step only ever looks at the previous round, so a request-changes PR is never
+revisited and would otherwise consume a slot forever.
+
+If more than TWO round PRs are open after that, STOP and start no new round.
 ```
 
 Three things fall out of this for free. The gap between firings is the veto window,
