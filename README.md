@@ -34,8 +34,8 @@ adopted the released version of this one — real shipped fixes, real security
 hardening, and the actual source of
 [proposal #003](proposals/003-roast-findings-need-verification.md): the
 ground-truth verification step in `§E` exists because that app's real history
-kept surfacing plausible-looking complaints that turned out to be test-harness
-noise, not real bugs.
+kept surfacing complaints that cited something genuinely observed and still
+weren't real bugs — misdiagnosed causes and test-environment noise alike.
 
 ## Using it
 
