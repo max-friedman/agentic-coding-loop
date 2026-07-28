@@ -79,9 +79,11 @@ finding and writes the change in the protocol's own voice.
 the rubric, or CODEOWNERS escalates to a human regardless of merit. A reviewer able
 to rewrite its own limits has none.
 
-**A merge alone reaches nobody.** Consumers pin to an explicit version, so a change
-must be deliberately released. `main` is protected: pull request required,
-force-pushes and deletions blocked.
+**An accepted change reaches every project on its next round.** Projects fetch the
+protocol from `main`, so improvements propagate without anyone running an update.
+That is the point of the system, and it is why the gate sits at review rather than
+at consumption — decide once, carefully, then let it spread. `main` is protected:
+pull request required, force-pushes and deletions blocked.
 
 ## Using it
 
@@ -140,7 +142,7 @@ The repo's credibility rests on this section being accurate rather than short.
 | [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md) | The standard a proposal must clear. Reject by default. |
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Each rule and the specific failure it prevents. |
 | [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | The rounds above, in full, including what they cost. |
-| [`CONTRIBUTING.md`](CONTRIBUTING.md) | The review gate, and why a merge alone changes nothing. |
+| [`CONTRIBUTING.md`](CONTRIBUTING.md) | The review gate, and why it sits at review rather than at consumption. |
 | [`proposals/`](proposals) | Filed proposals and their dispositions. Inert by design. |
 | [`llms.txt`](llms.txt) · [`AGENTS.md`](AGENTS.md) | Machine entry points. |
 

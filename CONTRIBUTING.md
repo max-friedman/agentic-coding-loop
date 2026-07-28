@@ -24,15 +24,28 @@ reaches them without a human deciding it should.
                                       proposals/NNN-slug.md + PR
                                                  │
                                                  ▼
-                                   version bump + CHANGELOG  ← takes effect here
+                                   version bump + CHANGELOG  ← the record
                                                  │
                                                  ▼
-                                     downstream: /plugin update loop
+                                every project, on its next round
 ```
 
-**A merge alone changes nothing downstream.** Consumers are pinned to the
-`version` in `.claude-plugin/marketplace.json`. Until it is bumped, every project
-keeps what it has.
+**A merge reaches every project on its next round.** That is the design, not a
+side effect. Projects fetch `LOOP.md` from `main` at the start of each round, so an
+accepted improvement propagates without anyone running an update.
+
+The gate is therefore the **review**, not the consumption. Decide once, upstream,
+carefully — then let it spread. This is why the rubric is reject-by-default and why
+the reviewer writes the change itself rather than pasting a submitter's wording: by
+the time something is merged, it is already on its way to every project running the
+loop.
+
+The corollary is worth stating plainly: **a mistake merged here executes downstream
+within days, with nothing in between.** The `CHANGELOG` and version bump are a
+*record* of what changed, not a brake on it.
+
+Consumers who want a brake can pin to a tag or commit SHA instead of `main`. Nothing
+here does, deliberately.
 
 Two properties hold this together, and any change to the review machinery must
 preserve both:
