@@ -71,6 +71,14 @@ continuous UX-driven improvement — see the Domains table in
 `LOOP.md` and its own `DOMAIN.md`, so core and domain stay separately versioned
 and neither can drift from the other.
 
+**A domain can never touch what every project running the loop must do.** It is
+additive only — it can add rules for a project that opts in, and it cannot
+weaken a stop condition, an invariant, or a `MUST`/`NEVER`, even as an
+opt-in setting (the review rubric's own hard disqualifier 1 applies with no
+carve-out for "opt-in"). That's what makes a domain safe to skip proposal
+review entirely: it never changes what a project that never installs it has to
+do.
+
 **Updates** are pinned to an explicit `version` per plugin, so pushes to `main` do
 not reach you until a release:
 
