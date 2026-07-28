@@ -10,7 +10,7 @@ released-in: "0.9.0"
 
 ## What happened
 
-A project ran an informal predecessor of what §E now formalizes for 60+ rounds
+A project ran an informal predecessor of what §E now formalizes for 120+ rounds
 before this repository's roast round existed: a critic with no context examines
 the product's user-facing surfaces and reports complaints, each required to cite
 something it actually observed (a screen, a label, an interaction it could point
@@ -94,3 +94,10 @@ log. For a project whose roaster already has ground-truth access while roasting
 short re-confirmation of something already known. For a project that deliberately
 keeps its roaster blind to internals, this is the step that catches the exact
 failure this proposal evidences.
+
+### Correction
+
+The round count in "What happened" originally read 60+, a rough estimate made
+at filing time rather than a figure checked against the source project's own
+records. Corrected to 120+ against those records. The finding, the mechanism,
+and the disposition are unaffected — only the number was wrong.

@@ -18,11 +18,24 @@ weakened.
 
 ## Does it work?
 
-One data point: on [TactBench](https://github.com/max-friedman/tactbench),
-round 1 built a probe for the exact failure the project's README claimed
-immunity to. It scored **93.5% against a 50% floor** — the claim had been false
-since the first commit. Full account, round by round:
+Two data points, not one.
+
+**A benchmark, adversarially:** run against
+[TactBench](https://github.com/max-friedman/tactbench), whose README claimed
+immunity to a specific failure mode, unmeasured. Round 1's job was to build a
+probe for exactly that failure, and it scored **93.5% against a 50% floor** —
+the claim had been false since the first commit, caught by the process rather
+than avoided by it. Full account, round by round:
 [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
+
+**A production app, at scale:** an informal predecessor of this protocol ran
+independently for **120+ rounds** on a live consumer app, before that project
+adopted the released version of this one — real shipped fixes, real security
+hardening, and the actual source of
+[proposal #003](proposals/003-roast-findings-need-verification.md): the
+ground-truth verification step in `§E` exists because that app's real history
+kept surfacing complaints that cited something genuinely observed and still
+weren't real bugs — misdiagnosed causes and test-environment noise alike.
 
 ## Using it
 
@@ -85,7 +98,12 @@ This repo's credibility rests on the next part being accurate rather than short:
   Two came from a closely related project on a template written here; the third
   came from an unrelated downstream project's own history — better evidence, but
   still three data points, not a pattern.
-- **One project, seven rounds.** Every claim above generalizes from a single
+- **Two projects, one author.** The production app cited above ran an informal
+  predecessor of this protocol, not a release of it, and both projects trace
+  back to the same person. Independent-author validation doesn't exist yet.
+- **One project, seven rounds, on the actual released protocol.** Every claim
+  above about *this repo's* mechanism — the audit, the review pipeline, the
+  version-pinning — still generalizes from a single
   codebase.
 
 </details>
