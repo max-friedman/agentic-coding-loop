@@ -96,6 +96,7 @@ force-pushes and deletions blocked.
 | `loop-run` | Repeated rounds until a stop condition fires. The usual entry point. |
 | `loop-round` | Exactly one round. |
 | `loop-audit` | Ships nothing. Measures whether the project's strongest claim still holds. |
+| `loop-roast` | Ships nothing. Meets the product as a first-time user and turns the complaints that survive into queue items. Opt-in. |
 | `loop-feedback` | Audits the protocol and files a proposal upstream. |
 
 Every skill inlines [`LOOP.md`](LOOP.md) at load time, so the protocol has exactly
@@ -136,7 +137,7 @@ The repo's credibility rests on this section being accurate rather than short.
 | path | what it is |
 |---|---|
 | [`LOOP.md`](LOOP.md) | The protocol. Self-contained, one fetch, written to be executed. |
-| [`skills/`](skills) | Five Claude Code skills; each inlines `LOOP.md`. |
+| [`skills/`](skills) | Six Claude Code skills; each inlines `LOOP.md`. |
 | [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md) | The standard a proposal must clear. Reject by default. |
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Each rule and the specific failure it prevents. |
 | [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | The rounds above, in full, including what they cost. |

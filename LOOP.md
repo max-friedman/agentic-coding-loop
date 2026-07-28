@@ -131,6 +131,7 @@ Then update, in place:
 | `## NEEDS-MAX` | blocked-on-human items, each with the exact unblocking command |
 | `## Queue — next rounds` | ordered next increments, each phrased as a question |
 | `## Standing invariants` | properties + the test enforcing each |
+| `## Loop configuration` | human-set settings, read at §0. **Never written by a round.** See §E. |
 
 Never edit a previous round's section to make the history look tidier.
 
@@ -141,6 +142,9 @@ Commit with a message naming the round's **finding**, not its task.
 Evaluate the stop conditions in **§D**. If none fire, start the next round at §0 —
 re-reading the state file, not relying on what you remember. If one fires, stop and
 report which.
+
+The one exception is an empty queue when `roast-on-empty` is enabled: run **§E**
+instead of stopping. Every other stop condition still halts the sequence.
 
 ---
 
@@ -334,7 +338,8 @@ Stop the sequence and report which condition fired. Do not push through.
 |---|---|
 | Gate is red and not fixable inside the round | Continuing builds on a broken base. |
 | A round would require weakening a standing invariant | Never. Stop and report, even if the queue is full. |
-| Queue is empty and the round generated no new items | There is nothing to do. Say so rather than inventing work. |
+| Queue is empty and the round generated no new items | There is nothing to do. Say so rather than inventing work. Deferred once — and only once — if `roast-on-empty` is enabled: run §E, then re-evaluate. |
+| A roast produced no complaint not already in the roast log | §E is exhausted. The product has stopped teaching you anything, and further roasts are churn. Fires even under `indefinite`. |
 | Two consecutive rounds ended `blocked` | Everything left needs a human. |
 | A round produced no commit | The sequence is spinning. |
 | The same item has been attempted twice without shipping | It is mis-scoped. Split it in the queue and stop. |
@@ -360,9 +365,11 @@ are absolute:
 - Reduce the round budget to **1** unless configured otherwise. One reviewable pull
   request per firing beats a batch nobody reads.
 - **Never weaken your own limits.** An unattended sequence may not edit the project
-  rules, the standing invariants, the stop conditions, or this protocol to make its
-  own work easier. Propose the change through §C and keep running under the current
-  rules until it lands. An agent that can rewrite its own constraints has none.
+  rules, the standing invariants, the stop conditions, `## Loop configuration`, or
+  this protocol to make its own work easier. Propose the change through §C and keep
+  running under the current rules until it lands. An agent that can rewrite its own
+  constraints has none. `indefinite` is the setting most worth enabling and the one
+  a round must never enable for itself.
 - **Fail loudly.** If you cannot complete the round, say so and stop. A silent
   no-op is indistinguishable from a healthy quiet day, and nobody is watching.
 
@@ -425,3 +432,128 @@ At the end of a sequence, report: rounds completed, the ending state of each
 (`shipped` / `refuted` / `blocked` / `rejected`), the stop condition that fired, and
 anything added to NEEDS-MAX. One line per round. The state file holds the detail —
 do not restate it.
+
+---
+
+## §E Roast round (opt-in, refills an empty queue)
+
+An empty queue is normally a correct stop. This section is the deliberate,
+human-enabled exception: instead of halting, meet the product as a **first-time
+user with no goodwill** and let the complaints become the next rounds.
+
+Ship no features. Like §A, the deliverable is a finding — here, a critique.
+
+**The failure this must not become:** work invention. A queue refilled with
+plausible-sounding tasks is worse than an empty one, because the empty queue was
+telling you something true. Every mechanism below exists to keep that from
+happening, and a roast that finds nothing is a success.
+
+### Configuration
+
+Read from `## Loop configuration` in the state file at §0. All settings default
+**off**, so a project that never opts in behaves exactly as before.
+
+| setting | default | meaning |
+|---|---|---|
+| `roast-on-empty` | `off` | When the queue empties, run §E instead of stopping. |
+| `indefinite` | `off` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
+| `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+
+`indefinite` lifts **only** the empty-queue stop condition. A red gate, a
+would-be-weakened invariant, two consecutive `blocked` rounds, a round with no
+commit, an item attempted twice, a dirty tree, and more than two open round PRs all
+still halt the sequence. There is no setting that lifts those, and adding one is a
+§C proposal that the rubric rejects on sight.
+
+### 1. Roast blind
+
+Approach the artifact the way a user meets it: from its entry point, with no
+knowledge of how it was built or what it claims about itself.
+
+The mechanism that enforces this — **every complaint MUST cite something a user
+could hit.** A command you actually ran and its actual output, a page a user lands
+on, a screen they see, a step they must perform. A complaint whose only support is
+the round history, the coverage map, or an internal design doc is struck before it
+reaches the table. You are not permitted to roast the code; you are roasting the
+product.
+
+Prefer, in order: run the thing end to end as a new user would; follow the install
+or quickstart path literally, doing exactly what it says and nothing it assumes;
+read only the docs a user would actually find.
+
+Where the roast and the project's own docs disagree, the roast is the evidence —
+the docs were written by whoever built the thing.
+
+### 2. Write the verdict before the fixes
+
+One honest paragraph in the user's voice: what this is, whether it did the job,
+and what you would say about it to someone considering it. Write it before
+proposing a single improvement — a verdict written afterward is shaped to justify
+the fixes already in mind.
+
+Be specific and unkind. "The quickstart is confusing" is not a complaint. "The
+quickstart's first command fails because it assumes a config file that step 4
+creates" is.
+
+### 3. Deduplicate against the roast log
+
+Read `docs/plans/ROAST_LOG.md`. A complaint already recorded there and deliberately
+not queued MUST NOT be re-queued without **new** evidence — say what changed.
+
+Without this, an indefinite loop cycles on the same three complaints forever and
+reports motion.
+
+### 4. Convert only what is falsifiable
+
+Each surviving complaint faces one test: **can it be phrased as a question with a
+measurement that could come back bad?**
+
+- Passes → queue it, in §2's form: the question, and what a negative result looks
+  like. It is now an ordinary queue item and the next round is an ordinary round.
+- Fails → record under *Noted, not queued* with the reason. Preserved so the next
+  roast does not re-raise it, and so a later round with better tooling can.
+
+A complaint that cannot be made falsifiable is not thereby wrong. It is not yet a
+round.
+
+### 5. Write the roast log
+
+Append to `docs/plans/ROAST_LOG.md` — create it from
+[`templates/ROAST_LOG.template.md`](templates/ROAST_LOG.template.md) if absent.
+This is the roast's changelog: one entry per roast, newest at the bottom, never
+edited afterward.
+
+```markdown
+## Roast N — <date> — <one-line verdict>
+
+**Ran as:** the journey actually performed — commands, entry points, what a user was assumed to want.
+**Verdict:** the honest paragraph from step 2.
+**Complaints:** table of complaint | evidence cited | falsifiable | disposition.
+**Queued:** items added, each as a question.
+**Noted, not queued:** complaints that could not be made falsifiable, with why.
+**New this roast:** how many complaints do not already appear above. Zero means stop.
+```
+
+Then update `## Queue — next rounds` in the state file and record the roast on the
+current round's **Loop:** line. Never write `## Loop configuration`.
+
+### 6. Decide whether to continue
+
+| condition | action |
+|---|---|
+| Complaints queued, `indefinite` on | Resume at §0 with the refilled queue. |
+| Complaints queued, `indefinite` off | Stop. Report the queue for a human to approve. |
+| **New this roast is zero** | Stop, whatever `indefinite` says. The roast is exhausted. |
+| `roast-budget` consecutive roasts have run | Stop. Say how many rounds each roast bought. |
+
+A roast counts against the session's round budget. It is a round that ships
+nothing, not a free action appended to one.
+
+### The honest limitation
+
+A roast is a model's impression of a user, not a user. It reliably finds broken
+quickstarts, unexplained errors, and undocumented assumptions, because those are
+visible from the artifact. It does not find what users actually want, because it
+has never wanted anything. Treat a queue of roast-derived items as maintenance
+work with evidence behind it — never as a product roadmap, and never as a
+substitute for asking someone.

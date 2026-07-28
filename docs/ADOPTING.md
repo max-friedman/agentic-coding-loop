@@ -42,13 +42,14 @@ The only hard requirement is that the agent can read and write
 | `loop-run` | Repeated rounds until a stop condition fires. Optional budget: `loop-run 5`. |
 | `loop-round` | Exactly one round. Optional item: `loop-round tighten the retry test`. |
 | `loop-audit` | Ships nothing. Measures whether a claim still holds. |
+| `loop-roast` | Ships nothing. Critiques the product as a first-time user and requeues what survives. Opt-in — see §E. |
 | `loop-feedback` | Files a proposal upstream about the protocol. |
 
 Each skill inlines `LOOP.md` at load time via
 `` !`cat "${CLAUDE_PLUGIN_ROOT}/LOOP.md"` ``, so the protocol has exactly one copy
 and a skill cannot drift from it.
 
-All five carry `when_to_use` triggers and are model-invocable — an agent picks the
+All six carry `when_to_use` triggers and are model-invocable — an agent picks the
 right one from intent ("run the loop", "does that claim still hold") without a human
 typing a slash command.
 
@@ -123,7 +124,7 @@ claude plugin validate . --strict
 
 `--strict` turns unrecognized-field warnings into errors, catching a misspelled
 manifest key before it silently does nothing. To check discovery end to end, install
-from a local path and confirm all five skills appear:
+from a local path and confirm all six skills appear:
 
 ```bash
 claude plugin marketplace add /absolute/path/to/agentic-coding-loop

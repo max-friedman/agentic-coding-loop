@@ -33,8 +33,9 @@ The §D unattended rules are in force and are absolute:
 - Cut the branch before the first edit (§1). Never commit to the default branch.
 - Never force-push, never rewrite published history.
 - Never spend money — anything metered is a NEEDS-MAX item, not a decision.
-- Never weaken the project's rules, invariants, or stop conditions to make this
-  round easier. Propose upstream via §C and keep running under current rules.
+- Never weaken the project's rules, invariants, stop conditions, or the state
+  file's `## Loop configuration` to make this round easier. Propose upstream via
+  §C and keep running under current rules.
 - Stop at the first stop condition and name which one fired.
 - Fail loudly. A silent no-op is indistinguishable from a healthy quiet day.
 
@@ -46,7 +47,9 @@ If §C says a loop audit is due, do that inside this round and file a proposal o
 if there is a pattern with a cost. Most audits find nothing; report nothing found.
 
 If there is no work — empty queue, nothing actionable — say so and stop. Do not
-invent a round to justify the firing.
+invent a round to justify the firing. The one exception is an empty queue when the
+state file's `## Loop configuration` sets `roast-on-empty` to on: run §E instead.
+Never enable that setting yourself.
 ```
 
 ## Cadence
@@ -59,7 +62,7 @@ progress. Each firing costs a session and produces a diff someone must read.
 | Active, queue full | Daily on weekdays |
 | Steady | Two or three times a week |
 | Mature, queue thin | Weekly |
-| Queue empty | Pause the Routine. A loop with nothing to do should stop, not generate work. |
+| Queue empty | Pause the Routine. A loop with nothing to do should stop, not generate work — unless you have deliberately enabled `roast-on-empty` (§E), which trades that stop for generated work with evidence behind it. |
 
 The failure mode of a scheduled loop is not running too rarely. It is producing a
 pull request every day that nobody reads, until the whole stream is ignored.
