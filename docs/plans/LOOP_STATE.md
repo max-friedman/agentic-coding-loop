@@ -173,9 +173,10 @@ to halt the loop.**
    gh pr close 11
    ```
 
-4. **`## Loop configuration` is at defaults (all off).** A round must never
-   enable `indefinite` for itself. If continuous unattended operation is wanted,
-   a human edits the table below to `on` / `on` / `1`.
+4. ~~**`## Loop configuration` is at defaults (all off).**~~ **Resolved
+   2026-09-01** — Max set `roast-on-empty` and `indefinite` to `on`. Kept here
+   rather than deleted so the trail from bootstrap's default to the current
+   value is visible. See `## Loop configuration`.
 
 ---
 
@@ -239,6 +240,18 @@ own `indefinite` setting has no limit on it. See `LOOP.md` §D and §E.
 
 | setting | value | meaning |
 |---|---|---|
-| `roast-on-empty` | `off` | When the queue empties, run §E (roast round) instead of stopping. |
-| `indefinite` | `off` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
+| `roast-on-empty` | `on` | When the queue empties, run §E (roast round) instead of stopping. |
+| `indefinite` | `on` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
 | `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+
+**Set by Max on 2026-09-01**, by instruction, after bootstrap had written the
+table at its defaults. Round 0 records it as default-off because that is what
+bootstrap did; this line is the change, not a correction of that record.
+`roast-on-empty` is on because `indefinite` requires it, not because it was asked
+for separately. `roast-budget` was not discussed and stays at its default.
+
+**What this does not lift.** `indefinite` lifts exactly one stop condition — the
+empty queue. Every other §D condition still halts the sequence, and two of them
+are live right now: the gate is red, and the ruling that would let a round fix it
+is NEEDS-MAX 1. Enabling this did not start anything. It takes effect the first
+time a round empties the queue, which cannot happen until the gate is green.
