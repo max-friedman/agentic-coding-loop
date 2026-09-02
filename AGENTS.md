@@ -1,5 +1,9 @@
 # AGENTS.md
 
+**Working the improvement loop? Read [`docs/plans/LOOP_STATE.md`](docs/plans/LOOP_STATE.md)
+first and write it last.** It holds the queue, the coverage map, the NEEDS-MAX list,
+and the standing invariants. Context is lost between rounds; that file is not.
+
 This repository is a protocol library for coding agents. Two reasons you might be
 here — they need different files.
 
