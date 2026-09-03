@@ -164,11 +164,19 @@ def check_links() -> None:
             rel_file = os.path.relpath(path, ROOT)
             with open(path, encoding="utf-8") as fh:
                 body = fh.read()
+            # Resolve against the file's REAL directory, not the directory it
+            # was walked in. domains/ux-roast/LOOP.md is a symlink to the root
+            # LOOP.md (the domain ships as its own plugin, so its skills can
+            # read ${CLAUDE_PLUGIN_ROOT}/LOOP.md). Resolving that file's links
+            # from domains/ux-roast/ reported two targets as broken that exist
+            # at the root and are broken for no reader. A link is authored
+            # relative to where its file actually lives.
+            base = os.path.dirname(os.path.realpath(path))
             for match in pattern.finditer(body):
                 target = match.group(1).split("#")[0].strip()
                 if not target or target in EXPECTED_DANGLING:
                     continue
-                resolved = os.path.normpath(os.path.join(dirpath, target))
+                resolved = os.path.normpath(os.path.join(base, target))
                 if not os.path.exists(resolved):
                     broken.append(f"{rel_file} -> {target}")
     check("all relative links resolve", not broken, "; ".join(broken[:5]))
