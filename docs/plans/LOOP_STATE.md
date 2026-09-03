@@ -9,23 +9,25 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 
 ## Current status
 
-- **Round:** 1 — `exactly one plugin` replaced with per-plugin validation.
+- **Round:** 2 — link resolution fixed for symlinked files. **Gate green.**
 - **Layers:** core. The `ux-roast` domain in `llms.txt` was checked and rejected:
   this repository is a protocol library consumed by agents, not a user-facing
   product, so its roast mechanics have no surface to key a coverage map to.
 - **Gate:** `python3 scripts/check.py` (and `python3 scripts/check.py --base
   origin/<base>` on pull requests, via `.github/workflows/checks.yml`).
-  **RED, improving.** 37 checks, 1 failed. Was 32 checks / 2 failed at
-  bootstrap; Round 1 closed one failure and added 5 checks. The remaining
-  failure is `all relative links resolve`, queue item 1.
+  **GREEN — 37 checks, 0 failed.** First green state since `d2a6353` (0.8.0,
+  #12). Was 32 checks / 2 failed at bootstrap: R1 added 5 checks and closed one
+  failure, R2 closed the other. Green *on these branches* — `main` is still red
+  until the merge train lands (see NEEDS-MAX 2).
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
   `loop` 0.10.0 (`LOOP.md`, 610 lines; 6 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
-- **Headline:** the gate's `exactly one plugin` assertion was not stale, it was
-  hollow — it failed loudly on a deliberate second plugin while validating
-  nothing about it. A plugin with no name, a nonexistent source and a garbage
-  version passed every per-plugin check. Round 1 replaced it; the gate went from
-  32 checks to 37 and from 2 failures to 1.
+- **Headline:** both gate failures were in the gate, not in what it checked.
+  One assertion was hollow (it failed loudly while validating nothing about the
+  plugin it named); one resolved links from the directory a file was *walked*
+  in rather than the directory it *lives* in. Neither was ever a defect in the
+  shipped artifact — which is why four PRs could merge red without breaking
+  anything, and exactly why nobody looked.
 
 ---
 
@@ -211,15 +213,91 @@ worked around.
 
 ---
 
+## Round 2 — the link checker could not tell a symlink from a file
+
+**Question:** does `check_links()` distinguish a file from a symlink to one? It
+reported `domains/ux-roast/LOOP.md -> templates/loop-workflow.template.yml` and
+`-> templates/ROAST_LOG.template.md` as broken. A negative result was real and
+would have reversed the fix: if the symlink is the mistake rather than the
+checker, the domain needs its own copy of `LOOP.md` — which `AGENTS.md` forbids
+outright ("two copies of a rule will drift, and the drift is invisible until an
+agent follows the stale one").
+
+**Method:** two measurements before changing anything.
+
+1. Resolve the two reported targets from the root, where `LOOP.md` actually
+   lives. Both exist. So the links are broken for no reader, and
+   `readlink domains/ux-roast/LOOP.md` returns `../../LOOP.md`.
+2. The guard that made the round falsifiable: append a genuinely broken link to
+   `LOOP.md`, confirm the gate catches it *before* the fix, and require it to
+   still catch it *after*. A fix that made the two false positives disappear by
+   blinding the checker would pass step 1 and fail this. That outcome would have
+   refuted the change.
+
+**Finding:** the checker was resolving each file's relative links against the
+directory `os.walk` handed it, not the directory the file lives in. For a
+symlink those differ. `check_links()` read the root protocol's text through
+`domains/ux-roast/LOOP.md` and looked for `templates/` beneath
+`domains/ux-roast/`, where it has never existed.
+
+The symlink is deliberate and load-bearing: the domain ships as its own plugin
+(R1), so its skills resolve `${CLAUDE_PLUGIN_ROOT}/LOOP.md` — and
+`docs/ADOPTING.md:71` states core and domain stay separately versioned by this
+exact arrangement. Replacing it with a copy would have created the drift
+`AGENTS.md` names. The checker was the wrong side, as in R1.
+
+Fix: resolve against `os.path.dirname(os.path.realpath(path))`. One line, plus
+the comment explaining why, since the next reader will otherwise "simplify" it
+back.
+
+**Shipped:** `scripts/check.py` (`check_links()`), `docs/plans/LOOP_STATE.md`.
+No behavior path touched; no version bump.
+
+**Consequences:** verified by re-running every probe, not predicted.
+
+| probe | before | after |
+|---|---|---|
+| gate, clean tree | 37 checks, 1 failed | **37 checks, 0 failed** |
+| broken link injected into `LOOP.md` (root) | caught | **caught** |
+| broken link injected into `docs/ADOPTING.md` (nested, no symlink) | caught | **caught** |
+| the two symlink false positives | reported | gone |
+| R1's probe: corrupted `plugins[1]` | 3 of 3 caught | **3 of 3 caught** |
+
+The last row is §5.3 — re-running an earlier round's measurement to catch a
+silent regression. `claude plugin validate . --strict` still passes. The gate is
+green for the first time since `d2a6353` (0.8.0, #12).
+
+**Noted, not built:** *deduplicating the double report.* A genuinely broken link
+in `LOOP.md` is now reported twice — once as `LOOP.md ->` and once as
+`domains/ux-roast/LOOP.md ->`. Both statements are true: both paths do contain
+that broken link. Collapsing them by `realpath` would be tidier and would also
+suppress a real signal if a symlink ever pointed somewhere unexpected. Left
+alone deliberately; noise in a failure message is cheaper than a checker that
+hides a path.
+
+**Loop:** the §D condition "more than two open round PRs — stop and start no new
+round" is now breached: #20, #24 and this one are all open, because merging is
+blocked in this environment and the human directed continuous operation. This is
+recorded rather than worked around, and it is the honest cost of running rounds
+faster than they can be reviewed — precisely the failure the condition names. No
+further rounds should start until the train merges. Second entry in two rounds
+about §D's merge step, which under §C's cadence rule ("a non-`nothing` Loop line
+twice in a row") makes the *next* round owe a loop audit — noted here so it is
+not lost.
+
+**Ending state:** `shipped`.
+
+---
+
 ## Coverage map
 
 | area | last touched | probe / status |
 |---|---|---|
 | `LOOP.md` | 0.10.0 (`07ca784`) | Structural only: `check.py` asserts every skill inlines it. **Nothing reads its content.** |
 | `skills/` (6) | 0.10.0 | Frontmatter parses, description present, inlines `LOOP.md`. Behavior unprobed. |
-| `domains/ux-roast/` | 0.10.0 | **Unprobed.** Its `LOOP.md` symlink is one of the two current gate failures. |
+| `domains/ux-roast/` | R2 | Symlink confirmed deliberate and load-bearing (own plugin + `${CLAUDE_PLUGIN_ROOT}`, `docs/ADOPTING.md:71`). `DOMAIN.md` content still unprobed. |
 | `templates/` (5) | 0.8.0 | **Unprobed.** No check that a template still matches what `LOOP.md` tells you to copy from it. |
-| `scripts/check.py` | R1 | **Probed.** R1 corrupted `plugins[1]` and confirmed the manifest block caught 0 of 3 defects; after the fix, 3 of 3. `check_links()` is still unprobed — queue item 1. |
+| `scripts/check.py` | R2 | **Probed, both halves.** R1: corrupted `plugins[1]`, 0 of 3 caught → 3 of 3. R2: injected broken links at root and nested depth, caught before and after the symlink fix. |
 | `.claude-plugin/marketplace.json` | 0.10.0 | Every declared plugin now validated for name/source/version/semver, not just `plugins[0]` (R1). |
 | `.github/workflows/` | 0.6.0 | Runs on push + PR. Off-limits to any agent acting on a proposal (`AGENTS.md`). |
 | `proposals/` | 0.10.0 | Inertness enforced: no instruction file loads `proposals/`. 003 accepted. |
@@ -264,20 +342,15 @@ to halt the loop.**
 
 Ordered. Each is a question with a possible negative result, per §2.
 
-1. **Does `check_links()` know the difference between a file and a symlink to
-   one?** It resolves the root `LOOP.md`'s relative links from
-   `domains/ux-roast/`. Negative result: the symlink is the mistake, not the
-   checker, and the domain should carry its own copy — which `AGENTS.md` forbids
-   ("two copies of a rule will drift").
-2. **Did the gate ever gate?** Four pull requests merged red. Measure: for every
+1. **Did the gate ever gate?** Four pull requests merged red. Measure: for every
    merged PR, was its `gate` check green at merge time? Negative result: this is
    normal for the repo and 0.6.0's "give this repo the gate it told everyone else
    to have" shipped a check nobody was ever required to pass — which would make
    `docs/CASE_STUDY.md`'s account of 0.6.0 a false claim to correct.
-3. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
+2. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
    PR #11 says no. Independently re-derive it rather than trusting the PR body.
    Negative result: the guarantee holds and #11 should be closed.
-4. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
+3. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
    still pass its supporting check if it became false?** Run when the gate is
    green and has been for several rounds — not before.
 
@@ -298,8 +371,10 @@ code is wrong, not the assertion.
 - **A behavior change carries a version bump.** Without it the change reaches no
   downstream project — `check.py --base origin/<base>` → `version bumped for
   behavior change`.
-- **Every relative link resolves.** `check.py` → `all relative links resolve`.
-  **Currently failing.** See Round 0; left failing deliberately.
+- **Every relative link resolves**, against the directory the file really lives
+  in — `check.py` → `all relative links resolve`, resolving via
+  `os.path.realpath` so a symlinked file is judged at its true location (R2).
+  Verified by injecting broken links at root and nested depth.
 - **Every declared plugin has a name, a semver version, and a source directory
   that exists** — `check.py` → `<plugin>: has ...` / `version is semver` /
   `source exists`, run for each entry in `plugins`, not just the first (R1).
