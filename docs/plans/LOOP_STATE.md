@@ -9,20 +9,23 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 
 ## Current status
 
-- **Round:** 0 — bootstrapped. No round has run yet.
+- **Round:** 1 — `exactly one plugin` replaced with per-plugin validation.
 - **Layers:** core. The `ux-roast` domain in `llms.txt` was checked and rejected:
   this repository is a protocol library consumed by agents, not a user-facing
   product, so its roast mechanics have no surface to key a coverage map to.
 - **Gate:** `python3 scripts/check.py` (and `python3 scripts/check.py --base
   origin/<base>` on pull requests, via `.github/workflows/checks.yml`).
-  **RED.** 32 checks, 2 failed, on `main` at `405aba9`.
+  **RED, improving.** 37 checks, 1 failed. Was 32 checks / 2 failed at
+  bootstrap; Round 1 closed one failure and added 5 checks. The remaining
+  failure is `all relative links resolve`, queue item 1.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
   `loop` 0.10.0 (`LOOP.md`, 610 lines; 6 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
-- **Headline:** the repository that tells every adopter *"a gate that has never
-  failed is not yet known to be a gate"* has been merging over its own failing
-  gate since 0.10.0. Four consecutive pull requests — #15, #16, #17, #18 — were
-  merged with the `gate` check red, and `main` has been red ever since.
+- **Headline:** the gate's `exactly one plugin` assertion was not stale, it was
+  hollow — it failed loudly on a deliberate second plugin while validating
+  nothing about it. A plugin with no name, a nonexistent source and a garbage
+  version passed every per-plugin check. Round 1 replaced it; the gate went from
+  32 checks to 37 and from 2 failures to 1.
 
 ---
 
@@ -127,6 +130,87 @@ as red, queue seeded from the failures rather than invented.
 
 ---
 
+## Round 1 — `exactly one plugin`: not a stale assertion, a hollow one
+
+**Question:** is `exactly one plugin` a real invariant that 0.10.0 violated, or a
+leftover from when this marketplace declared one plugin? Bootstrap left it
+failing rather than picking, per the hard rule that a session does not relax the
+assertion it tripped over. Max ruled it stale on 2026-09-03 (NEEDS-MAX 1).
+
+**Method:** the ruling settled *which side is wrong*, not *whether the check was
+carrying its weight*, so the round measured the second thing before touching
+anything. Probe: corrupt `plugins[1]` in the manifest — delete its `name`, point
+`source` at a directory that does not exist, set `version` to `not-a-version` —
+and run the unmodified gate. A negative result was available and specific: if the
+gate caught any of the three, the old assertion was doing real work and the fix
+would have to preserve it.
+
+**Finding:** the gate caught **none of the three**. On a manifest whose second
+plugin was nameless, sourceless and unversioned, output was identical to the
+clean manifest — the same 2 failures, and every per-plugin check green:
+
+```
+  FAIL  exactly one plugin — found 2
+  ok    plugin has 'name'
+  ok    plugin has 'source'
+  ok    plugin has 'version'
+  ok    version is semver
+  ok    plugin source exists
+```
+
+`check_manifest()` bound `plugin = plugins[0]` and validated that one object.
+`exactly one plugin` was not guarding the invariant it appeared to guard; it was
+standing in for validation it never performed, and its failure since 0.10.0 was
+the only reason anyone would look at the block at all. The evidence bootstrap
+already had — `claude plugin validate . --strict` passing, `docs/ADOPTING.md`
+documenting `/plugin install loop-ux-roast@agentic-coding-loop` in three places,
+both domain skills reading `${CLAUDE_PLUGIN_ROOT}/DOMAIN.md` (which resolves to
+`domains/ux-roast/` only if that directory is its own plugin) — says the manifest
+encodes the design and the check was the wrong side. The probe says the check was
+also worth less than its failure suggested.
+
+**Shipped:** `scripts/check.py` — `check_manifest()` now asserts `at least one
+plugin` and loops over every declared plugin, labelling each check with the
+plugin's name. `docs/plans/LOOP_STATE.md`. No behavior path (`LOOP.md`,
+`skills/`, `templates/`) touched, so no version bump; `--base` correctly skips
+the release check. `scripts/check.py` is not among the files `AGENTS.md` puts
+off-limits (`.github/workflows/`, `docs/REVIEW_RUBRIC.md`, `.github/CODEOWNERS`).
+
+**Consequences:** verified by re-running the identical probe against the fixed
+gate, not predicted.
+
+| | checks | failures, clean manifest | defects caught in corrupted `plugins[1]` |
+|---|---|---|---|
+| before | 32 | 2 | **0 of 3** |
+| after | 37 | 1 | **3 of 3** |
+
+The change is strictly a strengthening: five checks added, none removed, and
+three real defect classes that were previously invisible now fail the gate. That
+distinction is what separates this from the assertion-nudge anti-pattern —
+`len(plugins) == 1` → `len(plugins) <= 2` would have gone green while leaving all
+three invisible. `claude plugin validate . --strict` still passes.
+
+**Noted, not built:** *checking that `loop-ux-roast`'s version tracks `loop`'s.*
+They are versioned independently on purpose (`docs/ADOPTING.md:71`), so an
+equality check would encode the opposite of the design. There may be a real
+invariant nearby — a domain declaring a `loop` version it cannot work with — but
+nothing in the repo currently expresses that dependency, so there is nothing to
+check against and inventing one would be a rule cited later as load-bearing.
+
+**Loop:** the hard rule "if an invariant is genuinely mis-stated, say so in the
+writeup and leave it failing" got this exactly right, and would have been worth
+following even under pressure to go green: leaving it failing is what made the
+before-probe possible. Had bootstrap quietly fixed it, the discovery that the
+check validated nothing would have been lost with it. Second bootstrap-adjacent
+note: §D's "a round never merges itself" could not be honoured this round — the
+merge of the previous round's PR (#20) was blocked in this environment, so the
+rounds are stacked as branches for a human to merge in order. Recorded, not
+worked around.
+
+**Ending state:** `shipped`.
+
+---
+
 ## Coverage map
 
 | area | last touched | probe / status |
@@ -135,7 +219,8 @@ as red, queue seeded from the failures rather than invented.
 | `skills/` (6) | 0.10.0 | Frontmatter parses, description present, inlines `LOOP.md`. Behavior unprobed. |
 | `domains/ux-roast/` | 0.10.0 | **Unprobed.** Its `LOOP.md` symlink is one of the two current gate failures. |
 | `templates/` (5) | 0.8.0 | **Unprobed.** No check that a template still matches what `LOOP.md` tells you to copy from it. |
-| `scripts/check.py` | 0.6.0 | The gate itself. **Unprobed — nothing checks the checker**, and it is currently wrong about at least one of its two failures. |
+| `scripts/check.py` | R1 | **Probed.** R1 corrupted `plugins[1]` and confirmed the manifest block caught 0 of 3 defects; after the fix, 3 of 3. `check_links()` is still unprobed — queue item 1. |
+| `.claude-plugin/marketplace.json` | 0.10.0 | Every declared plugin now validated for name/source/version/semver, not just `plugins[0]` (R1). |
 | `.github/workflows/` | 0.6.0 | Runs on push + PR. Off-limits to any agent acting on a proposal (`AGENTS.md`). |
 | `proposals/` | 0.10.0 | Inertness enforced: no instruction file loads `proposals/`. 003 accepted. |
 | `README.md`, `docs/` | #18 (`405aba9`) | **Unprobed.** Claims about the loop are unmeasured; see queue item 5. |
@@ -147,15 +232,10 @@ as red, queue seeded from the failures rather than invented.
 Items that cannot proceed without a human. **Noted and skipped — never a reason
 to halt the loop.**
 
-1. **`exactly one plugin` — stale assertion, or wrong manifest?** 0.10.0 added
-   `loop-ux-roast` on purpose; `check.py` still asserts one plugin. A round may
-   not relax an assertion to go green, so this needs a ruling on which side is
-   wrong. Note that the two disagree: `claude plugin validate . --strict`
-   passes on this manifest while the gate fails on it. Reproduce both with:
-   ```
-   python3 scripts/check.py; claude plugin validate . --strict
-   ```
-   Until it is ruled on, no round may claim a green gate.
+1. ~~**`exactly one plugin` — stale assertion, or wrong manifest?**~~
+   **Resolved 2026-09-03** — Max ruled the assertion stale. R1 acted on it and
+   found the check was additionally hollow: it validated nothing about the
+   plugin it was failing over. See Round 1.
 
 2. **The gate is not enforced.** #15–#18 each merged with `gate` failing.
    Unblocked by making `gate` a required status check on `main`:
@@ -184,26 +264,20 @@ to halt the loop.**
 
 Ordered. Each is a question with a possible negative result, per §2.
 
-1. **Is `exactly one plugin` an invariant or a leftover?** It was written when
-   there was one plugin; 0.10.0 shipped two deliberately. Negative result: the
-   assertion is right and the second plugin should never have been declared in
-   this manifest — in which case the fix is in the manifest, not the check.
-   Evidence so far points the other way: `claude plugin validate . --strict`
-   passes. Blocked on NEEDS-MAX 1.
-2. **Does `check_links()` know the difference between a file and a symlink to
+1. **Does `check_links()` know the difference between a file and a symlink to
    one?** It resolves the root `LOOP.md`'s relative links from
    `domains/ux-roast/`. Negative result: the symlink is the mistake, not the
    checker, and the domain should carry its own copy — which `AGENTS.md` forbids
    ("two copies of a rule will drift").
-3. **Did the gate ever gate?** Four pull requests merged red. Measure: for every
+2. **Did the gate ever gate?** Four pull requests merged red. Measure: for every
    merged PR, was its `gate` check green at merge time? Negative result: this is
    normal for the repo and 0.6.0's "give this repo the gate it told everyone else
    to have" shipped a check nobody was ever required to pass — which would make
    `docs/CASE_STUDY.md`'s account of 0.6.0 a false claim to correct.
-4. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
+3. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
    PR #11 says no. Independently re-derive it rather than trusting the PR body.
    Negative result: the guarantee holds and #11 should be closed.
-5. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
+4. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
    still pass its supporting check if it became false?** Run when the gate is
    green and has been for several rounds — not before.
 
@@ -226,8 +300,10 @@ code is wrong, not the assertion.
   behavior change`.
 - **Every relative link resolves.** `check.py` → `all relative links resolve`.
   **Currently failing.** See Round 0; left failing deliberately.
-- **The manifest declares a valid semver plugin whose source exists.**
-  `check.py` → the `manifest` block. **`exactly one plugin` currently failing.**
+- **Every declared plugin has a name, a semver version, and a source directory
+  that exists** — `check.py` → `<plugin>: has ...` / `version is semver` /
+  `source exists`, run for each entry in `plugins`, not just the first (R1).
+  Verified by corrupting `plugins[1]` and confirming the gate fails.
 - **Not yet enforced anywhere:** that the gate is green before a merge. Named
   here because its absence is Round 0's finding, not because a test covers it.
 
