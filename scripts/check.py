@@ -86,27 +86,36 @@ def check_manifest() -> dict:
         check(f"marketplace has {field!r}", field in manifest)
 
     plugins = manifest.get("plugins") or []
-    check("exactly one plugin", len(plugins) == 1, f"found {len(plugins)}")
-    if not plugins:
-        return manifest
+    check("at least one plugin", bool(plugins), f"found {len(plugins)}")
 
-    plugin = plugins[0]
-    for field in ("name", "source", "version"):
-        check(f"plugin has {field!r}", field in plugin)
+    # Every declared plugin is validated, not just the first.
+    #
+    # This replaced `len(plugins) == 1`, which 0.10.0 broke by adding a second
+    # plugin (`loop-ux-roast`) on purpose. That assertion was not merely stale:
+    # it stood in for validation it never performed. Measured before replacing
+    # it — with plugins[1]'s `name` deleted, its `source` set to a directory
+    # that does not exist and its `version` set to `not-a-version`, the gate
+    # reported the same two failures and every per-plugin check passed green.
+    # A second plugin could ship completely malformed and nothing here noticed.
+    for index, plugin in enumerate(plugins):
+        label = plugin.get("name") or f"plugins[{index}]"
 
-    version = plugin.get("version", "")
-    check(
-        "version is semver",
-        bool(re.fullmatch(r"\d+\.\d+\.\d+", version)),
-        f"got {version!r}",
-    )
+        for field in ("name", "source", "version"):
+            check(f"{label}: has {field!r}", field in plugin)
 
-    source = plugin.get("source", "")
-    check(
-        "plugin source exists",
-        isinstance(source, str) and os.path.isdir(os.path.join(ROOT, source)),
-        f"got {source!r}",
-    )
+        version = plugin.get("version", "")
+        check(
+            f"{label}: version is semver",
+            bool(re.fullmatch(r"\d+\.\d+\.\d+", version)),
+            f"got {version!r}",
+        )
+
+        source = plugin.get("source", "")
+        check(
+            f"{label}: source exists",
+            isinstance(source, str) and os.path.isdir(os.path.join(ROOT, source)),
+            f"got {source!r}",
+        )
     return manifest
 
 
