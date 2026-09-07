@@ -9,7 +9,8 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 
 ## Current status
 
-- **Round:** 2 — link resolution fixed for symlinked files. **Gate green.**
+- **Round:** 3 — the gate never gated: 4 of 12 merged PRs merged red, and no red
+  gate has ever blocked a merge. **Gate green on `main`.**
 - **Layers:** core. The `ux-roast` domain in `llms.txt` was checked and rejected:
   this repository is a protocol library consumed by agents, not a user-facing
   product, so its roast mechanics have no surface to key a coverage map to.
@@ -17,8 +18,9 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   origin/<base>` on pull requests, via `.github/workflows/checks.yml`).
   **GREEN — 37 checks, 0 failed.** First green state since `d2a6353` (0.8.0,
   #12). Was 32 checks / 2 failed at bootstrap: R1 added 5 checks and closed one
-  failure, R2 closed the other. Green *on these branches* — `main` is still red
-  until the merge train lands (see NEEDS-MAX 2).
+  failure, R2 closed the other. The merge train landed 2026-09-07, so this is now
+  green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
+  required status check (NEEDS-MAX 2), and R3 measured what that has cost.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
   `loop` 0.10.0 (`LOOP.md`, 610 lines; 6 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
@@ -289,6 +291,111 @@ not lost.
 
 ---
 
+## Round 3 — the gate never gated, but it was not ignored either
+
+**Question:** did the gate ever gate? Queue item 1 asked, for every merged pull
+request, whether its `gate` check was green at merge time. The negative result was
+stated in advance and was specific: *this is normal for the repo, and 0.6.0's
+"give this repo the gate it told everyone else to have" shipped a check nobody was
+ever required to pass* — which would make the account of 0.6.0 a false claim to
+correct.
+
+**Method:** joined every workflow run of `.github/workflows/checks.yml` (27 runs,
+the full history) to every merged pull request by head SHA, and read the
+conclusion on the exact commit that was merged. Both sides come from the API, not
+from any writeup, so no round's own account of itself is in the loop.
+
+**Finding: the anticipated negative result did not occur, and the hypothesis
+behind it is refuted.**
+
+| era | merged PRs | green at merge | red at merge |
+|---|---|---|---|
+| before CI existed (#4–#7) | 4 | — | — (no gate to consult) |
+| 0.6.0 → 0.8.0 (#8, #9, #10, #12) | 4 | **4** | 0 |
+| 0.10.0 → #18 (#15, #16, #17, #18) | 4 | 0 | **4** |
+| bootstrap + rounds (#20, #24, #25, #27) | 4 | **4** | 0 |
+
+Twelve pull requests have merged since the gate existed. Four merged red, and all
+four are **consecutive** — 0.10.0 and the three README changes after it. Every
+merge from the gate's introduction through 0.8.0 was green.
+
+So the repo was not habitually merging over a red check. The gate was green on
+every merge for five merges, went red at 0.10.0, and was then merged over four
+times in a row because nothing required it and nobody looked. **0.6.0's claim —
+that the workflow runs on every push and pull request — is true, was true then,
+and is still true.** It claims running, not blocking, and running is what it does.
+
+The sharper answer to the question as asked: **there is no evidence the gate has
+ever blocked anything.** Not once in twelve merges did a red gate stop a merge —
+the four times it was red, the merge happened anyway. Green merges do not
+demonstrate gating; they demonstrate agreement. `LOOP.md`'s hard rule says *a gate
+that has never failed is not yet known to be a gate*. This gate has failed, four
+times, and did not gate. That is the stronger version of the same finding and it
+is now measured rather than asserted.
+
+**Honesty about two rows.** #20 and #24 are recorded green at merge, and that is
+what the API says, but they were red when opened. They became green only because
+the stack was collapsed bottom-up before merging, so each was measured on a head
+that already contained the rounds that fixed the failures. Read as *"each round's
+own work was green"* the row would be false. Read as *"what was merged was green"*
+— the question queue item 1 actually asked — it is true.
+
+**Shipped:** a correction to `CONTRIBUTING.md`, found while looking for where the
+0.6.0 claim lived. It stated *"this repo does not keep its own `LOOP_STATE.md`"*
+— made false by Round 0 and left standing through three merges. The correction
+keeps the original reasoning rather than deleting it, because the reasoning was
+wrong in an instructive way: `CHANGELOG.md` and `proposals/` are both
+outward-facing records of what shipped, and neither carries a queue, a coverage
+map, or standing invariants. Nothing was responsible for noticing the red gate.
+
+**Noted, not built:**
+
+- *A probe wired into the gate.* §A wires a probe in when a claim **holds**; this
+  one was refuted, and the fix is branch protection, which lives outside the
+  repository and cannot be asserted by `check.py`. A check that cannot fail when
+  the thing it checks breaks is worse than none.
+- *Correcting the 0.6.0 entry.* Nothing to correct — the measurement says it is
+  accurate.
+
+**Swept — queue items this round answered that were not its own:**
+
+- Queue item 1's premise cited `docs/CASE_STUDY.md` as the home of the 0.6.0
+  claim. It is not there; it is in `CHANGELOG.md`, and it is true. The item was
+  filed against a document it had not checked.
+- Queue item 3 scopes the doc audit to `README.md` and `docs/CASE_STUDY.md`. The
+  false claim this round actually found was in `CONTRIBUTING.md`, which no queue
+  item covered. Item 3 re-scoped accordingly.
+
+**Loop:** the audit owed under §C — two consecutive non-`nothing` `Loop:` lines,
+both about §D's merge step — ran with this round, per §C's *"it is not its own
+round."* Against §C's six questions:
+
+1. *Disproportionate effort:* nothing found in three rounds.
+2. *A rule that fires where it can no longer be acted on:* **found, second
+   instance.** R0 recorded that §0's ordering means bootstrap never reaches the
+   "confirm the gate runs elsewhere" precondition, and called it one data point.
+   Filed proposal #26 now proposes adding a gate-integrity check to that same
+   precondition — which a bootstrap would also never run. Two independent
+   arrivals at one ordering defect. Recorded on #26 as an argument for §B, not
+   §0, as its home.
+3. *A state-file section never read:* insufficient data at three rounds.
+4. *An ending state §D does not name:* R0 ended `shipped`, but a bootstrap is not
+   an item landing. One instance of a forced bucket; not filed.
+5. *A stop condition that fired late or failed to fire:* **found, and filed as
+   #28.** §D's open-PR condition fired correctly but cannot be cleared by the
+   runner that hits it — its exit is "a human merges," and §0.4a plus "a round
+   never merges itself" mean merges happen only at the start of the next round.
+   Cost: the stack sat four days. `indefinite` was `on` throughout and lifts only
+   the empty-queue condition, so the setting enabled to keep the sequence running
+   did not address the condition that stopped it.
+6. *An ambiguous instruction read two ways:* none evidenced across rounds.
+
+**Ending state:** `refuted` — the round's own hypothesis was killed by the
+measurement. The doc correction shipped alongside it is incidental to the
+question, not an answer to it.
+
+---
+
 ## Coverage map
 
 | area | last touched | probe / status |
@@ -299,9 +406,10 @@ not lost.
 | `templates/` (5) | 0.8.0 | **Unprobed.** No check that a template still matches what `LOOP.md` tells you to copy from it. |
 | `scripts/check.py` | R2 | **Probed, both halves.** R1: corrupted `plugins[1]`, 0 of 3 caught → 3 of 3. R2: injected broken links at root and nested depth, caught before and after the symlink fix. |
 | `.claude-plugin/marketplace.json` | 0.10.0 | Every declared plugin now validated for name/source/version/semver, not just `plugins[0]` (R1). |
-| `.github/workflows/` | 0.6.0 | Runs on push + PR. Off-limits to any agent acting on a proposal (`AGENTS.md`). |
+| `.github/workflows/` | 0.6.0 | **Probed (R3).** Runs on push + PR, on all 12 merges since 0.6.0. 4 merged red; no red gate has ever blocked a merge. Off-limits to any agent acting on a proposal (`AGENTS.md`). |
 | `proposals/` | 0.10.0 | Inertness enforced: no instruction file loads `proposals/`. 003 accepted. |
-| `README.md`, `docs/` | #18 (`405aba9`) | **Unprobed.** Claims about the loop are unmeasured; see queue item 5. |
+| `README.md`, `docs/` | #18 (`405aba9`) | **Unprobed.** Claims about the loop are unmeasured; see queue item 2. |
+| `CONTRIBUTING.md` | R3 | One false claim found and corrected (it denied this repo keeps a `LOOP_STATE.md`, which R0 made false). Found by reading, not by a probe — the rest is unprobed. |
 
 ---
 
@@ -349,20 +457,31 @@ to halt the loop.**
 
 Ordered. Each is a question with a possible negative result, per §2.
 
-1. **Did the gate ever gate?** Four pull requests merged red. Measure: for every
-   merged PR, was its `gate` check green at merge time? Negative result: this is
-   normal for the repo and 0.6.0's "give this repo the gate it told everyone else
-   to have" shipped a check nobody was ever required to pass — which would make
-   `docs/CASE_STUDY.md`'s account of 0.6.0 a false claim to correct.
-2. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
+1. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
    PR #11 said no. Independently re-derive it rather than trusting the PR body.
    Negative result: the guarantee holds as written and no doc change is owed.
    #11 was closed on 2026-09-07 without settling this — its argument is the
    starting hypothesis for this item, not its answer, and its diff is available
    in the closed PR if the round confirms it.
-3. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
-   still pass its supporting check if it became false?** Run when the gate is
-   green and has been for several rounds — not before.
+2. **§A audit candidate: which claim in `README.md`, `docs/CASE_STUDY.md` or
+   `CONTRIBUTING.md` would still pass its supporting check if it became false?**
+   Run when the gate is green and has been for several rounds — not before; it
+   has been green on `main` for one. **Re-scoped by R3:** this item previously
+   covered only `README.md` and `docs/CASE_STUDY.md`, and the false claim R3
+   actually found was in `CONTRIBUTING.md`, which no item covered. The scope was
+   drawn around the docs someone expected to be wrong.
+3. **Does anything make a red gate cost something?** R3 measured that no red gate
+   has ever blocked a merge here, and NEEDS-MAX 2 names the fix — but branch
+   protection lives outside the repository and `check.py` cannot assert it.
+   Question: is there any in-repo check that would fail if `gate` stopped being
+   required? Negative result: there is not, the property is unassertable from
+   inside, and the honest move is to say so in the standing invariants rather
+   than leave the line reading as though a test is owed.
+
+~~**Did the gate ever gate?**~~ **Answered by R3, 2026-09-07** — 4 of 12 merged
+PRs merged red, all four consecutive, and no red gate has ever blocked a merge.
+The item's own negative case was refuted: 0.6.0's account is accurate, and it
+cited the wrong file for it. See Round 3.
 
 ---
 
@@ -391,6 +510,10 @@ code is wrong, not the assertion.
   Verified by corrupting `plugins[1]` and confirming the gate fails.
 - **Not yet enforced anywhere:** that the gate is green before a merge. Named
   here because its absence is Round 0's finding, not because a test covers it.
+  **Measured by R3:** 4 of 12 merged pull requests merged red, and no red gate
+  has ever blocked a merge. This is not a test that is missing — it is a property
+  no in-repo test can assert, because it lives in branch protection. Queue item 3
+  asks whether that is final.
 
 ---
 
