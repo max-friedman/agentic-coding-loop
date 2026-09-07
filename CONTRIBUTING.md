@@ -203,6 +203,14 @@ without first becoming a visible diff.
 ## Changing the loop from the inside
 
 The loop applies to itself. A change to the protocol is a round: state the question,
-say what would show it wrong, and record it. This repo does not keep its own
-`LOOP_STATE.md` — `CHANGELOG.md` plus the `proposals/` history serves that purpose,
-and duplicating it would just create two records that drift apart.
+say what would show it wrong, and record it. This repo keeps its own
+[`docs/plans/LOOP_STATE.md`](docs/plans/LOOP_STATE.md), bootstrapped in Round 0.
+
+Until then it did not, on the reasoning that `CHANGELOG.md` plus the `proposals/`
+history already served that purpose and a second record would drift from the first.
+That reasoning was wrong in a specific way worth keeping: the two records it named
+are both *outward-facing* — they say what shipped and why it was accepted. Neither
+carries a queue, a coverage map, or standing invariants, so nothing told a cold
+agent what had already been ruled out. Round 0 found the cost of that directly: the
+gate had been failing through four merges, and no document in the repository was
+responsible for noticing.
