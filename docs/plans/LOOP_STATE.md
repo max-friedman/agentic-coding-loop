@@ -318,18 +318,25 @@ to halt the loop.**
 2. **The gate is not enforced.** #15–#18 each merged with `gate` failing.
    Unblocked by making `gate` a required status check on `main`:
    ```
-   gh api -X PUT repos/max-friedman/agentic-coding-loop/branches/main/protection/required_status_checks -f 'strict=true' -f 'contexts[]=gate'
+   gh api -X PUT repos/max-friedman/agentic-coding-loop/branches/main/protection/required_status_checks -F strict=false -f 'contexts[]=gate'
    ```
    Until then, "the gate is green" is a claim about a check nothing consults.
 
-3. **PR #11, open since 2026-07-28, `CONFLICTING`.** It is not superseded — the
-   claim it corrects is still live on `main` at `CONTRIBUTING.md:33`
-   ("Consumers are pinned to the..."). Rebase and merge, or close and let queue
-   item 4 redo it:
-   ```
-   gh pr view 11
-   gh pr close 11
-   ```
+   **Corrected 2026-09-07.** The command recorded here would have failed: `-f`
+   sends `strict` as the string `"true"`, which the API rejects as a non-boolean.
+   `-F` types it. A command written into NEEDS-MAX is meant to be pasted by a
+   human who will not debug it — an unrunnable one is worse than none, because it
+   reads as unblocked. `strict` is now `false` by Max's decision on 2026-09-07:
+   the goal is that nothing merges red, not that every branch is current, and
+   `CONTRIBUTING.md` argues that friction which invites admin bypass is worse
+   than the protection it buys.
+
+3. ~~**PR #11, open since 2026-07-28, `CONFLICTING`.**~~ **Resolved 2026-09-07**
+   — closed by Max's decision, with the reasoning recorded on the PR. Not
+   superseded and not judged wrong: the claim it corrects is still live at
+   `CONTRIBUTING.md:33`, and queue item 2 now owns settling it by measurement
+   rather than by merging an assertion. The cost accepted in closing it is that
+   the claim stays on `main` until that round runs.
 
 4. ~~**`## Loop configuration` is at defaults (all off).**~~ **Resolved
    2026-09-01** — Max set `roast-on-empty` and `indefinite` to `on`. Kept here
@@ -348,8 +355,11 @@ Ordered. Each is a question with a possible negative result, per §2.
    to have" shipped a check nobody was ever required to pass — which would make
    `docs/CASE_STUDY.md`'s account of 0.6.0 a false claim to correct.
 2. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
-   PR #11 says no. Independently re-derive it rather than trusting the PR body.
-   Negative result: the guarantee holds and #11 should be closed.
+   PR #11 said no. Independently re-derive it rather than trusting the PR body.
+   Negative result: the guarantee holds as written and no doc change is owed.
+   #11 was closed on 2026-09-07 without settling this — its argument is the
+   starting hypothesis for this item, not its answer, and its diff is available
+   in the closed PR if the round confirms it.
 3. **§A audit candidate: which claim in `README.md` / `docs/CASE_STUDY.md` would
    still pass its supporting check if it became false?** Run when the gate is
    green and has been for several rounds — not before.
@@ -393,7 +403,7 @@ own `indefinite` setting has no limit on it. See `LOOP.md` §D and §E.
 |---|---|---|
 | `roast-on-empty` | `on` | When the queue empties, run §E (roast round) instead of stopping. |
 | `indefinite` | `on` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
-| `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+| `roast-budget` | `2` | Consecutive roasts allowed before stopping regardless of what they find. |
 
 **Set by Max on 2026-09-01**, by instruction, after bootstrap had written the
 table at its defaults. Round 0 records it as default-off because that is what
@@ -401,8 +411,20 @@ bootstrap did; this line is the change, not a correction of that record.
 `roast-on-empty` is on because `indefinite` requires it, not because it was asked
 for separately. `roast-budget` was not discussed and stays at its default.
 
+**`roast-budget` raised 1 → 2 by Max on 2026-09-07**, by instruction. The value
+had never been chosen — it was the default sitting under a setting that *was*
+chosen, which is the reason it came up for decision at all. Max asked for "2–3";
+2 is the conservative end of that range and is what is recorded here. Raising it
+further is a one-line edit, and the reason to prefer the low end first is that
+this setting has still never taken effect once.
+
 **What this does not lift.** `indefinite` lifts exactly one stop condition — the
-empty queue. Every other §D condition still halts the sequence, and two of them
-are live right now: the gate is red, and the ruling that would let a round fix it
-is NEEDS-MAX 1. Enabling this did not start anything. It takes effect the first
-time a round empties the queue, which cannot happen until the gate is green.
+empty queue. Every other §D condition still halts the sequence. As of 2026-09-07
+the two that were live are cleared — the gate is green on `main` (37 checks, 0
+failed, first green push since `d2a6353`) and NEEDS-MAX 1 was resolved by Max's
+ruling — so this configuration can now actually take effect the first time a
+round empties the queue. It has not yet: the queue holds three items.
+
+**Still not enforced:** `gate` is not a required status check on `main`
+(NEEDS-MAX 2). `indefinite` keeps a sequence running; nothing yet stops a round
+in that sequence from merging red.
