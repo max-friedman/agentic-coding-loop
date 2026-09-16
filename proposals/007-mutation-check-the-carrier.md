@@ -1,9 +1,9 @@
 ---
-status: proposed
+status: accepted
 filed: 2026-09-02
 area: protocol
 issue: "#23"
-released-in: ""
+released-in: "0.11.0"
 ---
 
 # 007 — Mutation-check the carrier, not just the ends
@@ -154,5 +154,44 @@ derived from its run at all. Every mutation score quoted here assumes they are.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Accepted 2026-09-16, narrower than filed — part 1 only.** Written as `LOOP.md`
+§5 step 5; reasoning recorded as [principle 12](../docs/PRINCIPLES.md#12-test-the-carrier-not-only-the-ends).
+Released in 0.11.0.
+
+**Part 1 (the obligation) — accepted, restated.** The submitted wording is evidence,
+not copy. Two changes were made to it:
+
+- The UI-framework framing is gone. *"A value that crosses a UI-framework boundary
+  is untested until a mutation says otherwise"* fails criterion 2 — it assumes a
+  UI framework, and the independent replication was not in one. The shipped rule
+  triggers on the shape (a value travelling from where it is computed to where it
+  is used) rather than on the boundary it crosses, so a project with no UI reads a
+  conditional that never fires.
+- The escape is narrowed from *"say so in the code, next to the line"* plus a
+  carve-out for framework boundaries, to a single clause requiring the same note in
+  the code wherever nothing can drive the carrier — with an explicit prohibition on
+  letting the writeup imply coverage the gate does not have.
+
+The submitter's own narrowing suggestion — restrict the rule to security and
+data-safety signals — was considered and not taken. The trigger is already narrow
+(most rounds carry no value across a hand-off), and the replication's instance was
+core logic rather than a safety signal, so the narrower scoping would have excluded
+the one piece of evidence that established generality.
+
+**Part 2 (the remedy: drive the real component) — declined, criterion 2.** *"Make
+it visible to tests if that is what it takes"* assumes a visibility keyword, a
+component-rendering test harness, and a UI framework with drivable components.
+That is one of the shapes the obligation applies to, not the general remedy. The
+half that does generalise — extracting a hand-off into a named helper relocates the
+untested line rather than testing it — is in the shipped rule, because it is the
+repair a reviewer approves.
+
+**Part 3 (the breaker pass) — declined, criteria 3 and 4.** The submitter filed the
+decisive objection against it: prose findings do not survive the round unless
+something converts them into queue items, and the proposal does not specify that
+conversion. A finder whose output evaporates fails the test §6 exists to apply. The
+cost is also per part rather than per round, with no accumulating artifact. If it
+returns, §E's opt-in shape is the right home, as the filing itself suggests.
+
+**Not weighed:** proposal 006 (#23's companion) was rejected separately on hard
+disqualifier 3. Part 3's stated dependency on 006 is therefore moot.

@@ -1,10 +1,10 @@
 # Principles
 
-Eleven rules. Each one names a specific failure it prevents. None of them are
+Twelve rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
 
-Rules 9 and 10 arrived differently from the rest: they came from projects running
-the loop, as proposals, and were accepted narrower than filed. Their mechanisms
+Rules 9 through 12 arrived differently from the rest: they came from projects
+running the loop, as proposals, and were accepted narrower than filed. Their mechanisms
 live in [`../LOOP.md`](../LOOP.md); the reasoning is here, because a rule whose
 justification exists nowhere is a rule that gets rationalized away.
 
@@ -186,6 +186,46 @@ filed as evidence from a project's own history running that informal predecessor
 Accepted with the anti-laundering guardrail the submitter flagged against their own
 proposal — the strongest objection to a proposal is sometimes the reason to keep it,
 narrowed.*
+
+## 12. Test the carrier, not only the ends
+
+A fix that computes a value in one place and consumes it in another gets tests at
+both ends. The hand-off between them — a plain argument at a call site, several
+framework hops from any test — is where the defect comes back.
+
+The failure it prevents: **coverage that is believed rather than measured**. Four
+consecutive rounds in one project shipped a correct fix, wrote a test named after
+it, and left the carrier untouched; setting the intermediate hand-offs to a
+constant restored the original defect with the full suite green. In one of them the
+test named after the fix was a determinism check that would have passed with the
+fix reverted. The next round stopped finding instances and measured the population
+against the project's hardest standing rule — never destroy user data without
+explicit confirmation — registering its prediction before measuring: **2 of 8
+enforcement points caught, 6 uncaught**, and the prediction came back exact. Among
+the six: inverting a confirmation dialog's cancel path, on two separate dialogs,
+left all 1970 tests green. The two that were caught are the only two that are pure
+functions. Every uncaught one is a call site.
+
+**The repair that does not work is the one that feels like progress.** Extract the
+hand-off into a named helper and test the helper — the untested line does not go
+away, it acquires a name and moves. A round did exactly that and the carrier stayed
+invisible, now behind a well-named function a reviewer nods at. What actually closed
+the carriers was driving the real component, which cost one keyword of production
+code and immediately surfaced a live defect the mutation set had missed entirely.
+
+This is principle 3 one layer down. A check written after the thing is shaped to
+accept it; a check written for the *ends* of a hand-off is shaped to accept the
+hand-off. The mechanism is what separates them: mutate the carrier and require the
+gate to go red. "Test the wiring" is satisfied by a test that re-derives the
+composition and checks its own copy. A mutation that must turn the gate red is not.
+
+*Arrived as [proposal 007](../proposals/007-mutation-check-the-carrier.md), with an
+independent replication from an unrelated codebase that reached the same shape from
+a different direction. Accepted narrower than filed: the obligation only, restated
+without the submitter's UI-framework framing so it fits a project with no UI, and
+with the proposed breaker-pass declined — an adversarial agent whose output is prose
+is a finder whose findings do not survive the round, which is the failure §6 exists
+to prevent. The submitter filed that objection against their own part 3.*
 
 ---
 

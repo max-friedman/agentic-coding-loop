@@ -102,6 +102,13 @@ of the reasoning.
    doc usually states the same contract, and the one you forget will be the
    canonical reference. Re-check the *previous* round's doc edits too, not only
    your own.
+5. If the fix makes a value travel from where it is computed to where it is used,
+   mutate the **carrier**, not only the ends: set each intermediate hand-off to a
+   constant and confirm the gate goes red. Both ends can be tested and green while
+   the wiring between them is unchecked. Extracting a hand-off into a named helper
+   does not discharge this — it relocates the untested line rather than testing it.
+   Where nothing can drive the carrier, say so in the code beside it; never let the
+   writeup imply coverage the gate does not have.
 
 ## 6. Write `docs/plans/LOOP_STATE.md` last
 

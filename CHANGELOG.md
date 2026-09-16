@@ -8,6 +8,54 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.11.0] — 2026-09-16
+
+§5 gains one step: a fix that carries a value from where it is computed to where
+it is used must mutate the **carrier**, not only the ends.
+
+**Added**
+- **`LOOP.md` §5 step 5 — the carrier check.** Set each intermediate hand-off to a
+  constant and confirm the gate goes red. Both ends of a hand-off can be tested and
+  green while the wiring between them is unchecked, and extracting that wiring into
+  a named helper relocates the untested line rather than testing it. Where nothing
+  can drive the carrier, the round says so in the code beside it and may not let its
+  writeup imply coverage the gate does not have.
+- **Principle 12** in `docs/PRINCIPLES.md`, carrying the reasoning and the incident.
+
+**Why**
+- Four consecutive rounds in one project shipped a correct fix, wrote a test named
+  after it, and left the carrier untouched — setting the hand-offs to a constant
+  restored the original defect with the full suite green. In one, the test named
+  after the fix was a determinism check that would have passed with the fix
+  reverted. The next round pre-registered a prediction and measured the population
+  against that project's hardest standing rule: **2 of 8 enforcement points caught,
+  6 uncaught**, exactly as predicted. Among the six, inverting a confirmation
+  dialog's cancel path on two separate dialogs left all 1970 tests green. The only
+  two caught are the only two that are pure functions; every uncaught one is a call
+  site. An unrelated codebase reported the same shape independently.
+- This is principle 3 one layer down. A check written for the *ends* of a hand-off
+  is shaped to accept the hand-off, the same way a check written after the thing is
+  shaped to accept the thing. Requiring the gate to go red is what makes the
+  difference mechanical rather than advisory.
+
+**Cost, stated for the projects that never had the problem**
+- One conditional step, read every round, that fires only when a round's fix carries
+  a value across a hand-off. A project whose rounds do not do that reads six lines
+  and acts on none of them. Nothing is invalidated: existing `LOOP_STATE.md` files,
+  in-flight rounds, and every `§5.N` reference in an append-only round history stay
+  correct, because the step was appended rather than inserted.
+
+**Accepted narrower than filed** ([proposal 007](proposals/007-mutation-check-the-carrier.md), #23)
+- The UI-framework framing is gone; the rule triggers on the shape of the hand-off,
+  not on the boundary it crosses, so it applies to a project with no UI.
+- The proposal's part 2 (*drive the real component — make it visible to tests*) was
+  declined: it assumes a visibility keyword and a component-rendering harness. The
+  half that generalises — that extracting into a named helper does not discharge the
+  obligation — is in the rule.
+- The proposal's part 3 (an adversarial *breaker pass*) was declined on the
+  submitter's own objection: prose findings do not survive the round unless
+  something converts them into queue items, and nothing specified that conversion.
+
 ## [0.10.0] — 2026-07-27
 
 Optional domains: a project can layer project-shaped rules onto the core
