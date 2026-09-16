@@ -1,9 +1,9 @@
 ---
-status: proposed
+status: accepted
 filed: 2026-09-07
 area: protocol
 issue: "#29"
-released-in: ""
+released-in: "0.12.0"
 ---
 
 # 009 — §D's session round budget and its fresh-reviewer requirement are jointly unsatisfiable
@@ -131,5 +131,41 @@ cannot provide, and neither names what to do when it is absent.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Accepted 2026-09-16, both parts, as filed in shape but not in wording.** Two rows
+in §D's stop-condition table; released in 0.12.0.
+
+- **The budget row was edited, not added to.** It now reads *"Default 3 where review
+  comes from outside the session, otherwise 1."* The submitted phrasing — "Reachable
+  only where review comes from outside the session; otherwise the budget is 1" —
+  says the same thing in two clauses where one will do, in a table read in full every
+  round. This half costs zero lines: it resolves a contradiction rather than adding a
+  rule, and it brings the general budget into line with what §D's *Unattended runs*
+  section already mandates independently ("Reduce the round budget to 1 unless
+  configured otherwise").
+- **The new row cites §0.4a rather than restating the independence rule.** The
+  submitted "why" column re-stated that review requires a session that did not write
+  the work — which §D's *Reviewing the previous round* already says two subsections
+  below. A pointer costs less and cannot drift from what it points at.
+
+**On the submitter's own objection 3 — growth without deletion.** They wrote that the
+argument for the row "would justify a row for every rule, so it deserves weighing
+rather than acceptance." It does not, and the objection is stricter than it needs to
+be. The test for inclusion in that table is not *is this a rule* but *does obeying it
+halt the sequence*. §7 requires a halting round to report **which** condition fired,
+so a rule that halts the sequence while absent from the table produces a stop nobody
+can name. Very few rules meet that test; this one does.
+
+**On objection 2 — a careful reader may already resolve it.** The evidence says no. A
+session hit this and had to reason from §D's independence rule to notice that
+self-merge was the wrong move; nothing in the protocol named the state it was in.
+A rule that must be *derived* at the moment of choice, where the undesirable path is
+the one that keeps the sequence moving, is principle 10's failure exactly.
+
+**The decisive argument, which the filing makes and should not have hedged:** the
+resulting state is undetectable afterwards. A self-reviewed merge is indistinguishable
+from a reviewed one in the history, so a low observed frequency is what this defect
+predicts whether it is rare or universal. That defuses the thin-N objection rather
+than excusing it — and it is why a contradiction provable by reading was not held to
+the same replication bar as an empirical claim about a codebase.
+
+**Not accepted:** nothing was declined. Both parts landed.

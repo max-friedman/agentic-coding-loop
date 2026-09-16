@@ -8,6 +8,53 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.12.0] — 2026-09-16
+
+§D said a session may run three rounds, and said the reviewer must be a session that
+did not write the work. Rounds 2 and 3 could not satisfy both.
+
+**Added**
+- **A stop condition:** *the only reviewer available is the round's author.* §0.4a
+  needs a session that did not write the work; the sequence stops and the next firing
+  reviews and merges. Without a named condition, a round that hit this had no halting
+  state to report under §7 — and the path that kept the sequence moving was to merge
+  its own work, which §D forbids two subsections away.
+
+**Changed**
+- **The round-budget row** now reads "Default 3 where review comes from outside the
+  session, otherwise 1." It previously read "Default 3", which was permission for
+  something §D separately forbids. This costs no lines and brings the general budget
+  into line with what §D's *Unattended runs* section already required on its own.
+
+**Why**
+- A session ran one round, opened its PR, and found that continuing meant reviewing
+  its own work — two rounds not run against a budget that said three were available.
+  The contradiction replicated in a second project within an hour, one round *earlier*
+  than first described: §0.4a fires at the start of the next round, so the first
+  continuation is already blocked.
+- The evidence is thin by round count and that is not the right measure here. This is
+  a contradiction between three lines of `LOOP.md`, provable by reading rather than by
+  running. More importantly the failure is **undetectable after the fact** — a
+  self-reviewed merge looks exactly like a reviewed one in the history — so a low
+  observed frequency is what this defect predicts even if every project has hit it.
+
+**Blast radius**
+- **No correct usage changes.** A project running rounds back-to-back with review from
+  outside the session — a human, a separate session, a scheduled reviewer — keeps its
+  budget of 3. A project running one round per firing, which is the scheduled default,
+  already behaved this way.
+- What changes is a project that was running rounds 2 and 3 with no reviewer but
+  itself. That was already a violation of §D's independence rule; this makes it a
+  visible stop instead of a silent fork. Nothing invalidates an existing
+  `LOOP_STATE.md`, and no in-flight round has to adapt — hence MINOR rather than
+  MAJOR, which turns on whether any *correct* usage must change. If a maintainer
+  reads that call differently, this is the entry to revisit.
+
+**Accepted as filed** ([proposal 009](proposals/009-session-budget-versus-fresh-reviewer.md), #29)
+- Both parts landed; the wording is the protocol's, not the submitter's. The new row
+  cites §0.4a rather than restating the independence rule it points at, and the budget
+  row was edited in place rather than extended.
+
 ## [0.11.0] — 2026-09-16
 
 §5 gains one step: a fix that carries a value from where it is computed to where

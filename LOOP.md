@@ -362,7 +362,8 @@ Stop the sequence and report which condition fired. Do not push through.
 | Two consecutive rounds ended `blocked` | Everything left needs a human. |
 | A round produced no commit | The sequence is spinning. |
 | The same item has been attempted twice without shipping | It is mis-scoped. Split it in the queue and stop. |
-| Round budget for the session is reached | Default 3. Raise deliberately, not by drift. |
+| Round budget for the session is reached | Default 3 where review comes from outside the session, otherwise 1. Raise deliberately, not by drift. |
+| The only reviewer available is the round's author | §0.4a needs a session that did not write the work. Stop; the next firing reviews and merges it. |
 | The working tree is dirty at a round boundary | Someone else is editing, or the previous round did not finish. |
 
 ### Unattended runs
