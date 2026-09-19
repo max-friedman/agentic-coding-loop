@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-07-30
 area: protocol
 issue: "#19"
@@ -102,5 +102,30 @@ a discipline about item-writing is the kind of prose rule that gets ignored.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-16 — criterion 3 (Necessity), the mechanism test.**
+
+The proposed change was advisory prose appended to §6's queue row: check whether
+this round's finding answers any other queue item. The mechanism test rejects "a
+rule that could be a test, a stop condition, or a step reordering, but is proposed
+as advisory prose," and a mechanism was available — the filing named it itself, in
+its own counter-argument and again in its follow-up comment: an item that records
+*how to re-measure* is self-checking, and does not need a sweep to notice it has
+gone stale.
+
+Its own fourth instance is the sharpest argument against the sweep specifically.
+That round *knew* it had partly settled the item and recorded the fact in a code
+comment with its own round number. A §6 step asking "did my finding settle another
+item?" would have been answered "yes, and I recorded it" — and the queue would
+still not have learned.
+
+Criterion 1 (Evidence) passed outright: four instances, a ~27-round dwell on the
+top-priority item, and a full round spent producing only state-file corrections.
+This was not rejected for thin evidence.
+
+**What would change the answer:** the structural form instead of the sweep — items
+carrying the measurement or falsifier that would settle them, enforced where items
+are *written* (§6's queue row, §E step 5) rather than where they are read. See also
+[proposal 012](012-lists-that-record-a-decision-go-stale.md), whose evidence belongs in
+the same resubmission.
+
+Full verdict, with the criterion-by-criterion record: [#19 comment](https://github.com/max-friedman/agentic-coding-loop/issues/19#issuecomment-5697433318).

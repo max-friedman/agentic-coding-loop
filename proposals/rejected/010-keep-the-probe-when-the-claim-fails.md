@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#30"
@@ -125,5 +125,41 @@ the submitter added the instance there rather than re-arguing it here.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-17 — criterion 6 (Self-criticism), absent; criterion 5 (Blast
+radius), also absent.**
+
+The rubric requires a *Why this might be wrong* section carrying the genuinely
+strongest counter-argument, and fails a proposal where it is absent. This filing
+had *Overlap checked* — duplicate-checking against other issues, which is useful
+and is not the same thing. Nothing in it argued against the proposal.
+
+**The objection it owed is decisive, and criterion 6 exists precisely so the author
+finds it first.** The proposal's lead shape — commit the probe, runnable, alongside
+the queued fix — *would not have prevented the incident it is filed on.* The filing
+says what was actually lost: the probe was deleted **and the corpus was not
+committed**, because the corpus was user data and the project had a standing
+precedent against committing it. A probe committed without its corpus is not
+runnable, so the fixing round would have been in the same position.
+
+The worked example does not close this; comparing the two cases is what shows why.
+The mutation harness that shipped runnable and produced `UNCAUGHT → CAUGHT` had **no
+external corpus** — it edits the code under test and reads the suite's own result.
+That category survives being committed. The corpus-scoring probe that was lost is
+the category that does not. The proposal generalises from the case that works to
+the case that failed, and its fallback shape is doing the real work for the
+reported incident.
+
+**Criterion 1 was the strongest evidence section in its batch**, and the positive
+control is exceptional — deliberately doing the opposite on the next audit and
+reporting what it bought is a before/after *on the proposed change*, which almost
+no proposal arrives with. Criterion 3 also passes, with a sharper argument than the
+one filed: §3 requires the fixing round to produce a before number and §A step 6
+destroys the means of producing it. That is a defect, not an asymmetry.
+
+**What would change the answer:** split the probe by whether it can survive
+commitment. Self-contained probes ship runnable on `fails`; a probe depending on an
+uncommittable corpus gets the queue item recording how to reconstruct it and what
+the number was. Then write the blast radius — including the awkward one, a
+red-by-construction probe living in the repo — and write the counter-argument.
+
+Full verdict, with the criterion-by-criterion record: [#30 comment](https://github.com/max-friedman/agentic-coding-loop/issues/30#issuecomment-5702532809).

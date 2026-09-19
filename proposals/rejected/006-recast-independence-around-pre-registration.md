@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-02
 area: protocol
 issue: "#22"
@@ -95,5 +95,36 @@ a sentence.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-16 — hard disqualifier 3, with disqualifier 1 on the same text.**
+
+Disqualifier 3 is "removes a falsifiability requirement — the before-number, the
+'what would prove this wrong' step, or *the independence of an audit probe*." The
+filing proposed to re-cast §A step 3 "around pre-registration as the requirement,
+with independence (corpus, labeller, import) listed as means of achieving it."
+Independence of the audit probe is named in the disqualifier by those words;
+demoting it from requirement to means is the removal. The "where it structurally
+cannot" clause is the escape hatch disqualifier 1 names in the same breath, against
+a MUST.
+
+A disqualifier ends the review; the rubric forbids weighing it against merit.
+
+**The trade was also worse than it appeared**, which a resubmission must reckon
+with: §A step 2 already requires the claim quoted verbatim and the falsifying
+number stated, both before measuring. That is substantially pre-registration
+already, so the filing offered to give up independence in exchange for something
+the protocol largely has — which is separately criterion 3's "does not restate
+something the protocol already says."
+
+The underlying observation is legitimate and is not what was rejected: measuring a
+pure function does mean calling it, and a mutation probe does edit the code. The
+note that mutation testing is blind to a protection that was never built is a
+genuinely useful finding this verdict does not touch.
+
+**What would change the answer:** propose only the *addition* — what §A step 2
+lacks relative to what kept those audits honest, which on this evidence is the
+per-mutation prediction committed before running, including the one that came back
+wrong. Leave step 3 alone; a probe that must call what it measures can still be
+barred from seeing the answer. Alternatively, a clarification that a mutation probe
+satisfies step 3's intent, without relaxing it, hits no disqualifier.
+
+Full verdict, with the criterion-by-criterion record: [#22 comment](https://github.com/max-friedman/agentic-coding-loop/issues/22#issuecomment-5697440917).
