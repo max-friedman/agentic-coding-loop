@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#26"
@@ -143,5 +143,35 @@ survives, not proposed.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-17 — criterion 1 (Evidence), with hard disqualifier 7 on the
+same text.**
+
+The filing said it plainly, to its credit: "the cost is unquantified, and this
+proposal is asking for a check on the basis of a plausible mechanism plus one
+second-hand instance, not on the basis of a measured loss," and "here, nothing yet
+— nothing is known to be wrong in this project." Disqualifier 7 is that a proposal
+with no round it actually cost something in is a preference.
+
+**The follow-up comment made this decisive rather than merely thin.** The check was
+run against this repository's own gate and came back *negative* — the count is
+derived from the run, and the gate cannot go green on a miscount. A proposal whose
+only first-hand evidence is a negative result is asking every project to pay a
+recurring read cost for a defect looked for once and not found.
+
+Criterion 3 failed independently, and the filing identified it: §A step 1 already
+says to prefer "a claim whose supporting test would still pass if the claim became
+false," which is exactly a gate reporting a number it did not derive. §A's verdict
+vocabulary already includes `unmeasurable as stated`.
+
+Criterion 6 was the strongest section in the filing — three objections, correctly
+ordered, and the first two are what this verdict rests on. The provenance
+disclosure at the top is how a second-hand report should be filed.
+
+**What would change the answer:** a project that ran the five-minute check and found
+its gate *does* miscount, naming the rounds whose numbers were affected. Or,
+better, the narrower defect the follow-up comment actually surfaced first-hand — a
+gate whose sections can skip silently has an honest count with no denominator, so a
+section that vanished is indistinguishable from one that legitimately skipped. That
+is a distinct defect, and the wording proposed here would not catch it.
+
+Full verdict, with the criterion-by-criterion record: [#26 comment](https://github.com/max-friedman/agentic-coding-loop/issues/26#issuecomment-5702519092).

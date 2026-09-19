@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-02
 area: state-file
 issue: "#21"
@@ -88,5 +88,33 @@ what it claims. The counter-argument above still stands.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-16 — criterion 5 (Blast radius), absent.**
+
+Criterion 5 asks what the change costs a project that never had the problem, what
+breaks for a project relying on current behavior, and whether it invalidates
+existing `LOOP_STATE.md` files. The filing answered none of them. Its nearest
+approach was a cost of the *hard-block* variant it did not propose, not of the
+due-marker it did.
+
+The gap mattered rather than being a formality: the change alters the shape of
+every `LOOP_STATE.md` in every project running the loop, and never said what a
+round does when it reads a state file with no marker — which is every state file
+in existence. The rubric forbids trading this away: "do not let a strong evidence
+section offset a weak blast-radius argument."
+
+**This was the strongest filing in its batch and the rejection is a missing
+section, not a missing case.** Criterion 1 passed outright — two consecutive
+nine-round slips with the same named cause, priced at two runtime protections a
+1900-test suite could not see leave. Criterion 3 passed on the hardest sub-test:
+it proposed a *mechanism* (relocate the trigger onto the path the round already
+walks), which is principle 10 applied correctly, and its follow-up comment carried
+the rare thing — positive evidence that the mechanism fires, with an audit running
+*because* the marker was read.
+
+**What would change the answer:** the same proposal with a blast-radius section
+stating the cost to a project already auditing on time, what a round does with no
+marker present, whether `templates/LOOP_STATE.template.md` changes, and which of
+due-marker-only or due-marker-plus-explicit-defer is actually being proposed. The
+positive R102 evidence belongs in the body, not a comment.
+
+Full verdict, with the criterion-by-criterion record: [#21 comment](https://github.com/max-friedman/agentic-coding-loop/issues/21#issuecomment-5697436636).

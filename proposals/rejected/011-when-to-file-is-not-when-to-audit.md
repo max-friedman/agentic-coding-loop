@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#31"
@@ -93,5 +93,38 @@ argument that the marker should not be the *only* thing that fires a filing.
 
 ## Disposition
 
-_None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
-change has been written, and nothing here affects the protocol until one is._
+**Rejected 2026-09-18 — criterion 1 (Evidence), the cost is counterfactual;
+criterion 3 (Necessity) fails independently.**
+
+Criterion 1 fails a proposal where "the incident is hypothetical." Both findings
+the round surfaced *were* filed, contemporaneously, at full detail. The filing's
+own account is that they were filed "because a human happened to be present and
+said to," and that absent this the §A-step-6 one "would have degraded." Would have
+degraded is the hypothetical the criterion names; nothing was lost.
+
+Criterion 3 fails on the filing's own caveat, which is correct: §C's Filing section
+never says "only at audits" — it says "only file when there is a **pattern with a
+cost**." The trigger is already a condition on the finding rather than on the round
+type, so there is no cadence gate to remove, and proposing that filing be triggered
+by having a pattern with a cost restates the sentence that already says so.
+
+**The degradation argument does not survive §6**, which is the part worth keeping on
+record. §6 already requires a **Loop:** line every round, and says why in terms the
+filing itself uses: "It exists so that protocol friction is recorded while it is
+still concrete, rather than reconstructed from memory five rounds later. §C turns
+accumulated lines into proposals." Contemporaneous capture is already mandatory and
+already every round. Carrying a finding to a later audit does not degrade it,
+because the finding is not carried in memory — it is in the state file, which §D
+requires the next round to re-read from disk. The filing treats the Loop line as
+support for its argument; it is in fact the mechanism that makes the argument
+unnecessary.
+
+Criterion 6 passed, and identified both failures before the reviewer did.
+
+**What would change the answer:** the degradation actually occurring — a round that
+wrote a pattern-with-a-cost on its Loop line and by audit time either failed to file
+it or filed it materially thinner than the line supported. Or divergent readings,
+which is §C's own test for ambiguity: two rounds behaving differently on identical
+text, rather than one pass arriving at one reading.
+
+Full verdict, with the criterion-by-criterion record: [#31 comment](https://github.com/max-friedman/agentic-coding-loop/issues/31#issuecomment-5706541595).
