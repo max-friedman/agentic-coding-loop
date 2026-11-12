@@ -44,17 +44,18 @@ The only hard requirement is that the agent can read and write
 | `loop-audit` | Ships nothing. Measures whether a claim still holds. |
 | `loop-roast` | Ships nothing. Critiques the product as a first-time user and requeues what survives. Opt-in — see §E. |
 | `loop-feedback` | Files a proposal upstream about the protocol. |
+| `loop-lanes` | Coordinates several agents running rounds at once. Opt-in — set `lanes` above 1; see §F. |
 
 Each skill inlines `LOOP.md` at load time via
 `` !`cat "${CLAUDE_PLUGIN_ROOT}/LOOP.md"` ``, so the protocol has exactly one copy
 and a skill cannot drift from it.
 
-All six carry `when_to_use` triggers and are model-invocable — an agent picks the
+All seven carry `when_to_use` triggers and are model-invocable — an agent picks the
 right one from intent ("run the loop", "does that claim still hold") without a human
 typing a slash command.
 
 **Domain plugins are separate, optional installs** — layers on top of these same
-six skills, for projects that fit a specific domain. Currently:
+seven skills, for projects that fit a specific domain. Currently:
 
 ```
 /plugin install loop-ux-roast@agentic-coding-loop
@@ -143,6 +144,21 @@ review by design.
 
 ---
 
+## Running several agents in one project
+
+One agent per round is the default. To run several at once, a human sets `lanes`
+above 1 in `## Loop configuration`; `LOOP.md` §F then applies: one coordinator that
+reviews and merges, lanes capped and one per hotspot, one merge path with batching,
+and a red-branch policy that doesn't freeze the queue. Use the `loop-lanes` skill as
+the coordinator.
+
+Before raising `lanes`, have the mechanisms §F assumes: a merge script or queue that
+is the only way onto main, a cap the harness enforces (a hook or a ledger), and a
+written map from files to the checks they can break. Evidence and the incidents
+behind each rule: [`PARALLEL_LANES.md`](PARALLEL_LANES.md).
+
+---
+
 ## Verifying a change to the plugin
 
 ```bash
@@ -151,7 +167,7 @@ claude plugin validate . --strict
 
 `--strict` turns unrecognized-field warnings into errors, catching a misspelled
 manifest key before it silently does nothing. To check discovery end to end, install
-from a local path and confirm all six core skills (and any domain plugin's) appear:
+from a local path and confirm all seven core skills (and any domain plugin's) appear:
 
 ```bash
 claude plugin marketplace add /absolute/path/to/agentic-coding-loop

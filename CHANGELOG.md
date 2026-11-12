@@ -8,6 +8,80 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.13.0] — 2026-11-12
+
+The protocol assumed one agent. A third project ran one coordinator and up to five
+agent lanes in parallel for seven weeks, and almost everything it paid for was
+about getting work onto main, not about writing it. This release carries the parts
+that generalize.
+
+**Approved by the owner directly**, not through the proposal pipeline in
+`CONTRIBUTING.md`. The evidence is one project's own logs, recorded in
+[`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md); no reviewer agent judged it
+against the rubric. If a later proposal or audit contradicts any of it, that
+evidence wins.
+
+**Added**
+- **`LOOP.md` §F — Parallel lanes**, opt-in through a new human-set `lanes` setting
+  (default 1; §0 step 7 points at it). One coordinator reviews and merges every lane's
+  PR and owns the state file's shared sections; lanes never merge and never edit
+  them. A cap enforced by a mechanism, one open PR or lane per hotspot, lanes sized
+  to the slowest shared resource and to a short merge queue. One merge path with a
+  pre-check on the branch merged with main, a queue instead of hand-written waiters,
+  batching by default with bisection, no stacked PRs, a stale-merge refusal. A red
+  default branch holds only what it could affect, known reds don't block, a red
+  counts after one retry, environment failures are held rather than bounced. Quiet
+  watching, an outside watchdog, resource floors. Three extra stop conditions.
+- **Two hard rules.** *A check that ran nothing is no verdict* — record `not run`,
+  never green or red. *Remove what you created* — worktrees, temp directories,
+  processes, explicitly and by PID.
+- **§B step 6a.** Bootstrap queues a mechanism (a gate check or a pre-tool hook) for
+  every project rule that must hold with zero exceptions; fail closed for the
+  irreversible.
+- **§D: hand off at a budget, not at the limit.** Long sequences and chains keep their
+  state in a file from the first step and end at a round boundary well before the
+  context is full.
+- **§D review check: what a user sees matches its spec**, compared state by state
+  from the real build, never from inputs the author supplied.
+- **`## Decided, not asked`** in the state file: calls made on the human's behalf,
+  one line each with how to reverse it, read and cleared by the human. **`## Lanes`**
+  for §F. Both in the template.
+- **The `loop-lanes` skill**, the coordinator's entry point to §F.
+- **Templates:** `PROJECT_RULES.template.md` gains a table of rules enforced as
+  mechanisms.
+- **Principles 13–15**: no verdict from nothing run; size everything to the path onto
+  main; an independent reviewer reads real sources.
+- **`scripts/check.py` derives two lists instead of trusting them**: every skill must
+  appear in the README and ADOPTING tables, and every `## ` section in §6's table must
+  exist in the state-file template. Each was seen failing before it passed — the
+  skill check on this release's own new skill, the template check by deleting a
+  heading.
+
+**Changed**
+- §D's limit of two open round PRs applies per lane when §F is on.
+- README: a third data point, honestly scoped; "two projects, one author" is now
+  three.
+
+**Why**
+- In that project about eighteen agents once ran against a stated limit of five
+  and starved the service under development; a written limit did not stop it, a hook
+  did. Going from four lanes to two, with shared files split, roughly halved the
+  cost per merged change. Batching existed for weeks and saved nothing because three
+  separately reasonable rules kept PRs out of every batch. Fourteen scheduled suites
+  in a row came back red and about 2 of ~15 fixes written for them were real bugs; one
+  night's "red" had no failing test at all, because the stage never started. An
+  independent read-only reviewer comparing designs with built screens found real
+  defects in nine PRs on its first night that every test had passed.
+
+**Blast radius**
+- **No correct single-agent usage changes.** `lanes` defaults to 1 and §F does not
+  apply. Existing state files lack `## Decided, not asked` and `## Lanes`; add them
+  empty (or "single lane") at the next round — nothing breaks without them, which is
+  why this is MINOR.
+- The two new hard rules apply to every project. A round that recorded a skipped
+  stage as green was already violating "a gate that has never failed is not yet known
+  to be a gate"; this names the case.
+
 ## [0.12.0] — 2026-09-16
 
 §D said a session may run three rounds, and said the reviewer must be a session that

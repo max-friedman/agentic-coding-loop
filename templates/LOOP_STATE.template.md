@@ -81,6 +81,19 @@ to halt the loop.**
 
 ---
 
+## Decided, not asked
+
+Calls made on the human's behalf instead of asking them. **The human reads and
+clears this list**; a round only appends.
+
+<!-- One line each: the call, the default taken, and how to reverse it. This is
+     how decisions get routed away from the human without being hidden from them.
+     Anything that genuinely needs them goes in NEEDS-MAX instead, never here. -->
+
+- _<date> — <the call> — <default taken> — reverse by: <how>_
+
+---
+
 ## Queue — next rounds
 
 <!-- Ordered. Each entry is a self-contained increment that leaves the project
@@ -89,6 +102,20 @@ to halt the loop.**
 
 1. _<next increment>_ — _<why it's next>_
 2. _<the one after>_
+
+---
+
+## Lanes
+
+<!-- Only when `lanes` in Loop configuration is above 1 (LOOP.md §F). Otherwise
+     write "single lane" and leave it. The coordinator writes this section; lanes
+     never do. -->
+
+**Hotspots** (one open PR or running lane each): _<area: paths>_
+
+| lane | item | hotspot | branch | state |
+|---|---|---|---|---|
+| _1_ | _<queue item>_ | _<area or none>_ | _<branch>_ | _building / in review / merging_ |
 
 ---
 
@@ -115,6 +142,7 @@ own `indefinite` setting has no limit on it. See `LOOP.md` §D and §E.
 | `roast-on-empty` | `off` | When the queue empties, run §E (roast round) instead of stopping. |
 | `indefinite` | `off` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
 | `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+| `lanes` | `1` | Agents allowed to write to the repository at once. Above 1, `LOOP.md` §F applies. |
 
 <!-- Defaults are off. Leaving them off is the recommended posture: an empty queue
      is normally a correct stop, and turning it into a trigger for generated work

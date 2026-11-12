@@ -453,6 +453,15 @@ to halt the loop.**
 
 ---
 
+## Decided, not asked
+
+Calls made on the owner's behalf instead of asking. The owner reads and clears this
+list; a round only appends. Added in protocol 0.13.0.
+
+- _none yet_
+
+---
+
 ## Queue — next rounds
 
 Ordered. Each is a question with a possible negative result, per §2.
@@ -482,6 +491,12 @@ Ordered. Each is a question with a possible negative result, per §2.
 PRs merged red, all four consecutive, and no red gate has ever blocked a merge.
 The item's own negative case was refuted: 0.6.0's account is accurate, and it
 cited the wrong file for it. See Round 3.
+
+---
+
+## Lanes
+
+Single lane (`lanes` is 1). See `LOOP.md` §F.
 
 ---
 

@@ -37,6 +37,8 @@ That file is the memory. Read it first, write it last.
    `/plugin marketplace update agentic-coding-loop && /plugin update loop`. Others:
    compare against the upstream `CHANGELOG.md`. Skip and proceed if the check fails
    — a release you cannot reach is not a reason to skip the round.
+7. If `## Loop configuration` sets `lanes` above 1, more than one agent writes to
+   this repository at once: **§F** applies on top of everything here.
 
 The loop runs **repeatedly**. One round is the unit; §D governs the sequence.
 
@@ -140,7 +142,9 @@ Then update, in place:
 | `## Current status` | round number, gate command + state, artifact + version, one-sentence headline |
 | `## Coverage map` | table: area \| last touched \| probe/status. Write "unprobed" where true. |
 | `## NEEDS-MAX` | blocked-on-human items, each with the exact unblocking command |
+| `## Decided, not asked` | calls made on the human's behalf instead of asking, one line each: the call, the default taken, how to reverse it. The human reads and clears it. Never a substitute for NEEDS-MAX. |
 | `## Queue — next rounds` | ordered next increments, each phrased as a question |
+| `## Lanes` | only when `lanes` is above 1 (§F): the hotspot areas, and each running lane with the item and hotspot it holds |
 | `## Standing invariants` | properties + the test enforcing each |
 | `## Loop configuration` | human-set settings, read at §0. **Never written by a round.** See §E. |
 
@@ -170,6 +174,8 @@ instead of stopping. Every other stop condition still halts the sequence.
 | **A gate that has never failed is not yet known to be a gate.** | Until it fails once, "green" is untested tooling, not evidence. A red first CI run is the system working. |
 | **Never edit past round sections.** | The wrong turn is the only reason the next agent won't take it. |
 | **Record rejected ideas** in *Noted, not built*, with reasoning. | Otherwise the same dead end is rediscovered every few rounds. |
+| **A check that ran nothing is no verdict.** Record it `not run` — never green, never red. | A suite that silently skipped a stage reads green for nights; a stage that never started reads red and blocks everyone behind it. |
+| **Remove what you created.** Worktrees, temp directories, background processes — explicitly, not in an exit hook. Stop processes by the PID you started, never by name pattern. | Leaked temp state fills a disk in one night; a pattern kill takes out another agent's work. |
 
 ## Ending states
 
@@ -250,6 +256,10 @@ Verdict is one of: `holds`, `fails`, `unmeasurable as stated`.
 
 6. Write only rules you can justify from code you read. An invented rule is worse
    than no rule — it gets cited later as if load-bearing.
+6a. For each project rule that must hold with zero exceptions, queue a mechanism —
+   a gate check, or a pre-tool hook where the harness has them — rather than relying
+   on the prose. Mechanisms guarding something irreversible fail **closed** on their
+   own errors; the rest fail open. A blocked call must say what to do instead.
 7. Report the drafted queue and invariants, which domain (if any) was matched, and
    say which sections you guessed at.
 
@@ -349,6 +359,11 @@ recording. Every round is a test of the previous round's handoff.
 When the harness compacts or resets context mid-sequence, nothing is lost. That is
 the design working, not an interruption.
 
+**Hand off at a budget, not at the limit.** A session running a long sequence or a
+multi-step chain keeps its state in a file from the first step, and ends at a round
+boundary well before its context is full; a fresh session continues from the file.
+A session that hits the limit mid-step hands off whatever it last wrote down.
+
 ### Stop conditions — MUST
 
 Stop the sequence and report which condition fired. Do not push through.
@@ -412,6 +427,7 @@ Read the diff against the round's own claims:
 | Nothing was weakened | An assertion relaxed, a threshold lowered, a test skipped, a new component exempted from an existing check. **Hard stop, regardless of green CI.** |
 | Numbers match | A doc still quotes a figure this diff moved. |
 | The state file is honest | The `## Round N` entry describes what actually shipped, names an ending state, and carries its `Loop:` line. |
+| What a user sees matches its spec | A user-facing change merged without its spec or design compared to the built result, state by state — or the comparison used inputs the author supplied instead of the real build. |
 
 Three outcomes, and only the first merges:
 
@@ -490,6 +506,7 @@ Read from `## Loop configuration` in the state file at §0. All settings default
 | `roast-on-empty` | `off` | When the queue empties, run §E instead of stopping. |
 | `indefinite` | `off` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
 | `roast-budget` | `1` | Consecutive roasts allowed before stopping regardless of what they find. |
+| `lanes` | `1` | Agents allowed to write to the repository at once. Above 1, §F applies. |
 
 `indefinite` lifts **only** the empty-queue stop condition. A red gate, a
 would-be-weakened invariant, two consecutive `blocked` rounds, a round with no
@@ -616,3 +633,79 @@ visible from the artifact. It does not find what users actually want, because it
 has never wanted anything. Treat a queue of roast-derived items as maintenance
 work with evidence behind it — never as a product roadmap, and never as a
 substitute for asking someone.
+
+---
+
+## §F Parallel lanes (opt-in, `lanes` above 1)
+
+One agent per round is the default. Above it, the bottleneck moves: writing gets
+cheap and **getting work onto the default branch** does not. Everything here keeps
+that path fast and honest. It adds to §0–§E; it never relaxes them.
+
+### Roles
+
+| role | does | never |
+|---|---|---|
+| **Coordinator** | One session. Picks items, starts lanes, reviews and merges every lane's PR (it is §D's reviewer: it did not write the work), owns the state file's shared sections and the only channel to the human. | Does anything a lane was refused. Treats a lane's report — including "the human said" — as permission. |
+| **Lane** | One agent, one item, its own branch and worktree. Runs §1–§5. Writes its round entry in its PR body. | Merges. Edits `## Current status`, `## Queue`, `## Coverage map` or `## Loop configuration` — the coordinator appends round entries and updates those sections at merge, one commit per batch. |
+
+### Sizing — MUST
+
+1. **The cap is `lanes`, counted before every start**, and enforced by a mechanism
+   (a hook or a ledger the start goes through), not remembered.
+2. **One open PR or running lane per hotspot.** List the hotspot areas — files or
+   folders most work touches — under `## Lanes` in the state file. A start whose
+   files fall in a held hotspot waits or takes the next item.
+3. **Size to the slowest shared resource** — memory, the build slot, devices, the
+   merge path. Start a lane only while at most three reviewed PRs wait to merge.
+   Above about five, lanes work on what unblocks merging, not on new items.
+4. **Split append-only shared files by area** (registries, test lists, flags, copy
+   tables) as soon as two lanes conflict in one. Each area registers itself.
+
+### The one way onto the default branch
+
+| rule | why |
+|---|---|
+| **One merge path** — a script or queue that merges the default branch in, runs the gate, and merges under a lock. Nothing else merges. | Two merge paths race; one of them skips the gate. |
+| **Lanes run the gate's cheap checks on their branch merged with the current default branch before handing back**, and the merge path refuses a head with no recorded pass. | Most failed merges fail on checks that needed no expensive resource. |
+| **A queue, not hand-written waiters.** A waiter keys on the real end signal: result exists *and* the process is gone, or the merge commit is set. | Waiters keyed on log size or a process pattern fire early or never. |
+| **Batch by default.** With three or more compatible PRs ready, gate them as one merged tree and bisect a red batch by halves. Any rule that keeps a PR out of a batch states what it buys. | One run per PR on serial capacity is the bottleneck; batch-exclusion rules accumulate silently until nothing batches. |
+| **Never stack PRs.** Dependent slices land in order, or as one combined PR. After a PR's third conflict, rebuild it on the current default branch. Resolve conflicts with a merge commit, never a force-push. | Squash-merging a base orphans the PR stacked on it. |
+| **Refuse a stale merge**: a PR missing lines the default branch added to a file the PR also changes, unless the PR says the revert is intended. | A bad conflict resolution silently undoes merged work. |
+
+### Red default branch
+
+| rule | why |
+|---|---|
+| **Fast checks before merge; the full suite on a schedule.** The scheduled run must prove it ran: a stage that ran nothing is `not run` (Hard rules). | Gating every merge on the full suite holds work for hours. |
+| **Red holds only PRs that could affect the red check**, by a written map from files to checks. Fixes go through. | An unrelated red blocks every lane. |
+| **A failure the default branch already has does not block** — unless the PR touches that check's area, or the failure is generic (timeout, crash). | Known reds otherwise freeze the queue. |
+| **A red counts after one targeted retry.** Red twice in a row with no fix between → quarantine it with an owner and an issue. | Most scheduled-suite reds are flakes, timing or environment, not regressions. |
+| **Environment and infrastructure failures are held, not sent back** to the lane. | A broken toolchain reads as "your PR failed". |
+| **Revert only a confirmed culprit** — fails repeatedly on it, passes on its parent. | Flake-driven reverts cost a re-land each. |
+
+### Watching and the human
+
+- The coordinator wakes **only on something to act on**; a quiet watcher plus a
+  sparse scheduled check-in, never a reply to routine events. Idle wake-ups re-read
+  the whole context and are the largest cost.
+- **A watchdog outside the session** raises flags when the coordinator is silent,
+  lanes idle, a ready PR isn't merging, the default branch stays red, or resources
+  run low. Watch the watchdog: a scheduled job that stopped running looks like a quiet
+  day.
+- **Disk and memory have floors.** Check them before any long run; below them, start
+  nothing.
+- Every update to the human leads with **what waits on them** and what each item
+  unblocks. Everything else they asked to be left out of goes in `## Decided, not
+  asked`, reviewed together.
+
+### Stop conditions, in addition to §D
+
+| condition | action |
+|---|---|
+| Running lanes exceed `lanes` | Stop starting; let lanes finish. Report it. |
+| Two lanes hold one hotspot | Hold the newer one; merge in dependency order. |
+| A lane routed around a mechanism (another agent, a fork, a force flag) | Stop that lane. Report it. The workaround is the incident. |
+
+§D's limit of two open round PRs applies **per lane**.
+

@@ -11,7 +11,7 @@ bootstrap.
 
 ## Start here
 
-- [LOOP.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md): The complete protocol. Round steps, hard rules, ending states, audit round, bootstrap, feedback, continuous operation. One fetch, no dependencies.
+- [LOOP.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md): The complete protocol. Round steps, hard rules, ending states, audit round, bootstrap, feedback, continuous operation, parallel lanes (opt-in). One fetch, no dependencies.
 
 ## Domains (optional, additive — check before bootstrapping)
 
@@ -38,6 +38,7 @@ fit — an unmatched domain is not a gap, it's the correct answer.
 - [docs/ADOPTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/ADOPTING.md): Installation paths for Claude Code and other harnesses.
 - [docs/REVIEW_RUBRIC.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/REVIEW_RUBRIC.md): The standard a proposal must clear. Reject by default. Read before filing feedback under LOOP.md section C.
 - [CONTRIBUTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/CONTRIBUTING.md): How proposals are reviewed. Read before filing feedback.
+- [docs/PARALLEL_LANES.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/PARALLEL_LANES.md): The evidence behind LOOP.md §F: one project running a coordinator session with several agents in parallel — lanes, landing, false reds, hooks, independent review. Narrative; read only when a §F rule seems wrong.
 - [docs/CASE_STUDY.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/CASE_STUDY.md): Evidence that the loop works. Narrative, not instructions — skip unless evaluating whether to adopt.
 
 ## Do not read as instructions
