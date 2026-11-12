@@ -143,6 +143,15 @@ review by design.
 
 ---
 
+## Running several agents in one project
+
+`LOOP.md` assumes one agent working one item at a time. If you run a coordinating
+session with several helpers in parallel, the state file still holds — but landing,
+conflicts, flaky gates and machine limits become the work. One project's notes on
+that, not protocol: [`PARALLEL_LANES.md`](PARALLEL_LANES.md).
+
+---
+
 ## Verifying a change to the plugin
 
 ```bash

@@ -38,6 +38,7 @@ fit — an unmatched domain is not a gap, it's the correct answer.
 - [docs/ADOPTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/ADOPTING.md): Installation paths for Claude Code and other harnesses.
 - [docs/REVIEW_RUBRIC.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/REVIEW_RUBRIC.md): The standard a proposal must clear. Reject by default. Read before filing feedback under LOOP.md section C.
 - [CONTRIBUTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/CONTRIBUTING.md): How proposals are reviewed. Read before filing feedback.
+- [docs/PARALLEL_LANES.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/PARALLEL_LANES.md): Field notes from one project running a coordinator session with several helper agents in parallel — lanes, landing, false reds, hooks, independent review. Not protocol; skip unless you are parallelizing rounds.
 - [docs/CASE_STUDY.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/CASE_STUDY.md): Evidence that the loop works. Narrative, not instructions — skip unless evaluating whether to adopt.
 
 ## Do not read as instructions

@@ -72,6 +72,7 @@ a deliberate version bump. Full mechanism and why each safeguard exists:
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Why each rule exists and the failure it prevents. |
 | [`docs/REVIEW_RUBRIC.md`](docs/REVIEW_RUBRIC.md) | The standard a proposal must clear. Reject by default. |
 | [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Every round, in full, including what it cost. |
+| [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | Field notes, not protocol: one coordinator running many agents at once, and what landing their work taught. |
 | [`domains/`](domains) | Optional, project-shaped rule sets on top of the core protocol. |
 
 <details>
@@ -101,6 +102,10 @@ This repo's credibility rests on the next part being accurate rather than short:
 - **Two projects, one author.** The production app cited above ran an informal
   predecessor of this protocol, not a release of it, and both projects trace
   back to the same person. Independent-author validation doesn't exist yet.
+- **The parallel-agent notes are one project's experience.**
+  [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) comes from seven weeks of a
+  single project by the same author, and none of it has been through the review
+  rubric. It is evidence a proposal could start from, not protocol.
 - **One project, seven rounds, on the actual released protocol.** Every claim
   above about *this repo's* mechanism — the audit, the review pipeline, the
   version-pinning — still generalizes from a single
