@@ -38,6 +38,20 @@ in real debugging time, not invented.>_ `<TestName>` enforces this. Do not weake
 
 ...
 
+## Rules that are mechanisms, not prose
+
+<!-- Every rule above that must hold with zero exceptions — never edit the deployed
+     checkout, never post outside the test channel, never touch a device without its
+     lock, never merge outside the merge script — gets a mechanism: a gate check, or a
+     pre-tool hook where your harness has them. Prose gets read and sometimes
+     followed; a hook gets followed. List each one here with what it blocks, whether
+     it fails closed (anything irreversible) or open, and what a blocked call should
+     do instead. LOOP.md §B step 6a. -->
+
+| rule | enforced by | on its own error |
+|---|---|---|
+| _<rule>_ | _<hook or check>_ | _closed / open_ |
+
 ## Working on this
 
 ```bash

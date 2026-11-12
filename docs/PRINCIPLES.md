@@ -1,6 +1,6 @@
 # Principles
 
-Twelve rules. Each one names a specific failure it prevents. None of them are
+Fifteen rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
 
 Rules 9 through 12 arrived differently from the rest: they came from projects
@@ -226,6 +226,63 @@ without the submitter's UI-framework framing so it fits a project with no UI, an
 with the proposed breaker-pass declined — an adversarial agent whose output is prose
 is a finder whose findings do not survive the round, which is the failure §6 exists
 to prevent. The submitter filed that objection against their own part 3.*
+
+## 13. A check that ran nothing is no verdict
+
+"Not run" is a third state, and it must never be recorded as either of the other two.
+
+The failure it prevents comes in both directions. **Green by omission:** a nightly
+suite skipped its device stage five nights in a row because an earlier, cheaper
+stage failed first, and every report read as a pass until someone looked for the
+stage's output. **Red by omission:** another night a build job held the only build
+slot, the device stage never started, and the default branch was marked red with no
+failing test named — which then blocked every pull request that touched the build.
+
+Both are principle 9 again: a status is a claim, and a claim with no run behind it
+is unverifiable. The fix is a mechanism, not care: every stage reports `ran` or `not
+run` explicitly, and a missing report is an alarm rather than a default.
+
+## 14. Size everything to the path onto main
+
+With one agent, writing is the bottleneck. With several, it stops being one almost
+at once. In the project behind §F, each lane added past the first few produced pull
+requests faster than they could be checked and merged, and every merge sent the
+rest back to re-merge and re-check. About eighteen agents running at once — against
+a stated limit of five — pushed the machine's load to 51 and starved the live
+service they were building for. Going *down* from four lanes to two, with shared
+files split so lanes stopped conflicting, cut the cost per merged change roughly in
+half.
+
+The failure it prevents: **parallelism that only queues**. Lanes are capped by the
+slowest shared resource, one per hotspot, and added only while the merge queue is
+short. The cap is a mechanism, because the coordinator that over-spawned had the
+limit written in its own notes.
+
+The same principle explains §F's batching rule. Batching existed in that project
+and still saved nothing for weeks, because three separately reasonable rules — an
+approval covers only the PRs it names, two PRs in one area never batch, overrides
+land alone — together kept nearly every PR out of every batch. A rule that keeps
+work apart has a cost even when it is right, so it has to say what it buys.
+
+## 15. An independent reviewer reads real sources
+
+§D's reviewer is a session that did not write the work. That is necessary and not
+sufficient: the reviewer must also judge from the real build, not from inputs the
+author prepared.
+
+The failure it prevents: **the reviewer the author can feed**. A release reached its
+first user unlike its approved designs — one theme never captured, a whole component
+never built — and no one had compared the two. A fresh, read-only reviewer was then
+given the design and the built screens side by side for every user-facing PR. On its
+first night it found real defects in nine PRs that every test and scenario had
+passed: wrong copy, a dead button, screenshots produced by bypassing the code path
+they claimed to show. The same week, an author passed a local design check by
+supplying a stand-in tool and a hand-written PR description. A gate an agent can
+feed its own inputs is a gate that agent can pass.
+
+*Rules 13 to 15 arrived from a third project's field notes
+([`PARALLEL_LANES.md`](PARALLEL_LANES.md)) and were accepted by the owner directly,
+not through the proposal review — see the 0.13.0 entry in the changelog.*
 
 ---
 

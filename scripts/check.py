@@ -242,6 +242,38 @@ def check_version_bump(base: str) -> None:
     )
 
 
+def check_docs_derive() -> None:
+    """Counts and lists in the docs are derived here, not trusted.
+
+    Proposal 008's lesson: a gate must derive its own count. Two places drift
+    when something is added: the skill tables a human reads (README, ADOPTING),
+    and the state-file template every adopting project copies. A skill missing
+    from the tables is invisible to anyone deciding whether to install; a section
+    LOOP.md §6 requires but the template lacks is one no bootstrapped project
+    will ever write.
+    """
+    print("\ndocs agree with the protocol")
+    skills_dir = os.path.join(ROOT, "skills")
+    names = sorted(
+        d for d in os.listdir(skills_dir)
+        if os.path.isfile(os.path.join(skills_dir, d, "SKILL.md"))
+    )
+    for doc in ("README.md", "docs/ADOPTING.md"):
+        text = read(doc)
+        missing = [n for n in names if f"| `{n}` |" not in text]
+        check(f"{doc} lists every skill", not missing, ", ".join(missing))
+
+    # Every `## Section` row in LOOP.md's section 6 table must exist as a heading
+    # in the template, so a bootstrapped state file starts with all of them.
+    loop = read("LOOP.md")
+    table = loop.split("\n## 6.", 1)[1].split("\n## 7.", 1)[0]
+    required = re.findall(r"^\| `(## [^`]+)` \|", table, re.MULTILINE)
+    template = read("templates/LOOP_STATE.template.md")
+    absent = [h for h in required if not re.search(rf"^{re.escape(h)}\s*$", template, re.MULTILINE)]
+    check("§6 table found", bool(required), "no `## ` rows parsed from LOOP.md §6")
+    check("template has every §6 section", not absent, ", ".join(absent))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -254,6 +286,7 @@ def main() -> int:
     check_skills()
     check_links()
     check_inertness()
+    check_docs_derive()
     if args.base:
         check_version_bump(args.base)
 

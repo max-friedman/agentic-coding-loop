@@ -1,13 +1,18 @@
 # Running many agents at once: field notes
 
-`LOOP.md` is one agent, one item, one round. This page is the layer above it: one
-coordinating session running several agents in parallel on the same codebase, every
-day, for weeks, with one human who wants to be asked as little as possible.
+`LOOP.md` was written for one agent, one item, one round. This page is about the
+layer above that: one coordinating session running several agents in parallel on the
+same codebase, every day, for weeks, with one human who wants to be asked as little
+as possible.
 
-**These are field notes, not protocol.** Nothing here has been through the
-[review rubric](REVIEW_RUBRIC.md), nothing here is in `LOOP.md`, and no project is
-asked to adopt any of it. Where a lesson looks general enough to belong in the
-protocol, it goes upstream as a §C proposal with its evidence, like anything else.
+**The rules are in the protocol; this page keeps the scars.** What generalized
+became [`LOOP.md`](../LOOP.md) §F *Parallel lanes*, two hard rules (*a check that ran
+nothing is no verdict*, *remove what you created*), §B step 6a, §D's hand-off budget
+and spec check, the `## Decided, not asked` section, and
+[principles 13–15](PRINCIPLES.md#13-a-check-that-ran-nothing-is-no-verdict). They
+were accepted by the owner directly in 0.13.0, not through the review rubric. This
+page is the evidence for them, plus what stayed project-specific. Read it when a
+rule there seems wrong.
 
 **Where it comes from.** One project, one author: a mobile app with a server-side
 component, built from late September to mid November 2026 by Claude Code sessions —
@@ -32,13 +37,8 @@ to the landing path, not to the appetite for work.
 
 ## 1. Roles
 
-| role | is | may not |
-|---|---|---|
-| **Owner** | The human. Sets the priority order, uses the product daily, files feedback. | — |
-| **Coordinator** | One long-running session. The owner's single contact. Picks work, spawns helpers, reviews and lands every PR, owns the tooling. | Do anything a helper was denied. |
-| **Helper** | A subagent with one task, in its own worktree and branch. | Talk to the owner, merge outside the landing script, edit files another lane holds. |
-| **Bug lane** | A helper fed by reported bugs, one fix at a time. | Run two ordinary fixes at once. |
-| **Process lane** | At most one helper changing the tooling itself. | Run beside a second process lane. |
+The roles — owner, one coordinator, lanes, at most one bug lane and one process
+lane — are in §F. What the table there doesn't show:
 
 **One voice to the owner.** Helpers report to the coordinator, never to the human.
 Cloud-hosted helpers are told explicitly, in every prompt, not to send
@@ -98,16 +98,13 @@ conversation.
 
 ### Long chains and context hand-offs
 
-The protocol's first principle — the state file is the memory — applies to helpers
-too, one level down.
+§D's hand-off budget came from here.
 
-- **A helper on a multi-step chain keeps a state file from its first step.** Twice in
-  one night helpers ran out of context mid-chain; the hand-offs worked only because
-  each kept one.
-- **Hand off at a budget, not at the limit.** Resume the same helper for a
-  milestone's next slice while its context is under about 400k tokens (it keeps what
-  it learned); above that, start a fresh one with a short hand-off note. One helper
-  reached about 700k before this rule existed.
+- Twice in one night helpers ran out of context mid-chain; the hand-offs worked only
+  because each kept a chain state file from its first step.
+- Resuming the same helper for a milestone's next slice saves re-learning, until
+  about 400k tokens of context; one helper reached about 700k before the budget
+  existed.
 - **The coordinator's own context will be compacted.** It keeps a file memory
   (decisions, lessons, what's in flight, open questions for the owner), writes each
   entry the moment it happens, and has a written rebuild procedure for after a
@@ -466,24 +463,27 @@ itself on any failure. Two lessons that cost an outage each:
 
 ---
 
-## How this relates to the protocol
+## Where each lesson went
 
-| here | in `LOOP.md` |
+| lesson here | now in |
 |---|---|
-| A helper's state file for long chains | Principle 1, one level down |
-| A reviewer that isn't the author, for code and for visuals | §D *Reviewing the previous round* |
-| "No verdict" for a check that ran nothing; the watchdog watched | Hard rule: a gate that has never failed is not yet known to be a gate; the scheduled-reviewer lesson in `.claude/CLAUDE.md` |
-| Repeats become hooks, not louder prose | Principle 10 |
-| False reds and flake quarantine | No equivalent. A round's gate is assumed deterministic. |
-| Many lanes, one coordinator, WIP caps by hotspot | No equivalent. `LOOP.md` is one agent and one item. |
-
-The last two rows are the gap. If a project running the loop parallelizes rounds, it
-will meet them; the evidence above is where a §C proposal would start.
+| Cap, hotspots, sizing to the merge queue, finish before start (§2) | `LOOP.md` §F *Sizing* · principle 14 |
+| One merge path, pre-check, queue, batching, no stacking, stale merges (§4) | §F *The one way onto the default branch* |
+| Red main, known red, one retry, quarantine, environment holds (§5) | §F *Red default branch* |
+| A stage that ran nothing (§5) | Hard rule · principle 13 |
+| Disk, temp homes, pattern kills (§6) | Hard rule *Remove what you created* |
+| Hooks for hard rules (§7) | §B step 6a · `PROJECT_RULES` template |
+| Fidelity review, gates reading real sources (§8) | §D review check · principle 15 |
+| Chain state files, hand-off budget (§3) | §D *Context hygiene* |
+| Quiet watching, outside watchdog (§9) | §F *Watching and the human* |
+| Decisions list, "needs you" first (§10) | `## Decided, not asked` · §F |
+| Spawning prompts, model tiers, thrift windows, retros, pauses, upgrades | Here only. Project practice, not yet a pattern across projects. |
 
 ## What's not verified
 
 - **One project, one author, seven weeks.** Nothing here has been reproduced
-  elsewhere.
+  elsewhere, and that project ran its own process, not a release of this protocol.
+  §F is its lessons written as protocol, untested as written.
 - **The numbers are the project's own logs**, not an independent measurement, and
   several rules changed at once more than once — the 400–700k → 215–325k cost drop, for
   example, came with three changes together and can't be attributed to any one.
