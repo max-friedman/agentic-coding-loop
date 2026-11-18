@@ -29,7 +29,7 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
   required status check (NEEDS-OWNER 2), and R3 measured what that has cost.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
-  `loop` 0.10.0 (`LOOP.md`, 610 lines; 6 skills; 5 templates) and
+  `loop` 1.0.1 (`LOOP.md`; 7 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
 - **Headline:** both gate failures were in the gate, not in what it checked.
   One assertion was hollow (it failed loudly while validating nothing about the
@@ -426,7 +426,7 @@ Items that cannot proceed without a human. **Noted and skipped — never a reaso
 to halt the loop.**
 
 1. ~~**`exactly one plugin` — stale assertion, or wrong manifest?**~~
-   **Resolved 2026-09-03** — Max ruled the assertion stale. R1 acted on it and
+   **Resolved 2026-09-03** — the owner ruled the assertion stale. R1 acted on it and
    found the check was additionally hollow: it validated nothing about the
    plugin it was failing over. See Round 1.
 
@@ -441,20 +441,20 @@ to halt the loop.**
    sends `strict` as the string `"true"`, which the API rejects as a non-boolean.
    `-F` types it. A command written into NEEDS-OWNER is meant to be pasted by a
    human who will not debug it — an unrunnable one is worse than none, because it
-   reads as unblocked. `strict` is now `false` by Max's decision on 2026-09-07:
+   reads as unblocked. `strict` is now `false` by the owner's decision on 2026-09-07:
    the goal is that nothing merges red, not that every branch is current, and
    `CONTRIBUTING.md` argues that friction which invites admin bypass is worse
    than the protection it buys.
 
 3. ~~**PR #11, open since 2026-07-28, `CONFLICTING`.**~~ **Resolved 2026-09-07**
-   — closed by Max's decision, with the reasoning recorded on the PR. Not
+   — closed by the owner's decision, with the reasoning recorded on the PR. Not
    superseded and not judged wrong: the claim it corrects is still live at
    `CONTRIBUTING.md:33`, and queue item 2 now owns settling it by measurement
    rather than by merging an assertion. The cost accepted in closing it is that
    the claim stays on `main` until that round runs.
 
 4. ~~**`## Loop configuration` is at defaults (all off).**~~ **Resolved
-   2026-09-01** — Max set `roast-on-empty` and `indefinite` to `on`. Kept here
+   2026-09-01** — the owner set `roast-on-empty` and `indefinite` to `on`. Kept here
    rather than deleted so the trail from bootstrap's default to the current
    value is visible. See `## Loop configuration`.
 
@@ -550,15 +550,15 @@ own `indefinite` setting has no limit on it. See `LOOP.md` §D and §E.
 | `indefinite` | `on` | After a roast refills the queue, keep running rounds. Requires `roast-on-empty`. |
 | `roast-budget` | `2` | Consecutive roasts allowed before stopping regardless of what they find. |
 
-**Set by Max on 2026-09-01**, by instruction, after bootstrap had written the
+**Set by the owner on 2026-09-01**, by instruction, after bootstrap had written the
 table at its defaults. Round 0 records it as default-off because that is what
 bootstrap did; this line is the change, not a correction of that record.
 `roast-on-empty` is on because `indefinite` requires it, not because it was asked
 for separately. `roast-budget` was not discussed and stays at its default.
 
-**`roast-budget` raised 1 → 2 by Max on 2026-09-07**, by instruction. The value
+**`roast-budget` raised 1 → 2 by the owner on 2026-09-07**, by instruction. The value
 had never been chosen — it was the default sitting under a setting that *was*
-chosen, which is the reason it came up for decision at all. Max asked for "2–3";
+chosen, which is the reason it came up for decision at all. The owner asked for "2–3";
 2 is the conservative end of that range and is what is recorded here. Raising it
 further is a one-line edit, and the reason to prefer the low end first is that
 this setting has still never taken effect once.
@@ -566,7 +566,7 @@ this setting has still never taken effect once.
 **What this does not lift.** `indefinite` lifts exactly one stop condition — the
 empty queue. Every other §D condition still halts the sequence. As of 2026-09-07
 the two that were live are cleared — the gate is green on `main` (37 checks, 0
-failed, first green push since `d2a6353`) and NEEDS-OWNER 1 was resolved by Max's
+failed, first green push since `d2a6353`) and NEEDS-OWNER 1 was resolved by the owner's
 ruling — so this configuration can now actually take effect the first time a
 round empties the queue. It has not yet: the queue holds three items.
 

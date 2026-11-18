@@ -8,6 +8,27 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.0.1] — 2026-11-19
+
+Fixes three places that contradicted the rest of the repo. No protocol change.
+
+**Fixed**
+- `.claude/CLAUDE.md` still gave the old cause for the silent Routines ("no
+  repository attached") and said each prompt now attaches the repository. It now
+  gives #37's established cause — the fired sessions had no ToolSearch and no MCP
+  tools — and points at the pause.
+- This repo's state file named the plugin as 0.10.0, four releases late. It names
+  1.0.1, and its live sections say "the owner" instead of a first name. Past round
+  entries are unchanged.
+- The README now says its headline numbers come from the private app project and
+  that only the process and six generic hooks are published, and it adds one outcome
+  row, cost per merged change, with its caveat.
+
+**Added**
+- `scripts/check.py` fails when the state file's plugin versions disagree with
+  `marketplace.json`. Seen failing before the fix: it reported the state file's
+  1.0.1 against the manifest's 1.0.0.
+
 ## [1.0.0] — 2026-11-19
 
 The protocol's list of things only a human can unblock was named after one person.

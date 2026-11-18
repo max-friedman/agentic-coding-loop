@@ -35,7 +35,7 @@ The three gaps that cost me most, ranked by a guess at reach × severity
 
 ## Outcomes and scale
 
-About eight weeks, late September to mid November 2026:
+About eight weeks, late September to mid November 2026. These numbers come from the private app project's own history; what's published here is the process and the six generic hooks, not that project's code.
 
 | | |
 |---|---|
@@ -46,6 +46,7 @@ About eight weeks, late September to mid November 2026:
 | Enforcement | 16 hooks; one merge queue, the only way onto main |
 | Releases | a test build of main about hourly; the full suite every night |
 | Hardware | one 16 GB laptop, one build slot, a few test devices |
+| Cost per merged change | 400–700k tokens with four feature lanes, 215–325k with two after shared files were split; three changes landed together, so no single one owns the drop |
 
 ## How work flows
 
