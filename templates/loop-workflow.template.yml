@@ -62,7 +62,7 @@ jobs:
             Unattended rules from §D are in force:
             - Work on branch loop/round-N. Never commit to the default branch.
             - Never force-push.
-            - No spending beyond this session. Anything metered goes to NEEDS-MAX.
+            - No spending beyond this session. Anything metered goes to NEEDS-OWNER.
             - Stop at the first stop condition and report which one fired.
             - No human is present, so file nothing outside this repository except
               the §C proposal path.

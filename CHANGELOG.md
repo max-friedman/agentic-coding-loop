@@ -8,6 +8,65 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.0.0] — 2026-11-19
+
+The protocol's list of things only a human can unblock was named after one person.
+It is now `NEEDS-OWNER`. That changes a heading every adopting project's state file
+has, so this is a MAJOR release. Nothing else in the protocol changes.
+
+**Migration (one step).** In your `docs/plans/LOOP_STATE.md`, rename the heading
+`## NEEDS-MAX` to `## NEEDS-OWNER`, and update references to it in the current
+sections. Leave past round entries as they are: rounds are never edited.
+
+```bash
+sed -i.bak 's/^## NEEDS-MAX$/## NEEDS-OWNER/' docs/plans/LOOP_STATE.md
+```
+
+Skip it and a 1.0.0 round will look for `## NEEDS-OWNER`, not find it, and may add a
+second, empty list beside the old one.
+
+**Changed**
+- `NEEDS-MAX` → `NEEDS-OWNER` in `LOOP.md`, the skills, the templates, the docs and
+  the example state file. Past round entries and earlier changelog entries keep the
+  old name.
+- `README.md` cut to about a hundred lines: what this is, the three product gaps for
+  the Claude Code team, outcomes, one diagram, three ideas with their reasons, who it
+  is for, status, and links. A CI badge and a "last round" line. The round example,
+  the team mapping, the measurement plan and the full gap list moved to
+  `docs/WALKTHROUGH.md`, `docs/ON_A_TEAM.md` and `docs/FOR_CLAUDE_CODE_TEAM.md`.
+- The skill table lives only in `docs/ADOPTING.md`; `scripts/check.py` checks it
+  there and checks that the README links it.
+- `.claude/CLAUDE.md`, `CONTRIBUTING.md` and this repo's state file say plainly that
+  rounds and the Routines are paused.
+
+**Added**
+- `docs/STARTER.md`: the 20% version, a state file and three hooks.
+- `docs/ON_A_TEAM.md`: how the roles map to a team, what to measure to know this
+  works for someone else, and a plan for a first outside user.
+- `proposals/rejected/012`, and fuller dispositions for 004–011, from the bookkeeping
+  PR #38, which had waited since September.
+
+**Fixed**
+- The README said the round Routine failed for lack of an attached repository and
+  that the 24-hour self-merge was running. Issue #37 established that its sessions
+  had no MCP tools at all, and the self-merge has not run since September. Both
+  claims now match.
+- Proposal issues #2, #3 and #14 were still labelled `needs-triage` after they were
+  accepted and released. They are labelled `accepted`.
+
+**Why 0.13.0 and 0.14.0 skipped the proposal review.** The proposal path exists for
+findings from downstream projects, filed as public issues with evidence anyone can
+check. Those two releases came from the owner's own private app project. Its logs
+can't be published in full, so a proposal citing them couldn't be checked by the
+reviewer the way the rubric requires. The owner accepted them directly and the
+changelog says so in each entry. That is weaker evidence than the rubric's, and it is
+labelled as such: if a later proposal or audit contradicts any of it, that evidence
+wins. The scheduled reviewer has also had no proposal to judge since September.
+
+**Blast radius**
+- Every adopting project renames one heading. No round step, rule or stop condition
+  changes.
+
 ## [0.14.0] — 2026-11-18
 
 The week after 0.13.0, the project behind §F ran its rules under a release push and

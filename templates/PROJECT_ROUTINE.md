@@ -34,7 +34,7 @@ are open after that, stop and start no new round.
 The §D unattended rules are in force and are absolute:
 - Cut the branch before the first edit (§1). Never commit to the default branch.
 - Never force-push, never rewrite published history.
-- Never spend money — anything metered is a NEEDS-MAX item, not a decision.
+- Never spend money — anything metered is a NEEDS-OWNER item, not a decision.
 - Never weaken the project's rules, invariants, stop conditions, or the state
   file's `## Loop configuration` to make this round easier. Propose upstream via
   §C and keep running under current rules.
@@ -134,14 +134,14 @@ Pick one:
   it searches before filing, and closes when the failure clears.
 
 Whichever you choose, it must distinguish *broken* from *legitimately idle*: read
-the state file, and treat an empty queue or everything-blocked-on-NEEDS-MAX as a
+the state file, and treat an empty queue or everything-blocked-on-NEEDS-OWNER as a
 correct stop. The right response to that is pausing the Routine, not repairing it.
 
 ## What still needs a human
 
 Two things, deliberately:
 
-- **`NEEDS-MAX` items** — credentials, spend approval, decisions that are not the
+- **`NEEDS-OWNER` items** — credentials, spend approval, decisions that are not the
   agent's. They accumulate in the state file with the exact command that unblocks
   each one. Read them when convenient; the loop keeps running around them.
 - **Reading the diffs.** Merging can be automated, as above. Knowing whether the

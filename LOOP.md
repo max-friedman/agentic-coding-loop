@@ -141,8 +141,8 @@ Then update, in place:
 |---|---|
 | `## Current status` | round number, gate command + state, artifact + version, one-sentence headline |
 | `## Coverage map` | table: area \| last touched \| probe/status. Write "unprobed" where true. |
-| `## NEEDS-MAX` | blocked-on-human items, each with the exact unblocking command |
-| `## Decided, not asked` | calls made on the human's behalf instead of asking, one line each: the date, the call, why, how to reverse it. Made and acted on, never waited on. The human reads and clears it. Never a substitute for NEEDS-MAX. |
+| `## NEEDS-OWNER` | blocked-on-human items, each with the exact unblocking command |
+| `## Decided, not asked` | calls made on the human's behalf instead of asking, one line each: the date, the call, why, how to reverse it. Made and acted on, never waited on. The human reads and clears it. Never a substitute for NEEDS-OWNER. |
 | `## Queue — next rounds` | ordered next increments, each phrased as a question |
 | `## Lanes` | only when `lanes` is above 1 (§F): the hotspot areas, and each running lane with the item and hotspot it holds |
 | `## Standing invariants` | properties + the test enforcing each |
@@ -169,8 +169,8 @@ instead of stopping. Every other stop condition still halts the sequence.
 |---|---|
 | **A failing invariant means the code is wrong, not the assertion.** Never relax an assertion to make a round pass. If an invariant is genuinely mis-stated, say so in the writeup and leave it failing. | Relaxing is always the locally cheapest fix and is invisible in a diff containing real work. |
 | **A false claim found is the round.** Report it, fix what you can, correct the docs. | Deleting a false claim beats adding a feature. |
-| **Blocked is not stopped.** Needs a human? Add to NEEDS-MAX with the exact unblocking command, then build around the block. | Halting burns the round. |
-| **A reversible call is not a block.** When a choice is yours to undo — a default, a priority between ready items, a design reading — take your best recommendation, act on it, and log it in `## Decided, not asked`. Only what is irreversible, spends money, acts as the human, or is reserved to them by the project rules goes to NEEDS-MAX. | Waiting on a reachable-later human for a call that could be reversed in minutes idles every lane until they read the message. |
+| **Blocked is not stopped.** Needs a human? Add to NEEDS-OWNER with the exact unblocking command, then build around the block. | Halting burns the round. |
+| **A reversible call is not a block.** When a choice is yours to undo — a default, a priority between ready items, a design reading — take your best recommendation, act on it, and log it in `## Decided, not asked`. Only what is irreversible, spends money, acts as the human, or is reserved to them by the project rules goes to NEEDS-OWNER. | Waiting on a reachable-later human for a call that could be reversed in minutes idles every lane until they read the message. |
 | **Never stub, wrap or feed a gate to get past it.** When a gate refuses, run every other check, report their results with the refusal, and stop. | A gate an agent can satisfy with its own inputs is no longer a gate, and the bypass looks exactly like a pass. |
 | **Never publish a number you did not measure.** No estimating a blocked result, however obvious. | A guessed number is worse than a missing one. |
 | **A gate that has never failed is not yet known to be a gate.** | Until it fails once, "green" is untested tooling, not evidence. A red first CI run is the system working. |
@@ -187,7 +187,7 @@ End in exactly one, and name which in the writeup.
 |---|---|
 | `shipped` | Item landed, gate green, docs match the numbers. |
 | `refuted` | The measurement killed the plan. Finding recorded, queue re-ranked. **Highest value.** |
-| `blocked` | Needs a human. Moved to NEEDS-MAX, round redirected to something buildable. |
+| `blocked` | Needs a human. Moved to NEEDS-OWNER, round redirected to something buildable. |
 | `rejected` | Built enough to evaluate, deliberately not kept, reasoning recorded. |
 
 There is no "partially done". If the item is bigger than a round, that finding is
@@ -252,7 +252,7 @@ Verdict is one of: `holds`, `fails`, `unmeasurable as stated`.
 
    ```markdown
    **Working the improvement loop? Read [`docs/plans/LOOP_STATE.md`](docs/plans/LOOP_STATE.md)
-   first and write it last.** It holds the queue, the coverage map, the NEEDS-MAX list,
+   first and write it last.** It holds the queue, the coverage map, the NEEDS-OWNER list,
    and the standing invariants. Context is lost between rounds; that file is not.
    ```
 
@@ -395,7 +395,7 @@ are absolute:
 - **Never file, comment, or post outside the repository** except the §C proposal
   path.
 - **Never spend money** — paid API calls, provisioning, anything metered — without
-  an explicit prior approval recorded in the state file. Otherwise it is a NEEDS-MAX
+  an explicit prior approval recorded in the state file. Otherwise it is a NEEDS-OWNER
   item.
 - **Stop at the first stop condition.** An unattended sequence that pushes through
   a red gate produces a pull request nobody can review.
@@ -480,7 +480,7 @@ produces a diff someone must read. Prefer fewer, larger-signal rounds.
 
 At the end of a sequence, report: rounds completed, the ending state of each
 (`shipped` / `refuted` / `blocked` / `rejected`), the stop condition that fired, and
-anything added to NEEDS-MAX. One line per round. The state file holds the detail —
+anything added to NEEDS-OWNER. One line per round. The state file holds the detail —
 do not restate it.
 
 ---
