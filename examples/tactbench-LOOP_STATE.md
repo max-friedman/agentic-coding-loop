@@ -150,7 +150,7 @@ would have been duplicate reporting. Revisit only if skyline stops being perfect
 
 ---
 
-## NEEDS-MAX
+## NEEDS-OWNER
 
 Items that cannot proceed without a human. **Noted and skipped — never a reason to
 halt the loop.**
@@ -182,7 +182,7 @@ halt the loop.**
 2. **More families still welcome** — nine is better than six but still one
    author's idea of a working life. Candidates: home security, commute
    disruption, pet care.
-3. **Human label validation** (also NEEDS-MAX) — a labelling CLI is buildable now
+3. **Human label validation** (also NEEDS-OWNER) — a labelling CLI is buildable now
    even if the raters are not.
 
 ---

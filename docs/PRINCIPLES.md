@@ -62,7 +62,7 @@ nothing except that one person wrote both files" is not.
 ## 5. Blocked is not stopped
 
 Anything needing a human — a credential, a spend approval, a decision that isn't
-the agent's — goes on a NEEDS-MAX list with the exact command that unblocks it,
+the agent's — goes on a NEEDS-OWNER list with the exact command that unblocks it,
 and the round redirects to what is buildable around the block.
 
 The failure it prevents: **the halt**, and its worse sibling, **the guess**. An

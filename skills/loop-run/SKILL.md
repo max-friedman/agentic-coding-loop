@@ -57,7 +57,7 @@ to 1.
 
 One line per round — number, title, ending state (`shipped` / `refuted` /
 `blocked` / `rejected`) — then the stop condition that fired and anything added to
-NEEDS-MAX. The state file holds the detail; do not restate it.
+NEEDS-OWNER. The state file holds the detail; do not restate it.
 
 ---
 

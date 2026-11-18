@@ -28,8 +28,15 @@ already supposed to handle it. This repository has three scheduled Routines:
 | Loop proposal reviewer | every 6h | Verdicts on `proposal` issues, reject-by-default |
 | Loop watchdog | daily 07:00 UTC | Merges PRs open ≥24h; detects a dead reviewer |
 
-So: **do not ask the owner to merge a round pull request.** The watchdog merges it after the
-24-hour veto window, or the next round's session reviews it. Do not merge it yourself
+**Paused since late September 2026.** The round Routine's sessions were provisioned
+without the tools to attach the repository, so every firing recorded SUCCEEDED and did
+nothing ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). No round
+has run since 2026-09-16, and nothing merges itself. Until the owner restarts the
+Routines, **the owner reviews and merges every PR**; say so plainly rather than waiting
+for a watchdog merge that will not come.
+
+When they run: **do not ask the owner to merge a round pull request.** The watchdog merges
+it after the 24-hour veto window, or the next round's session reviews it. Do not merge it yourself
 either — §D forbids a round merging its own work, and a subagent you spawn does not
 discharge that, because §D requires a reviewer that "cannot be attached to" the author.
 

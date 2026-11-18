@@ -63,7 +63,7 @@ reconstructed five rounds later; §C turns accumulated lines into proposals.
 
 ---
 
-## NEEDS-MAX
+## NEEDS-OWNER
 
 Items that cannot proceed without a human. **Noted and skipped — never a reason
 to halt the loop.**
@@ -90,7 +90,7 @@ clears this list**; a round only appends.
      log it here, keep going: nothing in this list is waited on. This is how
      decisions get routed away from the human without being hidden from them.
      Only what is irreversible, spends money, acts as the human, or is reserved
-     to them goes in NEEDS-MAX instead, never here. Clear a line when the human
+     to them goes in NEEDS-OWNER instead, never here. Clear a line when the human
      confirms or reverses it; a reversal is ordinary queue work. -->
 
 - _<date> — <the call> — <why> — reverse by: <how>_

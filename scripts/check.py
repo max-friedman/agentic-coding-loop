@@ -258,10 +258,11 @@ def check_docs_derive() -> None:
         d for d in os.listdir(skills_dir)
         if os.path.isfile(os.path.join(skills_dir, d, "SKILL.md"))
     )
-    for doc in ("README.md", "docs/ADOPTING.md"):
-        text = read(doc)
-        missing = [n for n in names if f"| `{n}` |" not in text]
-        check(f"{doc} lists every skill", not missing, ", ".join(missing))
+    # The skill table lives in ADOPTING.md; the README stays short and links to it.
+    text = read("docs/ADOPTING.md")
+    missing = [n for n in names if f"| `{n}` |" not in text]
+    check("docs/ADOPTING.md lists every skill", not missing, ", ".join(missing))
+    check("README.md links the skill table", "docs/ADOPTING.md" in read("README.md"))
 
     # Every `## Section` row in LOOP.md's section 6 table must exist as a heading
     # in the template, so a bootstrapped state file starts with all of them.

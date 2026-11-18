@@ -94,7 +94,7 @@ labelled-field form. **The code was not changed to satisfy the test.**
 
 **Not done, deliberately:** no numbers. Nothing about LLM performance appears
 anywhere in the repo, and nothing may until a run actually happens. The item sits
-in NEEDS-MAX with the exact three commands that unblock it.
+in NEEDS-OWNER with the exact three commands that unblock it.
 
 It is still sitting there. That is the rule working, not the rule failing.
 

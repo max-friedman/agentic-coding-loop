@@ -149,6 +149,10 @@ written up as files are in [`proposals/rejected/`](proposals/rejected)).
 
 ## The watchdog
 
+**Paused since late September 2026, with the other Routines** (see
+[#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). While paused it
+merges nothing; the owner reviews and merges every pull request.
+
 A separate daily Routine checks outcomes rather than processes — it cannot see
 whether a scheduled job ran, only whether its work got done.
 

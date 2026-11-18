@@ -9,6 +9,13 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 
 ## Current status
 
+- **Paused since 2026-09-16.** No round has run since Round 3. The scheduled round
+  Routine fired and recorded SUCCEEDED without doing anything, because its sessions
+  had no tools to attach this repository
+  ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). Rounds
+  resume when the owner restarts them; no date is set. Until then the owner reviews
+  and merges every PR, and nothing merges itself. Protocol releases 0.13.0 to 1.0.0
+  were made outside the loop (see `CHANGELOG.md`).
 - **Round:** 3 — the gate never gated: 4 of 12 merged PRs merged red, and no red
   gate has ever blocked a merge. **Gate green on `main`.**
 - **Layers:** core. The `ux-roast` domain in `llms.txt` was checked and rejected:
@@ -20,7 +27,7 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   #12). Was 32 checks / 2 failed at bootstrap: R1 added 5 checks and closed one
   failure, R2 closed the other. The merge train landed 2026-09-07, so this is now
   green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
-  required status check (NEEDS-MAX 2), and R3 measured what that has cost.
+  required status check (NEEDS-OWNER 2), and R3 measured what that has cost.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
   `loop` 0.10.0 (`LOOP.md`, 610 lines; 6 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
@@ -413,7 +420,7 @@ question, not an answer to it.
 
 ---
 
-## NEEDS-MAX
+## NEEDS-OWNER
 
 Items that cannot proceed without a human. **Noted and skipped — never a reason
 to halt the loop.**
@@ -432,7 +439,7 @@ to halt the loop.**
 
    **Corrected 2026-09-07.** The command recorded here would have failed: `-f`
    sends `strict` as the string `"true"`, which the API rejects as a non-boolean.
-   `-F` types it. A command written into NEEDS-MAX is meant to be pasted by a
+   `-F` types it. A command written into NEEDS-OWNER is meant to be pasted by a
    human who will not debug it — an unrunnable one is worse than none, because it
    reads as unblocked. `strict` is now `false` by Max's decision on 2026-09-07:
    the goal is that nothing merges red, not that every branch is current, and
@@ -480,7 +487,7 @@ Ordered. Each is a question with a possible negative result, per §2.
    actually found was in `CONTRIBUTING.md`, which no item covered. The scope was
    drawn around the docs someone expected to be wrong.
 3. **Does anything make a red gate cost something?** R3 measured that no red gate
-   has ever blocked a merge here, and NEEDS-MAX 2 names the fix — but branch
+   has ever blocked a merge here, and NEEDS-OWNER 2 names the fix — but branch
    protection lives outside the repository and `check.py` cannot assert it.
    Question: is there any in-repo check that would fail if `gate` stopped being
    required? Negative result: there is not, the property is unassertable from
@@ -559,10 +566,10 @@ this setting has still never taken effect once.
 **What this does not lift.** `indefinite` lifts exactly one stop condition — the
 empty queue. Every other §D condition still halts the sequence. As of 2026-09-07
 the two that were live are cleared — the gate is green on `main` (37 checks, 0
-failed, first green push since `d2a6353`) and NEEDS-MAX 1 was resolved by Max's
+failed, first green push since `d2a6353`) and NEEDS-OWNER 1 was resolved by Max's
 ruling — so this configuration can now actually take effect the first time a
 round empties the queue. It has not yet: the queue holds three items.
 
 **Still not enforced:** `gate` is not a required status check on `main`
-(NEEDS-MAX 2). `indefinite` keeps a sequence running; nothing yet stops a round
+(NEEDS-OWNER 2). `indefinite` keeps a sequence running; nothing yet stops a round
 in that sequence from merging red.
