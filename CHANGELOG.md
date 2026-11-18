@@ -8,6 +8,55 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [0.14.0] — 2026-11-18
+
+The week after 0.13.0, the project behind §F ran its rules under a release push and
+failed in four new ways: the machine ran out of disk and memory with the lane cap
+respected, an unattended job failed silently for a week on an expired login, the
+coordinator idled every lane waiting on reversible calls, and a pre-check stopped at
+the first refusal. This release carries what generalized, plus one untested shape
+(goal loops).
+
+**Approved by the owner directly**, like 0.13.0, from that project's logs
+([`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) §14). No reviewer agent judged
+it against the rubric.
+
+**Added**
+- **Hard rule: a reversible call is not a block.** Decide, act, log it in
+  `## Decided, not asked`; only the irreversible, the paid, acting as the human, or
+  what the project reserves to them goes to NEEDS-MAX.
+- **Hard rule: never stub, wrap or feed a gate to get past it.** Run every other
+  check and report them with the refusal.
+- **§F *Sizing* 5–6:** admission control (the start mechanism also refuses below a
+  disk or memory floor); a waiter never matches itself (hook-refused, with a reaper
+  for old ones).
+- **§F *Watching*:** the watchdog reads each unattended job's own output; a failure
+  only the human can fix reaches them at once.
+- **§F *Goal loops* (opt-in):** one long-running lane aimed at a single PASS/FAIL/NOT
+  RUN command, scoped to what keeps it red, with a kill budget written at the start.
+  **Unproven**: the first one was parked within hours.
+- **§F stop conditions:** a resource floor breached; a goal loop over budget.
+- **§F:** lane prompts point at `## Standing invariants`; a lane may self-review with
+  a fresh agent, advisory only; the hand-back pre-check runs on the final head,
+  PR description included.
+- **Principles 16–17:** a reversible call is not a reason to wait; admit work by
+  resources, and watch what jobs say.
+- **`examples/hooks/`:** generic admission gate (lane cap, hotspots, disk and swap
+  floors), wait-loop guard, and outside-the-session watchdog.
+- **`docs/PARALLEL_LANES.md` §14**, the week's field notes.
+
+**Changed**
+- `## Decided, not asked` lines now carry *why*, and the template says the list is
+  never waited on.
+- `README.md` rewritten around the multi-agent project: what it is, scale, the flow,
+  the key ideas, and how it maps to a team. The skill table and the limitations stay.
+
+**Blast radius**
+- **No correct single-agent usage changes** beyond the two hard rules, which name
+  behaviour the existing rules already implied ("blocked is not stopped"; "never
+  relax an assertion"). §F additions apply only with `lanes` above 1. No state-file
+  section is added or renamed, which is why this is MINOR.
+
 ## [0.13.0] — 2026-11-12
 
 The protocol assumed one agent. A third project ran one coordinator and up to five

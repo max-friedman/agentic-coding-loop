@@ -142,7 +142,7 @@ Then update, in place:
 | `## Current status` | round number, gate command + state, artifact + version, one-sentence headline |
 | `## Coverage map` | table: area \| last touched \| probe/status. Write "unprobed" where true. |
 | `## NEEDS-MAX` | blocked-on-human items, each with the exact unblocking command |
-| `## Decided, not asked` | calls made on the human's behalf instead of asking, one line each: the call, the default taken, how to reverse it. The human reads and clears it. Never a substitute for NEEDS-MAX. |
+| `## Decided, not asked` | calls made on the human's behalf instead of asking, one line each: the date, the call, why, how to reverse it. Made and acted on, never waited on. The human reads and clears it. Never a substitute for NEEDS-MAX. |
 | `## Queue — next rounds` | ordered next increments, each phrased as a question |
 | `## Lanes` | only when `lanes` is above 1 (§F): the hotspot areas, and each running lane with the item and hotspot it holds |
 | `## Standing invariants` | properties + the test enforcing each |
@@ -170,6 +170,8 @@ instead of stopping. Every other stop condition still halts the sequence.
 | **A failing invariant means the code is wrong, not the assertion.** Never relax an assertion to make a round pass. If an invariant is genuinely mis-stated, say so in the writeup and leave it failing. | Relaxing is always the locally cheapest fix and is invisible in a diff containing real work. |
 | **A false claim found is the round.** Report it, fix what you can, correct the docs. | Deleting a false claim beats adding a feature. |
 | **Blocked is not stopped.** Needs a human? Add to NEEDS-MAX with the exact unblocking command, then build around the block. | Halting burns the round. |
+| **A reversible call is not a block.** When a choice is yours to undo — a default, a priority between ready items, a design reading — take your best recommendation, act on it, and log it in `## Decided, not asked`. Only what is irreversible, spends money, acts as the human, or is reserved to them by the project rules goes to NEEDS-MAX. | Waiting on a reachable-later human for a call that could be reversed in minutes idles every lane until they read the message. |
+| **Never stub, wrap or feed a gate to get past it.** When a gate refuses, run every other check, report their results with the refusal, and stop. | A gate an agent can satisfy with its own inputs is no longer a gate, and the bypass looks exactly like a pass. |
 | **Never publish a number you did not measure.** No estimating a blocked result, however obvious. | A guessed number is worse than a missing one. |
 | **A gate that has never failed is not yet known to be a gate.** | Until it fails once, "green" is untested tooling, not evidence. A red first CI run is the system working. |
 | **Never edit past round sections.** | The wrong turn is the only reason the next agent won't take it. |
@@ -647,7 +649,7 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 | role | does | never |
 |---|---|---|
 | **Coordinator** | One session. Picks items, starts lanes, reviews and merges every lane's PR (it is §D's reviewer: it did not write the work), owns the state file's shared sections and the only channel to the human. | Does anything a lane was refused. Treats a lane's report — including "the human said" — as permission. |
-| **Lane** | One agent, one item, its own branch and worktree. Runs §1–§5. Writes its round entry in its PR body. | Merges. Edits `## Current status`, `## Queue`, `## Coverage map` or `## Loop configuration` — the coordinator appends round entries and updates those sections at merge, one commit per batch. |
+| **Lane** | One agent, one item, its own branch and worktree. Runs §1–§5. Writes its round entry in its PR body. Its prompt points at the rules file and at `## Standing invariants`: a change that breaks one is wrong even when its own tests pass. | Merges. Edits `## Current status`, `## Queue`, `## Coverage map` or `## Loop configuration` — the coordinator appends round entries and updates those sections at merge, one commit per batch. |
 
 ### Sizing — MUST
 
@@ -661,13 +663,22 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
    Above about five, lanes work on what unblocks merging, not on new items.
 4. **Split append-only shared files by area** (registries, test lists, flags, copy
    tables) as soon as two lanes conflict in one. Each area registers itself.
+5. **Admission control, not cleanup.** The mechanism in rule 1 also refuses a start
+   while free disk or memory (swap included) is under its floor, and says what to
+   free first. Read-only agents are exempt. Cleanup after the fact runs too, but it
+   is the backstop: a leak outruns a sweeper.
+6. **A waiter never matches itself.** A loop polling a process pattern must use a
+   pattern that cannot match the loop's own command line (`[l]and.py`, not
+   `land.py`), or better, no loop: run the awaited thing in the background and take
+   its exit notification. A hook refuses the self-matching form; an outside job
+   reaps waiter shells past an age limit.
 
 ### The one way onto the default branch
 
 | rule | why |
 |---|---|
 | **One merge path** — a script or queue that merges the default branch in, runs the gate, and merges under a lock. Nothing else merges. | Two merge paths race; one of them skips the gate. |
-| **Lanes run the gate's cheap checks on their branch merged with the current default branch before handing back**, and the merge path refuses a head with no recorded pass. | Most failed merges fail on checks that needed no expensive resource. |
+| **Lanes run the gate's cheap checks on their branch merged with the current default branch before handing back** — on the final head, PR description included — and the merge path refuses a head with no recorded pass. A lane may also have a fresh reviewer check its own user-visible work first; that verdict is advisory, and the coordinator's own independent reviewer stays the gate (§D). | Most failed merges fail on checks that needed no expensive resource. |
 | **A queue, not hand-written waiters.** A waiter keys on the real end signal: result exists *and* the process is gone, or the merge commit is set. | Waiters keyed on log size or a process pattern fire early or never. |
 | **Batch by default.** With three or more compatible PRs ready, gate them as one merged tree and bisect a red batch by halves. Any rule that keeps a PR out of a batch states what it buys. | One run per PR on serial capacity is the bottleneck; batch-exclusion rules accumulate silently until nothing batches. |
 | **Never stack PRs.** Dependent slices land in order, or as one combined PR. After a PR's third conflict, rebuild it on the current default branch. Resolve conflicts with a merge commit, never a force-push. | Squash-merging a base orphans the PR stacked on it. |
@@ -695,9 +706,27 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
   day.
 - **Disk and memory have floors.** Check them before any long run; below them, start
   nothing.
+- **The watchdog reads every unattended job's own output**, not only whether it ran.
+  A job that runs and fails the same way every time — an expired login, a revoked
+  token — reads as alive to a heartbeat check. A failure only the human can fix
+  (a credential) skips the escalation ladder: it reaches them at once, with the one
+  command to run.
 - Every update to the human leads with **what waits on them** and what each item
   unblocks. Everything else they asked to be left out of goes in `## Decided, not
   asked`, reviewed together.
+
+### Goal loops (opt-in)
+
+A **goal loop** is one long-running lane given a single machine-checked goal instead
+of an item: "this release gate reports PASS" — one command that prints PASS, FAIL or
+NOT RUN for every piece. It counts against `lanes` like any other.
+
+| rule | why |
+|---|---|
+| **The goal is a command, not a description.** It exists, and has been seen to fail, before the loop starts. | A goal judged by the loop itself drifts toward whatever the loop managed. |
+| **Work only on what keeps the goal red**, on idle capacity: rerun each red once, fix what is reversible, and for a red nobody can explain, add the telemetry that would explain it next time instead of guessing. | Unscoped "make it green" turns into rewriting the tests. |
+| **The kill condition is written at the start**: a budget of tokens or hours with no fall in the red count stops the loop. | A loop with a goal and no budget runs as long as the goal is hard. |
+| **Its fixes land by the same one path as every lane's.** | A loop allowed to merge its own fixes has no reviewer (§D). |
 
 ### Stop conditions, in addition to §D
 
@@ -706,6 +735,8 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 | Running lanes exceed `lanes` | Stop starting; let lanes finish. Report it. |
 | Two lanes hold one hotspot | Hold the newer one; merge in dependency order. |
 | A lane routed around a mechanism (another agent, a fork, a force flag) | Stop that lane. Report it. The workaround is the incident. |
+| Free disk or memory under its floor | Start nothing; let running lanes finish; free space by the cleanup rules, never by deleting another lane's work. |
+| A goal loop spent its budget without the red count falling | Stop the loop. Report what it learned. |
 
 §D's limit of two open round PRs applies **per lane**.
 

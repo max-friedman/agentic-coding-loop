@@ -21,6 +21,10 @@ requests, one 16 GB machine, a small pool of test devices. Every number below is
 that project's own logs and retros. One project is an anecdote with good bookkeeping;
 treat it as that.
 
+
+**Updated 2026-11-18** with the week after 0.13.0 (about 240 more merged pull
+requests, about 1,900 in all): [section 14](#14-the-week-after-0130).
+
 ---
 
 ## The one thing it taught
@@ -463,6 +467,122 @@ itself on any failure. Two lessons that cost an outage each:
 
 ---
 
+## 14. The week after 0.13.0
+
+The week from 12 to 18 November ran the rules above while the project pushed toward a
+major release, and broke in four new ways. Each is now a mechanism.
+
+### Admission control: the cap held, the machine didn't
+
+The lane cap held all week, and the machine still fell over. In one day the disk hit
+0 GB once (three landings died on "no space left") and fell under 10 GB four more
+times; the nightly skipped its device stage at 4 GB free; swap reached 7.7 of 9 GB;
+later that day the laptop rebooted out of memory. The owner's words: "figure out how
+to stop doing this".
+
+Counting lanes was not counting resources. A lane's real cost is its worktree, its
+build output and every background process it leaves behind, and cleanup ran on a
+schedule slower than the leaks. What changed:
+
+- **The spawn hook also reads the machine.** A new feature, bug or process lane is
+  refused while free disk is under 15 GB or swap used is over 6 GB, and the refusal
+  names the biggest processes. Read-only agents are exempt; an unreadable probe does
+  not block.
+- **Build output has a budget.** The build-slot wrapper keeps build output in at most
+  three idle worktrees and deletes the least recently built one's, never a landing's
+  and never one a process is using.
+- **Disk headroom runs right before the nightly's preflight** and the landing queue
+  removes merged clones itself, instead of waiting for a six-hourly sweep.
+
+### Waiters that waited on themselves
+
+About 90 orphaned shell loops were found, some eight days old, all holding memory.
+Each was an agent's wait loop like `until ! pgrep -f "run_suite.py"; do sleep 10;
+done`. The harness runs a shell command as `zsh -c '<the command>'`, and `pgrep -f`
+matches whole command lines, so the loop found its own shell and never ended. The
+bracket trick (`[r]un_suite.py`) had been written in the playbook for six weeks.
+
+A hook now refuses a `while`/`until` loop whose `pgrep -f` pattern, read as a regex,
+matches the command's own text, and suggests running the awaited job in the
+background instead. A reaper in the watchdog kills sleep-loop shells older than six
+hours, never one whose child is doing work. Generic versions:
+[`examples/hooks/`](../examples/hooks).
+
+### The silent week: an expired login
+
+The project's feedback loop is itself unattended: it plans a fix for each piece of
+feedback by starting a Claude Code session. From one evening on, every plan failed
+with an expired login. The loop logged each failure as an event, kept running on
+schedule, and looked alive to every heartbeat check. Nobody noticed for a week.
+
+The watchdog checked that jobs *ran*, not what they *said*. It now reads the loop's
+own event feed: a login failure with no success since is a flag that wakes the
+coordinator at once and reaches the owner at once — skipping the usual one-hour
+escalation — with the one command only they can run. Any other plan failure is a
+quieter flag for the coordinator. This is principle 13 one level up: a job that runs
+and fails identically every time is as silent as one that never ran.
+
+### Don't block on the owner
+
+One night the coordinator held every lane at zero, waiting for the owner to approve
+going to four lanes and to settle a handful of design calls — all reversible. The
+owner's rule, restated: *don't block on me; keep going, record your assumptions, and
+we'll revisit them.*
+
+The `## Decided, not asked` list already existed; what changed is that it is no
+longer a list of calls made *instead of asking* but the default for every reversible
+call: date, the assumption, why, how to undo it. Updates to the owner list these as
+"assumed (revisit)", already in motion. The same afternoon the owner reviewed the
+day's dozen assumptions in one pass and confirmed all of them. What still waits on
+the owner is short and written: billing, permanent deletes, acting as the owner,
+live tests outside the testing channels, the priority order, and anything the rules
+file reserves to him.
+
+### Never stub a gate
+
+The pre-check that lanes run before handing back used to stop at the first refusal.
+A UI change missing its independent-review line — which only the coordinator's
+reviewer can write — stopped there, so the lane handed back without knowing whether
+anything else passed. Now the pre-check runs every check, reports them all, and still records no pass; and the
+helper rules say outright that no agent patches, stubs, wraps or skips a gate — when
+one refuses, hand back with everything else's results. Principle 15's "a gate an
+agent can feed is a gate that agent can pass", made a rule.
+
+The same week, lanes got a self-review step: before handing a UI change to the
+coordinator, the lane has a fresh read-only agent compare its screenshots with the
+approved designs and fixes what it finds. Its verdict is advisory and never goes on
+the gate's line; the coordinator's own independent reviewer stays the gate.
+
+### Invariants every lane reads
+
+A lane sees its slice, not the product: a change can pass its own tests and still
+break something the product promises everywhere. The project now keeps one short file of
+product invariants — eleven lines, each naming its spec and the test or scenario that
+guards it (a due reminder always rings; every surface agrees with the one store; an
+acknowledged edit is never lost; nothing is sent or paid without the user's tap; no
+secrets or personal values anywhere) — and the helper rules link it in one sentence:
+*a change that breaks one is wrong even if its tests pass.* Every cited test was
+checked to exist when the file was written. This is the loop's `## Standing
+invariants`, made cheap enough to put in front of every lane.
+
+### A goal loop for the release
+
+With the major release blocked on a list of red device scenarios, the owner approved
+a different kind of lane: one long-running coordinator whose goal is a single command,
+the release's cutover gate, which prints PASS, FAIL or NOT RUN for each of its pieces
+(no lost features in the parity table, migration tests, a dry run of the data move,
+the update from the last release on a device, a crash-and-hang check). The loop reruns
+each red on free devices, fixes what is reversible, adds telemetry for what nobody can
+explain, and has a stop condition written at its start: tokens spent without the red
+count falling. The idea came from published accounts of long-running agent loops
+pointed at one measurable goal.
+
+It started the morning of the out-of-memory reboot and was parked within hours until
+the admission control above landed. **There is no result yet**; it is in `LOOP.md` as
+an opt-in shape, not as a proven one.
+
+---
+
 ## Where each lesson went
 
 | lesson here | now in |
@@ -477,11 +597,16 @@ itself on any failure. Two lessons that cost an outage each:
 | Chain state files, hand-off budget (§3) | §D *Context hygiene* |
 | Quiet watching, outside watchdog (§9) | §F *Watching and the human* |
 | Decisions list, "needs you" first (§10) | `## Decided, not asked` · §F |
+| Resource floors at spawn, waiters that match themselves (§14) | §F *Sizing* 5–6 · principle 17 · [`examples/hooks/`](../examples/hooks) |
+| The watchdog reads each job's output; credential failures go straight to the human (§14) | §F *Watching and the human* · [`examples/hooks/watchdog.py`](../examples/hooks/watchdog.py) |
+| Don't block on the owner; never stub a gate (§14) | Hard rules · principle 16 · `## Decided, not asked` |
+| Invariants every lane reads, lane self-review (§14) | §F *Roles* and *The one way onto the default branch* |
+| Goal loops (§14) | §F *Goal loops*, opt-in and unproven |
 | Spawning prompts, model tiers, thrift windows, retros, pauses, upgrades | Here only. Project practice, not yet a pattern across projects. |
 
 ## What's not verified
 
-- **One project, one author, seven weeks.** Nothing here has been reproduced
+- **One project, one author, eight weeks.** Nothing here has been reproduced
   elsewhere, and that project ran its own process, not a release of this protocol.
   §F is its lessons written as protocol, untested as written.
 - **The numbers are the project's own logs**, not an independent measurement, and
