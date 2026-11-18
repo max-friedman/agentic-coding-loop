@@ -9,21 +9,22 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 
 ## Current status
 
-- **Paused since 2026-09-16.** No round has run since Round 3. The scheduled round
-  Routine fired and recorded SUCCEEDED without doing anything, because its sessions
-  had no tools to attach this repository
-  ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). Rounds
-  resume when the owner restarts them; no date is set. Until then the owner reviews
-  and merges every PR, and nothing merges itself. Protocol releases 0.13.0 to 1.0.0
-  were made outside the loop (see `CHANGELOG.md`).
-- **Round:** 3 — the gate never gated: 4 of 12 merged PRs merged red, and no red
-  gate has ever blocked a merge. **Gate green on `main`.**
+- **Round 4 run on 2026-11-18 by hand to restart; scheduled rounds still paused.**
+  The scheduled round Routine fired and recorded SUCCEEDED without doing anything,
+  because its sessions had no tools to attach this repository
+  ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). No date is
+  set for scheduled rounds to resume. The owner reviews and merges every PR; nothing
+  merges itself. Protocol releases 0.13.0 to 1.0.1 were made outside the loop (see
+  `CHANGELOG.md`).
+- **Round:** 4 (run by hand 2026-11-18) — the "consumers are pinned" guarantee was
+  false for every non-plugin path, including TactBench's. **Gate green on `main`.**
 - **Layers:** core. The `ux-roast` domain in `llms.txt` was checked and rejected:
   this repository is a protocol library consumed by agents, not a user-facing
   product, so its roast mechanics have no surface to key a coverage map to.
 - **Gate:** `python3 scripts/check.py` (and `python3 scripts/check.py --base
   origin/<base>` on pull requests, via `.github/workflows/checks.yml`).
-  **GREEN — 37 checks, 0 failed.** First green state since `d2a6353` (0.8.0,
+  **GREEN — 50 checks, 0 failed** after Round 4 (it was 37 after R3; releases
+  0.13.0 to 1.0.1 and R4 added the rest). First green state was R2, the first since `d2a6353` (0.8.0,
   #12). Was 32 checks / 2 failed at bootstrap: R1 added 5 checks and closed one
   failure, R2 closed the other. The merge train landed 2026-09-07, so this is now
   green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
@@ -31,12 +32,10 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
   `loop` 1.0.1 (`LOOP.md`; 7 skills; 5 templates) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
-- **Headline:** both gate failures were in the gate, not in what it checked.
-  One assertion was hollow (it failed loudly while validating nothing about the
-  plugin it named); one resolved links from the directory a file was *walked*
-  in rather than the directory it *lives* in. Neither was ever a defect in the
-  shipped artifact — which is why four PRs could merge red without breaking
-  anything, and exactly why nobody looked.
+- **Headline:** the docs promised that a merge changes nothing downstream until a
+  release. Every documented path except the plugin fetches `LOOP.md` from `main`,
+  and so does the one real downstream project. The review is the only gate; the
+  docs now say so, and `check.py` fails if the promise comes back.
 
 ---
 
@@ -403,6 +402,103 @@ question, not an answer to it.
 
 ---
 
+## Round 4 — the pinning guarantee described no actual consumer
+
+**Run by hand on 2026-11-18 to restart the loop.** Scheduled rounds are still paused
+(#37). Nine weeks and six protocol releases (0.11.0 to 1.0.1) passed between Round 3 and
+this one. The last four (0.13.0 on) were made outside the loop and are not rounds.
+
+**Question:** `CONTRIBUTING.md` promised "a merge alone changes nothing downstream:
+consumers are pinned to the `version` in `marketplace.json`". Is that true for the
+project that actually consumes the loop? Queue item 1, carried since Round 0. PR #11
+said no, and was closed on 2026-09-07 without settling it; its argument was this
+round's starting hypothesis, not its answer.
+
+**Method:** list every consumption path this repository documents, read each one's
+URL, and check whether it is pinned to a release. Then check what the one known
+downstream project (TactBench) actually fetches. A negative result would have been:
+every documented non-plugin path names a tag, a commit or a version, and TactBench
+does too. Before changing any doc, a check went into `scripts/check.py` that derives
+the fetch paths from the files and fails when any doc promises pinning to every
+consumer while one of them fetches `main`.
+
+**Finding: the guarantee was false for every path except plugin installs.**
+
+| path | where it is documented | fetches |
+|---|---|---|
+| Any agent, any harness (listed first) | `docs/ADOPTING.md` §1 | `main` |
+| Machine index | `llms.txt` | `main` |
+| Scheduled Routine | `templates/PROJECT_ROUTINE.md` | `main` |
+| GitHub Actions schedule | `templates/loop-workflow.template.yml` | `main` |
+| Bootstrap's domain check | `LOOP.md` §B step 2 | `main` (`llms.txt`) |
+| Claude Code plugin | `docs/ADOPTING.md` §2 | the marketplace `version` (documented; not measured here) |
+
+TactBench, the only known downstream project, points its agents at
+`raw.githubusercontent.com/.../main/LOOP.md` in its `CLAUDE.md`. Its rounds run
+whatever is on `main` that day. No release tag exists in this repository, so nothing
+could pin to one. The check's before result: **FAIL** — two unscoped promises
+(`CONTRIBUTING.md`, the `CHANGELOG.md` header) against four documented paths that
+fetch `main`. Widening the search by concept, as §5.4 requires, found two more
+(`AGENTS.md`: "downstream projects never receive it"; the issue-template link text:
+"why a merge alone changes nothing downstream") and two in files only the owner may
+edit (below).
+
+PR #11's argument holds: the review is the only gate there is. A mistake merged here
+reaches TactBench on its next round. That makes the reject-by-default rubric more
+important than the docs said, not less.
+
+**Shipped:**
+- `scripts/check.py` → *pinning claims match the documented fetch paths*: derives
+  the paths that fetch `LOOP.md` from `main` (ADOPTING, `llms.txt`, every template),
+  and fails if `CONTRIBUTING.md`, `CHANGELOG.md`, `docs/ADOPTING.md`, `README.md`,
+  `AGENTS.md` or the issue-template config promises pinning to every consumer. A
+  second line fails if no such path is found at all, so the check can't pass by
+  finding nothing. Seen failing on the unchanged docs (2 claims), and again after
+  widening (2 more), before each fix.
+- `CONTRIBUTING.md`: the guarantee replaced with what is true — the review is the
+  gate; projects fetching `main` run a merged change on their next round; only plugin
+  installs wait for a version bump; a project wanting a brake fetches a commit SHA.
+- `CHANGELOG.md` header, `AGENTS.md`, `.github/ISSUE_TEMPLATE/config.yml`,
+  `check.py`'s own messages: scoped to plugin installs.
+- `docs/ADOPTING.md` §1: says the URL follows `main`, and how to fix a commit
+  instead. Releases are not tagged, so it says that too.
+- Status lines in `README.md`, `.claude/CLAUDE.md` and `CONTRIBUTING.md`: Round 4 ran
+  by hand; scheduled rounds still paused.
+
+**Consequences:**
+- §5.3, earlier rounds' probes re-run in a throwaway copy: R1's corrupted
+  `plugins[1]` (name removed, version `x`) and R2's nested broken link are still
+  caught, and restoring the old guarantee sentence fails the new check.
+- No version bump: nothing under `LOOP.md`, `skills/` or `templates/` changed, and
+  `check.py --base origin/main` reports the bump check as skipped, correctly.
+- The standing invariant *a behavior change carries a version bump* had the wrong
+  reason attached ("without it the change reaches no downstream project"). Its check
+  is unchanged; its reason now says plugin installs.
+- `docs/REVIEW_RUBRIC.md:141` and `.github/workflows/proposal-review.yml:118` still
+  say a change without a bump "reaches nobody". Both are review machinery, which no
+  round may edit. NEEDS-OWNER 5 has the exact change.
+
+**Noted, not built:**
+- Pinning the Routine and Actions templates to a release. Without tags there is
+  nothing to pin to, and the owner may want new projects to follow `main`. Queued as
+  a question, not done.
+- Measuring whether `/plugin update` really holds back an unbumped change. It needs a
+  plugin install into a real user config, which a round should not change; the
+  plugin row stays "documented, not measured".
+- Reopening PR #11. Its diff predates four releases; the fix here is smaller and
+  carries a check #11 did not have.
+
+**Loop:** §0 step 4a ("review and merge the previous round's pull request first")
+had nothing to act on: Round 3's PR merged in September and everything since was
+merged outside the loop. Not friction, but a restart after a long pause has no step
+of its own; this round recorded the gap in its opening paragraph instead. One data
+point, not filed.
+
+**Ending state:** `refuted` — the guarantee was measured and found false for every
+non-plugin path, including the one real consumer's.
+
+---
+
 ## Coverage map
 
 | area | last touched | probe / status |
@@ -410,13 +506,13 @@ question, not an answer to it.
 | `LOOP.md` | 0.10.0 (`07ca784`) | Structural only: `check.py` asserts every skill inlines it. **Nothing reads its content.** |
 | `skills/` (6) | 0.10.0 | Frontmatter parses, description present, inlines `LOOP.md`. Behavior unprobed. |
 | `domains/ux-roast/` | R2 | Symlink confirmed deliberate and load-bearing (own plugin + `${CLAUDE_PLUGIN_ROOT}`, `docs/ADOPTING.md:71`). `DOMAIN.md` content still unprobed. |
-| `templates/` (5) | 0.8.0 | **Unprobed.** No check that a template still matches what `LOOP.md` tells you to copy from it. |
-| `scripts/check.py` | R2 | **Probed, both halves.** R1: corrupted `plugins[1]`, 0 of 3 caught → 3 of 3. R2: injected broken links at root and nested depth, caught before and after the symlink fix. |
+| `templates/` (5) | 1.0.0 | **Unprobed** for content. R4 read the two scheduling templates' fetch URLs: both follow `main`. |
+| `scripts/check.py` | R4 | **R4:** new pinning-claims check, seen failing twice before the fixes. **Probed, both halves.** R1: corrupted `plugins[1]`, 0 of 3 caught → 3 of 3. R2: injected broken links at root and nested depth, caught before and after the symlink fix. |
 | `.claude-plugin/marketplace.json` | 0.10.0 | Every declared plugin now validated for name/source/version/semver, not just `plugins[0]` (R1). |
 | `.github/workflows/` | 0.6.0 | **Probed (R3).** Runs on push + PR, on all 12 merges since 0.6.0. 4 merged red; no red gate has ever blocked a merge. Off-limits to any agent acting on a proposal (`AGENTS.md`). |
 | `proposals/` | 0.10.0 | Inertness enforced: no instruction file loads `proposals/`. 003 accepted. |
-| `README.md`, `docs/` | #18 (`405aba9`) | **Unprobed.** Claims about the loop are unmeasured; see queue item 2. |
-| `CONTRIBUTING.md` | R3 | One false claim found and corrected (it denied this repo keeps a `LOOP_STATE.md`, which R0 made false). Found by reading, not by a probe — the rest is unprobed. |
+| `README.md`, `docs/` | R4 | Rewritten outside the loop in 0.14.0–1.0.1. R4 probed one claim family (pinning) across all docs. The rest is **unprobed**; see queue item 1. |
+| `CONTRIBUTING.md` | R4 | R3 corrected one false claim by reading. R4 corrected the pinning guarantee, now guarded by `check.py`. The rest is unprobed. |
 
 ---
 
@@ -458,6 +554,14 @@ to halt the loop.**
    rather than deleted so the trail from bootstrap's default to the current
    value is visible. See `## Loop configuration`.
 
+5. **Two review-machinery files still say a change without a version bump "reaches
+   nobody".** Round 4 found that false for every project that fetches `main`. Rounds
+   may not edit these files. The edits, word for word:
+   - `docs/REVIEW_RUBRIC.md:141`: "Without the bump the change reaches nobody" →
+     "Without the bump, plugin installs never receive it; projects fetching `main`
+     run it on their next round."
+   - `.github/workflows/proposal-review.yml:118`: same replacement.
+
 ---
 
 ## Decided, not asked
@@ -465,7 +569,13 @@ to halt the loop.**
 Calls made on the owner's behalf instead of asking. The owner reads and clears this
 list; a round only appends. Added in protocol 0.13.0.
 
-- _none yet_
+- 2026-11-18 — R4 took queue item 1 as the protocol says, not a doc-wide claims audit
+  — it was the top item and checkable in one round — reverse by: run item 1 below next.
+- 2026-11-18 — R4 edited `.github/ISSUE_TEMPLATE/config.yml` (link text only). It is
+  not on the lockout list (`workflows/`, rubric, CODEOWNERS) — reverse by: revert the
+  one line.
+- 2026-11-18 — R4 reworded the reason on the version-bump invariant; the check is
+  unchanged — reverse by: restore "reaches no downstream project".
 
 ---
 
@@ -473,26 +583,25 @@ list; a round only appends. Added in protocol 0.13.0.
 
 Ordered. Each is a question with a possible negative result, per §2.
 
-1. **Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**
-   PR #11 said no. Independently re-derive it rather than trusting the PR body.
-   Negative result: the guarantee holds as written and no doc change is owed.
-   #11 was closed on 2026-09-07 without settling this — its argument is the
-   starting hypothesis for this item, not its answer, and its diff is available
-   in the closed PR if the round confirms it.
-2. **§A audit candidate: which claim in `README.md`, `docs/CASE_STUDY.md` or
-   `CONTRIBUTING.md` would still pass its supporting check if it became false?**
-   Run when the gate is green and has been for several rounds — not before; it
-   has been green on `main` for one. **Re-scoped by R3:** this item previously
-   covered only `README.md` and `docs/CASE_STUDY.md`, and the false claim R3
-   actually found was in `CONTRIBUTING.md`, which no item covered. The scope was
-   drawn around the docs someone expected to be wrong.
-3. **Does anything make a red gate cost something?** R3 measured that no red gate
+1. **§A audit: which claim in `README.md`, `docs/` or `CONTRIBUTING.md` would still
+   pass its supporting check if it became false?** Most of those docs were rewritten
+   outside the loop in 0.14.0–1.0.1, and R4 found a false guarantee that had stood
+   since 0.4.0. Negative result: every quoted number and status traces to a file or
+   the history, and nothing is owed.
+2. **Does anything make a red gate cost something?** R3 measured that no red gate
    has ever blocked a merge here, and NEEDS-OWNER 2 names the fix — but branch
    protection lives outside the repository and `check.py` cannot assert it.
    Question: is there any in-repo check that would fail if `gate` stopped being
    required? Negative result: there is not, the property is unassertable from
-   inside, and the honest move is to say so in the standing invariants rather
-   than leave the line reading as though a test is owed.
+   inside, and the honest move is to say so in the standing invariants.
+3. **Should the scheduling templates follow `main`?** R4 found every template
+   fetches `main` and no release is tagged. Question: would tagging releases and
+   pinning the templates to the latest tag stop any real change from reaching a
+   project that needed it? Negative result: following `main` is the right default
+   and the docs now say so; nothing to build.
+
+~~**Is `CONTRIBUTING.md`'s pinning guarantee true for the primary consumer?**~~
+**Answered by R4, 2026-11-18** — no. See Round 4.
 
 ~~**Did the gate ever gate?**~~ **Answered by R3, 2026-09-07** — 4 of 12 merged
 PRs merged red, all four consecutive, and no red gate has ever blocked a merge.
@@ -519,9 +628,13 @@ code is wrong, not the assertion.
 - **No instruction file loads `proposals/`.** Untrusted submitted text never
   becomes text an agent executes — `check.py` → `no instruction file loads
   proposals/`.
-- **A behavior change carries a version bump.** Without it the change reaches no
-  downstream project — `check.py --base origin/<base>` → `version bumped for
-  behavior change`.
+- **A behavior change carries a version bump.** Without it plugin installs never
+  receive the change (projects fetching `main` get it anyway, R4) —
+  `check.py --base origin/<base>` → `version bumped for behavior change`.
+- **No doc promises pinning to every consumer while a documented path fetches
+  `main`** — `check.py` → `no doc promises pinning to every consumer`, with
+  `some documented path is found` guarding against passing on an empty list (R4).
+  Verified failing on the unchanged docs.
 - **Every relative link resolves**, against the directory the file really lives
   in — `check.py` → `all relative links resolve`, resolving via
   `os.path.realpath` so a symlinked file is judged at its true location (R2).

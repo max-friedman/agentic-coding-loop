@@ -24,15 +24,19 @@ reaches them without a human deciding it should.
                                       proposals/NNN-slug.md + PR
                                                  │
                                                  ▼
-                                   version bump + CHANGELOG  ← takes effect here
+                                   version bump + CHANGELOG
                                                  │
                                                  ▼
                                      downstream: /plugin update loop
 ```
 
-**A merge alone changes nothing downstream.** Consumers are pinned to the
-`version` in `.claude-plugin/marketplace.json`. Until it is bumped, every project
-keeps what it has.
+**The review is the gate; nothing downstream holds a change back.** Projects that
+fetch `LOOP.md` from `main` — the first path in `docs/ADOPTING.md`, and the one the
+scheduled-round templates use — run a merged change on their next round. Only plugin
+installs wait for the `version` in `.claude-plugin/marketplace.json` to be bumped. So
+a mistake merged here can execute downstream within days, and that is why proposals
+are judged reject-by-default before they merge, not after. A project that wants a
+brake can fetch `LOOP.md` at a commit SHA instead of `main`.
 
 Two properties hold this together, and any change to the review machinery must
 preserve both:
@@ -149,7 +153,7 @@ written up as files are in [`proposals/rejected/`](proposals/rejected)).
 
 ## The watchdog
 
-**Paused since late September 2026, with the other Routines** (see
+**Paused since late September 2026, with the other Routines; rounds now run by hand** (see
 [#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). While paused it
 merges nothing; the owner reviews and merges every pull request.
 

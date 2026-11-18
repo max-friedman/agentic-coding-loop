@@ -58,4 +58,5 @@ claude plugin validate . --strict
 
 A change to `LOOP.md`, `skills/`, or `templates/` requires a `version` bump in
 `.claude-plugin/marketplace.json` and a `CHANGELOG.md` entry. Without the bump,
-downstream projects never receive it.
+plugin installs never receive it. Projects that fetch `LOOP.md` from `main` receive
+it on their next round either way, so review it as if it ships on merge.

@@ -89,13 +89,15 @@ Start small: [`docs/STARTER.md`](docs/STARTER.md) is a state file and three hook
 
 ## Status
 
-- **Last round:** Round 3, merged 2026-09-16
-  ([#32](https://github.com/max-friedman/agentic-coding-loop/pull/32)).
-- **Rounds are paused.** The scheduled round Routine has not run a round since: its
-  sessions lacked the tools to attach the repo (#37). Rounds resume when the owner restarts them, by hand or with a Routine that has its
-  tools. No date is set.
-- **Nothing merges itself while paused.** The owner reviews and merges every PR; the
-  24-hour self-merge described in [`CONTRIBUTING.md`](CONTRIBUTING.md) is off.
+- **Last round:** Round 4 run on 2026-11-18 by hand to restart; scheduled rounds
+  still paused. It found that the docs promised every project was pinned to a
+  release, while every non-plugin path fetches from `main`
+  ([state file](docs/plans/LOOP_STATE.md)).
+- **Why scheduled rounds are paused:** the round Routine's sessions had no tools to
+  attach the repo, so it recorded SUCCEEDED and did nothing (#37). No date is set
+  for them to resume.
+- **Nothing merges itself.** The owner reviews and merges every PR; the 24-hour
+  self-merge described in [`CONTRIBUTING.md`](CONTRIBUTING.md) is off.
 - **One author.** Nobody else has run this yet. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md)
   says what I'd measure to find out, and how I'd find a first outside user.
 

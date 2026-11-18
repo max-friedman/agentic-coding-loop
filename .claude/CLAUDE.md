@@ -28,12 +28,13 @@ already supposed to handle it. This repository has three scheduled Routines:
 | Loop proposal reviewer | every 6h | Verdicts on `proposal` issues, reject-by-default |
 | Loop watchdog | daily 07:00 UTC | Merges PRs open ≥24h; detects a dead reviewer |
 
-**Paused since late September 2026.** The round Routine's sessions were provisioned
-without the tools to attach the repository, so every firing recorded SUCCEEDED and did
-nothing ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). No round
-has run since 2026-09-16, and nothing merges itself. Until the owner restarts the
-Routines, **the owner reviews and merges every PR**; say so plainly rather than waiting
-for a watchdog merge that will not come.
+**Round 4 run on 2026-11-18 by hand to restart; scheduled rounds still paused.** The
+round Routine's sessions were provisioned without the tools to attach the repository,
+so every firing from September recorded SUCCEEDED and did nothing
+([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). Rounds 1–3 ran
+by 2026-09-16; Round 4 ran by hand. Nothing merges itself: until the owner restarts
+the Routines, **the owner reviews and merges every PR**. Say so plainly rather than
+waiting for a watchdog merge that will not come. Don't claim a schedule.
 
 When they run: **do not ask the owner to merge a round pull request.** The watchdog merges
 it after the 24-hour veto window, or the next round's session reviews it. Do not merge it yourself
