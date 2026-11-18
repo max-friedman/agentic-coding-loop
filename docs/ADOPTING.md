@@ -16,6 +16,10 @@ https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/LOOP.md
 `LOOP.md` is self-contained: round steps, hard rules, ending states, the audit
 round, bootstrap, feedback, and continuous operation. Nothing else needs fetching.
 
+This URL follows `main`: a change merged here reaches you on your next round, with
+no release in between. To choose when changes arrive, fetch it at a fixed commit
+instead: replace `main` in the URL with a commit SHA. Releases are not tagged yet.
+
 Two placements, and both matter:
 
 - **Standing rules** (`CLAUDE.md`, `AGENTS.md`, `.cursorrules`, whatever the tool

@@ -1,8 +1,11 @@
 # Changelog
 
-Downstream projects are pinned to the `version` in
-`.claude-plugin/marketplace.json`. A change reaches them when that version
-is bumped and released — not when it is merged. Every release gets an entry here.
+How a change reaches a project depends on how it consumes the loop. Plugin installs
+follow the `version` in `.claude-plugin/marketplace.json`, so they get a change when
+it is released. Projects that fetch `LOOP.md` from `main` — the path `docs/ADOPTING.md`
+lists first, and the one the scheduled-round templates use — get it on their next
+round after the merge. Every release gets an entry here; it records what changed, it
+does not hold it back.
 
 Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH

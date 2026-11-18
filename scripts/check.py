@@ -23,8 +23,9 @@ import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# Changing any of these changes what downstream projects execute, so a change
-# here without a version bump reaches nobody and is almost certainly a mistake.
+# Changing any of these changes what downstream projects execute. Without a
+# version bump, plugin installs never get the change (projects fetching main get
+# it anyway, Round 4), so a change here without one is almost certainly a mistake.
 BEHAVIOR_PATHS = ("LOOP.md", "skills/", "templates/")
 
 MANIFEST = ".claude-plugin/marketplace.json"
@@ -238,7 +239,7 @@ def check_version_bump(base: str) -> None:
         "version bumped for behavior change",
         before != after,
         f"{', '.join(touched[:3])} changed but version is still {after} — "
-        "without a bump this reaches no downstream project",
+        "without a bump, plugin installs never receive it",
     )
 
 
@@ -291,6 +292,33 @@ def check_state_version(manifest: dict) -> None:
               f"Current status says {found or 'nothing'}, marketplace.json says {version}")
 
 
+# Phrases that promise every consumer is pinned to a release. Round 4 found the
+# promise false: every non-plugin path this repo documents fetches from `main`.
+UNSCOPED_PINNING = ("A merge alone changes nothing downstream", "Downstream projects are pinned",
+                    "downstream projects never receive it", "why a merge alone changes nothing")
+PINNING_DOCS = ("CONTRIBUTING.md", "CHANGELOG.md", "docs/ADOPTING.md", "README.md", "AGENTS.md",
+                ".github/ISSUE_TEMPLATE/config.yml")
+
+
+def check_pinning_claims() -> None:
+    """A doc may not promise pinning while a documented path fetches from main.
+
+    Derived, not trusted: the fetch paths are read from the templates and docs
+    that tell a project how to consume the loop. If none of them fetched
+    `main` any more, the promise could stand.
+    """
+    print("\npinning claims match the documented fetch paths")
+    sources = ["docs/ADOPTING.md", "llms.txt"] + [
+        f"templates/{n}" for n in sorted(os.listdir(os.path.join(ROOT, "templates")))
+    ]
+    fetch_main = [p for p in sources if re.search(r"raw\.githubusercontent\.com/[^\s)]*/main/LOOP\.md", read(p))]
+    claims = [f"{d}: {phrase!r}" for d in PINNING_DOCS for phrase in UNSCOPED_PINNING if phrase in read(d)]
+    check("some documented path is found", bool(fetch_main), "no path fetches LOOP.md from main")
+    check("no doc promises pinning to every consumer",
+          not (fetch_main and claims),
+          f"{'; '.join(claims)} — but {', '.join(fetch_main)} fetch LOOP.md from main")
+
+
 def check_hooks() -> None:
     """The example hooks are code people copy, so they get tested like code."""
     print("\nhooks")
@@ -320,6 +348,7 @@ def main() -> int:
     check_inertness()
     check_docs_derive()
     check_state_version(manifest)
+    check_pinning_claims()
     check_hooks()
     if args.base:
         check_version_bump(args.base)
