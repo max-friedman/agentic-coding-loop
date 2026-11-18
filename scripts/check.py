@@ -275,6 +275,22 @@ def check_docs_derive() -> None:
     check("template has every §6 section", not absent, ", ".join(absent))
 
 
+def check_state_version(manifest: dict) -> None:
+    """This repo's own state file names each plugin's version in its Artifact line.
+
+    It said 0.10.0 for four releases after 0.10.0. A version written by hand in two
+    places drifts; this derives the comparison instead of trusting either copy.
+    """
+    print("\nstate file agrees with the manifest")
+    state = read("docs/plans/LOOP_STATE.md")
+    status = state.split("## Current status", 1)[-1].split("\n## ", 1)[0]
+    for plugin in manifest.get("plugins") or []:
+        name, version = plugin.get("name"), plugin.get("version")
+        found = re.findall(rf"`{re.escape(str(name))}` (\d+\.\d+\.\d+)", status)
+        check(f"state file names {name} {version}", found == [version],
+              f"Current status says {found or 'nothing'}, marketplace.json says {version}")
+
+
 def check_hooks() -> None:
     """The example hooks are code people copy, so they get tested like code."""
     print("\nhooks")
@@ -303,6 +319,7 @@ def main() -> int:
     check_links()
     check_inertness()
     check_docs_derive()
+    check_state_version(manifest)
     check_hooks()
     if args.base:
         check_version_bump(args.base)

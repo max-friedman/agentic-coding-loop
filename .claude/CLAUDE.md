@@ -51,11 +51,15 @@ explanation is that a piece of the machinery is broken. Check it before escalati
 
 ## Verify the machinery is alive before trusting it
 
-A Routine that fires, hits a capability check, and exits still records its run as
+A Routine that fires, finds it can't do its job, and exits still records its run as
 `SUCCEEDED`. On 2026-09-07 all three Routines above had been doing exactly that —
-firing on schedule, running 17 to 63 seconds, and doing nothing — because scheduled
-sessions start with **no repository attached** and so have no GitHub tools. Each
-Routine's prompt now begins by calling `add_repo` before its capability check.
+firing on schedule, running 17 to 63 seconds, and doing nothing. The round Routine
+then did it five more times, 17 to 29 September
+([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). The cause, as
+#37 established: the fired sessions had **no ToolSearch and no MCP tools at all**, so
+no prompt could attach the repository. Two earlier diagnoses were wrong — "no
+repository attached" and "a hardcoded, namespaced tool name" — and prompt rewrites
+aimed at them changed nothing. That is why the loop is paused (above).
 
 The general rule, which is the same one the protocol applies to test suites: a green
 status is not evidence of work. Check run duration and check for the artifact the run
