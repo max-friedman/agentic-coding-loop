@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#31"
@@ -95,3 +95,7 @@ argument that the marker should not be the *only* thing that fires a filing.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #31 by the reject-by-default review: criterion 1 (evidence). The claimed cost was counterfactual. The full reasoning is on the issue.

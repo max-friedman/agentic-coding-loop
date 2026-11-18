@@ -9,8 +9,18 @@ an agent forgets them.
 This repository is the process behind that work, written down so it can be reused:
 the protocol ([`LOOP.md`](LOOP.md)), the field notes it came from
 ([`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md)), and example hooks
-([`examples/hooks/`](examples/hooks)). The product's code is private; everything
+([`hooks/`](hooks)). The product's code is private; everything
 here is the part that generalizes.
+
+Three words used below:
+
+- **Round**: one agent, one question, one pull request. It reads a state file
+  first, states what would prove it wrong, builds and checks, and writes the state
+  file last, so the next memoryless session can pick up.
+- **Lane**: one agent working one round at a time in its own branch and worktree.
+  Several lanes run in parallel under one coordinator.
+- **Roast**: an opt-in round where an agent uses the product as an impatient
+  first-time user, and only complaints verified against the real product become work.
 
 ## Outcomes and scale
 
@@ -135,10 +145,39 @@ doesn't count. Some of the stories behind the rules:
 
 More, with numbers: [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md).
 
+## One round, end to end
+
+From a benchmark project that runs the single-agent loop. Its README claimed that
+matched pairs of test scenarios stop a model from winning by keyword matching. It
+had never been measured. The state file's queue before round 1 (abridged):
+
+```markdown
+## Queue — next rounds
+1. Does the matched-pair design actually prevent surface pattern matching,
+   or is that just a claim in the README?
+```
+
+The round wrote down its falsifier first (a bag-of-words probe should sit near the
+50% floor), built the probe, and ran it on the unchanged code. The state file after (abridged):
+
+```markdown
+## Round 1 — shortcut resistance
+Finding: the claim was false. The probe hit 93.5% (floor 50%).
+Each side of a pair had its own phrasing, so single words gave the answer away.
+Fix: both sides share an identical body; one signal swaps roles. Probe: 57.5%.
+Also found: one scenario variant had inverted labels since the first commit.
+Ending state: shipped. Probe kept as a CLI command and five invariant tests.
+```
+
+The pull request carried the probe, the rebuilt generator, the corrected README,
+and a reference heuristic whose score fell to chance, because its old score had been
+leakage. Every round of that project, including the costs:
+[`docs/CASE_STUDY.md`](docs/CASE_STUDY.md).
+
 ## The protocol, as a plugin
 
-The general part is packaged as a Claude Code plugin. It covers one agent improving a
-codebase across weeks of memoryless sessions, and scales to parallel lanes.
+The general part is packaged as a Claude Code plugin: one agent improving a codebase
+across weeks of memoryless sessions, scaling to parallel lanes.
 
 ```
 /plugin marketplace add max-friedman/agentic-coding-loop
@@ -155,59 +194,87 @@ codebase across weeks of memoryless sessions, and scales to parallel lanes.
 | `loop-feedback` | File a proposal upstream about the protocol. |
 | `loop-lanes` | Opt-in: coordinate several agents running rounds in parallel. |
 
-Any agent, any harness: [`LOOP.md`](LOOP.md) is self-contained, one fetch. On a
-benchmark project, the loop's first round tested a robustness claim the README had
-made since its first commit and never measured; the claim was false
-([`docs/CASE_STUDY.md`](docs/CASE_STUDY.md)). Changes to the protocol go through
-reject-by-default review ([`CONTRIBUTING.md`](CONTRIBUTING.md)).
+Any agent, any harness: [`LOOP.md`](LOOP.md) is self-contained, one fetch.
+
+**How the protocol changes.** A project's finding comes back as an issue with
+evidence. A scheduled reviewer agent judges it against a reject-by-default rubric.
+So far 14 proposals were judged: 5 accepted, 9 rejected, each with its reasons on the
+issue ([`CONTRIBUTING.md`](CONTRIBUTING.md)).
+
+**This repo merges its own round PRs after 24 hours.** That is a choice for a
+one-person repo, not a recommendation. The safeguards: a round never merges its own
+work; the 24 hours are the owner's veto window; anything touching the review
+machinery, the rubric, code owners, the license or repo settings always waits for the
+owner; and a change reaches other projects only through a versioned release. On a
+team repo I would require a human review instead.
+
+## For the Claude Code team
+
+The product gaps I hit most, each as user problem, evidence, and what I'd change.
+
+| problem | evidence | what I'd change |
+|---|---|---|
+| A scheduled Routine reports SUCCEEDED while doing nothing. | All three of this repo's Routines ran on schedule for days, 17 to 63 seconds each, and did nothing: scheduled sessions started with no repository attached. An open issue tracks another empty "success". | Fail a run that never touched its repository, and show what a run produced next to its status. |
+| `git stash` is shared by every worktree. | With several sessions in worktrees, one session's `stash pop` can take another's work. I block bare stash with a hook. | Warn on stash in a worktree session, or set work aside per session by default. |
+| No native cap on spawned agents. | About 18 agents ran against a written limit of 5; load hit 51 and the service under test starved. Only a hook stopped it. | A per-project limit on concurrent subagents, with resource floors, set in settings. |
+| A background task can end the agent's turn for good. | A helper backgrounded its landing and ended its turn; it never came back and the PR sat as a draft. | Keep a subagent alive, or wake it, until the background tasks it started finish. |
+| Compaction and context hand-offs lose the thread. | Helpers ran out of context mid-chain twice in one night; the coordinator needs a written rebuild procedure after every compaction. | A first-class hand-off: the agent names the state file it resumes from, and the harness checks it exists before compacting. |
+| `pgrep -f` wait loops match their own shell. | Bash calls run as `zsh -c '<command>'`; about 90 wait loops never ended, some over a week old. | Notify on process exit natively, or warn on this loop shape. |
+| An expired CLI login fails silently in unattended runs. | An unattended loop failed to authenticate on every run for a week before anyone noticed. | Treat an auth failure in a non-interactive run as a loud, distinct exit, and surface it to the account owner. |
 
 ## Where to look
 
 | | |
 |---|---|
-| [`LOOP.md`](LOOP.md) | The protocol: round steps, hard rules, §F parallel lanes and goal loops. |
-| [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | Field notes from the multi-agent project: each rule with the incident behind it. |
+| [`LOOP.md`](LOOP.md) | The protocol: round steps, hard rules, parallel lanes, goal loops. |
+| [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | Field notes from the multi-agent project: the top lessons, each with its incident. |
+| [`hooks/`](hooks) | Tested, generic hooks and an example settings file. |
 | [`docs/PRINCIPLES.md`](docs/PRINCIPLES.md) | Why each rule exists and the failure it prevents. |
-| [`examples/hooks/`](examples/hooks) | Generic lane-cap and admission hook, wait-loop guard, outside watchdog. |
 | [`docs/CASE_STUDY.md`](docs/CASE_STUDY.md) | Every round of the single-agent loop on a benchmark, including what it cost. |
 | [`CHANGELOG.md`](CHANGELOG.md) | What changed in the process, release by release, and why. |
 
 ## How this maps to a team
 
-The roles are familiar ones; agents just make the costs show up faster.
+The roles are familiar ones. Agents just make the costs show up faster.
 
-- **The coordinator is a tech lead and release manager**: picks work from a ranked
+- **The coordinator is a tech lead and release manager.** It picks work from a ranked
   list, sizes the team to what can be merged, reviews, and is the one voice to the
   stakeholder.
-- **Lanes are engineers on disjoint areas.** Hotspots are code ownership; "finish
+- **Lanes are engineers on disjoint areas.** Hotspots are code ownership. "Finish
   before starting" is a WIP limit.
 - **Prelanding and the land queue are CI and a merge queue**, shifted left so most
   failures happen before a PR waits in line.
 - **Independent review is code review and design QA** by someone who didn't write the
-  change, against the spec rather than the author's explanation.
-- **"Decided, not asked" is a decision log**: unblock yourself, make the call visible,
-  keep it reversible.
+  change, against the spec, not the author's explanation.
+- **"Decided, not asked" is a decision log.** Unblock yourself, make the call
+  visible, keep it reversible.
 - **Retros that end in a mechanism are blameless postmortems** whose action items
   actually close.
 
-The main lesson carries over directly: writing code got cheap; landing it safely
-didn't. Most of this process exists to keep the path onto main fast and honest.
+The main lesson carries over: writing code got cheap; landing it safely didn't. Most
+of this process exists to keep the path onto main fast and honest.
 
-<details>
-<summary><b>What's not verified</b></summary>
+## Limits, and what would prove it works for others
 
-- **One author.** The app project, the benchmark and an earlier production app all
-  trace back to the same person. No independent team has run this process.
-- **The multi-agent rules are one project's lessons.** §F was accepted from that
-  project's logs directly, not through the proposal review, and no other project has
-  run it as released.
-- **Goal loops are new.** The first one started in November 2026 and was parked within
-  hours when the machine ran out of memory; there is no result yet.
-- **The scheduled proposal reviewer is unproven**, and the GitHub Actions fallback is
-  untested.
-- **Cost figures mix several changes made at once**, so no single rule can claim them.
+Everything here comes from one person. The app project, the benchmark and an earlier
+production app all trace back to me, and no independent team has run this process.
+The multi-agent rules were written from one project's logs, not reviewed through the
+proposal process, and no other project has run them as released. Goal loops are
+newer still: the first one was parked within hours when the machine ran out of
+memory, so there is no result yet. Cost figures mix several changes made at once, so
+no single rule can claim them.
 
-</details>
+To know it works for someone else, I would measure, on a second team's project:
+
+- **Merged PRs per day and lead time** from first commit to merge, before and after
+  adopting the lanes and the land queue.
+- **Escaped defects**: bugs found after merge per 100 PRs, and how many the
+  independent review caught first.
+- **Owner interruptions per day**, and how many "decided, not asked" calls the owner
+  reversed. A high reversal rate means the line is in the wrong place.
+- **Idle and wasted time**: lanes waiting, landings failed on environment, runs that
+  ran nothing.
+- **Hook blocks per week**, and how many were wrong blocks.
 
 ## License
 

@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#26"
@@ -145,3 +145,7 @@ survives, not proposed.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #26 by the reject-by-default review: criterion 1 (evidence) and hard disqualifier 7. No round had actually lost anything to the problem. The full reasoning is on the issue.

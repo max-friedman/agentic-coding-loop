@@ -41,15 +41,27 @@ it against the rubric.
   PR description included.
 - **Principles 16–17:** a reversible call is not a reason to wait; admit work by
   resources, and watch what jobs say.
-- **`examples/hooks/`:** generic admission gate (lane cap, hotspots, disk and swap
-  floors), wait-loop guard, and outside-the-session watchdog.
+- **`hooks/`:** six generic, tested Claude Code hooks (admission gate with lane cap,
+  hotspots, disk and swap floors; bare `git stash` and merge-chain block; pattern-kill
+  block; self-matching waiter guard; live-checkout edit block), an outside watchdog,
+  and `settings.example.json`. `scripts/check.py` now runs their tests.
 - **`docs/PARALLEL_LANES.md` §14**, the week's field notes.
 
 **Changed**
 - `## Decided, not asked` lines now carry *why*, and the template says the list is
   never waited on.
 - `README.md` rewritten around the multi-agent project: what it is, scale, the flow,
-  the key ideas, and how it maps to a team. The skill table and the limitations stay.
+  the key ideas, one round end to end, product gaps for the Claude Code team, how it
+  maps to a team, and what would show it works for someone else.
+- `docs/PARALLEL_LANES.md` leads with its top ten lessons; the full notes are an
+  appendix.
+- `.claude/CLAUDE.md` says "the owner" instead of a name.
+
+**Fixed**
+- Stale claims about the proposal record. Fourteen proposals have been judged: five
+  accepted, nine rejected. The six rejected ones that had files still said
+  `proposed`; they now say `rejected`, carry their verdict, and live in
+  `proposals/rejected/`, as `proposals/README.md` always said they would.
 
 **Blast radius**
 - **No correct single-agent usage changes** beyond the two hard rules, which name

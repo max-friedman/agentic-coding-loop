@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-02
 area: protocol
 issue: "#22"
@@ -97,3 +97,7 @@ a sentence.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #22 by the reject-by-default review: hard disqualifier 3. It would have removed the independence requirement of an audit probe. The full reasoning is on the issue.

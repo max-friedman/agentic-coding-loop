@@ -143,9 +143,9 @@ after every tenth proposal, it audits its own record:
 | Did any accepted change get reverted or superseded quickly? | The rubric passed something it should have caught. |
 
 Findings go in `CHANGELOG.md` under the release that acts on them. The first such
-audit is already owed: three proposals reviewed, three merged. Two came from a
-project closely related to this one, submitted on a template written here; the
-third came from an unrelated downstream project's own history.
+audit is now owed: fourteen proposals reviewed by November 2026, five accepted and
+nine rejected (each rejection's reasoning is on its issue, and the ones that had been
+written up as files are in [`proposals/rejected/`](proposals/rejected)).
 
 ## The watchdog
 

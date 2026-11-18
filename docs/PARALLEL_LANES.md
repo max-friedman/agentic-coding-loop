@@ -1,29 +1,20 @@
 # Running many agents at once: field notes
 
-`LOOP.md` was written for one agent, one item, one round. This page is about the
-layer above that: one coordinating session running several agents in parallel on the
-same codebase, every day, for weeks, with one human who wants to be asked as little
-as possible.
+`LOOP.md` was written for one agent doing one round at a time. This page is about
+the layer above: one coordinating session running several agents in parallel on one
+codebase, every day, for weeks, with one human who wants to be asked as little as
+possible.
 
-**The rules are in the protocol; this page keeps the scars.** What generalized
-became [`LOOP.md`](../LOOP.md) §F *Parallel lanes*, two hard rules (*a check that ran
-nothing is no verdict*, *remove what you created*), §B step 6a, §D's hand-off budget
-and spec check, the `## Decided, not asked` section, and
-[principles 13–15](PRINCIPLES.md#13-a-check-that-ran-nothing-is-no-verdict). They
-were accepted by the owner directly in 0.13.0, not through the review rubric. This
-page is the evidence for them, plus what stayed project-specific. Read it when a
-rule there seems wrong.
+**Where it comes from.** One project, one author: an Android app and a server-side
+plugin, built from late September to mid November 2026 by Claude Code sessions. One
+coordinator and two to five helper agents at a time. About 1,900 merged pull
+requests. One 16 GB laptop and a small pool of test devices. Every number here is
+from the project's own logs and retros. Treat it as an anecdote with good
+bookkeeping.
 
-**Where it comes from.** One project, one author: a mobile app with a server-side
-component, built from late September to mid November 2026 by Claude Code sessions —
-one coordinator and two to five helper agents at a time, about 1,650 merged pull
-requests, one 16 GB machine, a small pool of test devices. Every number below is from
-that project's own logs and retros. One project is an anecdote with good bookkeeping;
-treat it as that.
-
-
-**Updated 2026-11-18** with the week after 0.13.0 (about 240 more merged pull
-requests, about 1,900 in all): [section 14](#14-the-week-after-0130).
+**How to read it.** The ten lessons below are the ones that mattered most. The
+appendix keeps the full notes, with every incident and number. The rules themselves
+live in [`LOOP.md`](../LOOP.md) §F; this page is the evidence for them.
 
 ---
 
@@ -31,13 +22,65 @@ requests, about 1,900 in all): [section 14](#14-the-week-after-0130).
 
 **Writing code got cheap. Landing it didn't.**
 
-Every agent added past the first few produced pull requests faster than they could be
-checked, merged and proven on main. Almost every rule below exists to keep the path
-*onto* main fast and safe, not to make agents write faster. If you remember one
-sentence from this page, make it that one: size everything — lanes, models, cadence —
-to the landing path, not to the appetite for work.
+Every agent past the first few made pull requests faster than they could be checked,
+merged and proven on main. Almost every rule here keeps the path onto main fast and
+safe. Size everything to that path, not to the appetite for work.
 
 ---
+
+## Top ten lessons
+
+**1. Size lanes to the landing path.** More agents only made a longer queue.
+Going from four feature lanes to two, with shared files split, roughly halved the
+cost per merged change, with no red main. Add a lane only while few PRs wait to land.
+
+**2. Cap agents with a mechanism, and admit them by resources.** A written limit of
+five didn't stop about 18 agents running at once; a hook did. Weeks later the disk
+hit zero and the laptop rebooted out of memory with the cap respected. Now a spawn
+is also refused below a disk floor or above a swap ceiling.
+
+**3. One way onto main, with the cheap checks first.** One script merges, behind one
+queue. About one landing in five failed, half on checks that needed no device. Lanes
+now run those checks on their branch merged with main before they hand back, and the
+queue refuses a head without that pass.
+
+**4. Every zero-exception rule is a hook.** The rules file was read and sometimes
+followed. Hooks are always followed. Hooks guarding something irreversible fail
+closed. A blocked call says what to do instead. Examples: [`hooks/`](../hooks).
+
+**5. The reviewer is independent and reads the real build.** A release reached the
+owner unlike its approved designs, with every test green. A fresh read-only reviewer,
+given designs and real screenshots side by side, found real defects in nine PRs on its
+first night. No agent may stub or feed a gate.
+
+**6. A check that ran nothing is no verdict.** The nightly skipped its device stage
+five nights running and read as a pass. Another night, a stage that never started
+marked main red and blocked everyone. "Not run" is its own result, and an alarm.
+
+**7. Most reds are false.** About 2 of 15 fixes written for nightly reds were real
+bugs. Each red gets one targeted retry before it counts. Red twice is quarantined,
+with an owner. Only a confirmed culprit is reverted.
+
+**8. Watch from outside the session, and read what jobs say.** The coordinator once
+sat idle about 11 hours overnight; its own check-ins had died with its context. A
+scheduled watchdog now raises flags. Later, an unattended job failed to log in on
+every run for a week while looking alive. The watchdog now reads each job's output.
+
+**9. Don't block on the owner.** The coordinator once held every lane idle overnight,
+waiting on calls it could have reversed in minutes. Now it decides, logs the
+assumption with how to undo it, and keeps going. The owner reviews the log in one
+pass. Only a short written list still waits for them.
+
+**10. A slip seen twice becomes a mechanism.** At one point none of 25 filed retro
+actions had been closed. Now a slip seen on two days within two weeks becomes a hook,
+a queue refusal or a watchdog flag, the same day. A note in an agent's memory doesn't
+count.
+
+---
+
+# Appendix: the full notes
+
+Sections 1 to 13 are the notes behind 0.13.0. Section 14 is the week after.
 
 ## 1. Roles
 
@@ -506,7 +549,7 @@ A hook now refuses a `while`/`until` loop whose `pgrep -f` pattern, read as a re
 matches the command's own text, and suggests running the awaited job in the
 background instead. A reaper in the watchdog kills sleep-loop shells older than six
 hours, never one whose child is doing work. Generic versions:
-[`examples/hooks/`](../examples/hooks).
+[`hooks/`](../hooks).
 
 ### The silent week: an expired login
 
@@ -597,8 +640,8 @@ an opt-in shape, not as a proven one.
 | Chain state files, hand-off budget (§3) | §D *Context hygiene* |
 | Quiet watching, outside watchdog (§9) | §F *Watching and the human* |
 | Decisions list, "needs you" first (§10) | `## Decided, not asked` · §F |
-| Resource floors at spawn, waiters that match themselves (§14) | §F *Sizing* 5–6 · principle 17 · [`examples/hooks/`](../examples/hooks) |
-| The watchdog reads each job's output; credential failures go straight to the human (§14) | §F *Watching and the human* · [`examples/hooks/watchdog.py`](../examples/hooks/watchdog.py) |
+| Resource floors at spawn, waiters that match themselves (§14) | §F *Sizing* 5–6 · principle 17 · [`hooks/`](../hooks) |
+| The watchdog reads each job's output; credential failures go straight to the human (§14) | §F *Watching and the human* · [`hooks/watchdog.py`](../hooks/watchdog.py) |
 | Don't block on the owner; never stub a gate (§14) | Hard rules · principle 16 · `## Decided, not asked` |
 | Invariants every lane reads, lane self-review (§14) | §F *Roles* and *The one way onto the default branch* |
 | Goal loops (§14) | §F *Goal loops*, opt-in and unproven |

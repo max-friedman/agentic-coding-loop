@@ -13,9 +13,7 @@ matches "run_suite.py", not the "[r]un_suite.py" written in the loop), and pgrep
 outside a loop. Better still: start the awaited job in the background and take its
 exit notification, with no loop at all.
 
-Wire it in .claude/settings.json:
-    {"hooks": {"PreToolUse": [{"matcher": "Bash",
-        "hooks": [{"type": "command", "command": "python3 .claude/hooks/waiter_guard.py"}]}]}}
+Wiring: see settings.example.json.
 
 Exit 2 with a message on stderr blocks the call. Fails open on its own errors:
 it guards a convenience, not something irreversible.
