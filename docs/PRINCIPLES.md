@@ -1,6 +1,6 @@
 # Principles
 
-Fifteen rules. Each one names a specific failure it prevents. None of them are
+Seventeen rules. Each one names a specific failure it prevents. None of them are
 abstract — they were paid for.
 
 Rules 9 through 12 arrived differently from the rest: they came from projects
@@ -283,6 +283,48 @@ feed its own inputs is a gate that agent can pass.
 *Rules 13 to 15 arrived from a third project's field notes
 ([`PARALLEL_LANES.md`](PARALLEL_LANES.md)) and were accepted by the owner directly,
 not through the proposal review — see the 0.13.0 entry in the changelog.*
+
+## 16. A reversible call is not a reason to wait
+
+Principle 5 says a blocked round builds around the block. This is its other half:
+most of what looks like a block isn't one. A choice that can be undone in minutes — a
+default, an order between ready items, a reading of an ambiguous design — costs
+nothing to make now and reverse later, and everything to wait on.
+
+The failure it prevents: **the idle fleet**. In the project behind §F, a coordinator
+held every lane at zero overnight, waiting for the owner to approve calls that were
+all reversible. The owner's correction was to decide, record the assumption, and
+revisit it together later. The record is what makes this safe rather than reckless:
+`## Decided, not asked` holds the date, the call, why, and how to undo it, so the
+human can review a day of decisions in one pass instead of being interrupted by each.
+
+What still waits is a short, written list — the irreversible, the paid, acting as
+the human, and what the project rules reserve to them. Writing the list down is the
+point: without it, every agent draws the line in a different place, usually at
+"anything I'm unsure about".
+
+## 17. Admit work by resources, and watch what jobs say
+
+A cap on agents is not a cap on what they consume. Two failures from the same week:
+
+**The cap held and the machine didn't.** With the lane count inside its limit, the
+disk hit zero, swap filled, and the machine rebooted out of memory — from worktrees,
+build output and about ninety wait loops that had matched their own command line and
+never exited. Every one of those had a cleanup job. Cleanup is a schedule racing a
+leak; admission control is a gate the leak can't pass. So the start of new work reads
+the real floors (free disk, swap), and the mistakes that leak — a self-matching
+waiter — are refused at the moment they are written.
+
+**The job ran and did nothing.** An unattended loop failed to log in on every run
+for a week and stayed "alive" to every check, because the checks looked at whether it
+ran. A job's own output is the evidence. This is principle 13 one level up: a stage
+that ran nothing is no verdict, and neither is a job that runs and fails identically
+every time. A failure only the human can fix — an expired credential — goes to them
+at once, because no amount of agent retrying will fix it.
+
+*Rules 16 and 17 come from the same project's following week
+([`PARALLEL_LANES.md` §14](PARALLEL_LANES.md#14-the-week-after-0130)), accepted by the
+owner directly in 0.14.0.*
 
 ---
 

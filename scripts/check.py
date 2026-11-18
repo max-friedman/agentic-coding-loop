@@ -274,6 +274,21 @@ def check_docs_derive() -> None:
     check("template has every §6 section", not absent, ", ".join(absent))
 
 
+def check_hooks() -> None:
+    """The example hooks are code people copy, so they get tested like code."""
+    print("\nhooks")
+    try:
+        with open(os.path.join(ROOT, "hooks", "settings.example.json"), encoding="utf-8") as fh:
+            json.load(fh)
+        check("hooks/settings.example.json parses", True)
+    except (OSError, ValueError) as exc:
+        check("hooks/settings.example.json parses", False, str(exc))
+    run = subprocess.run([sys.executable, os.path.join(ROOT, "hooks", "test_hooks.py")],
+                         capture_output=True, text=True, timeout=60)
+    tail = (run.stderr or run.stdout).strip().splitlines()[-1:] or ["no output"]
+    check("hooks/test_hooks.py passes", run.returncode == 0, tail[0])
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
@@ -287,6 +302,7 @@ def main() -> int:
     check_links()
     check_inertness()
     check_docs_derive()
+    check_hooks()
     if args.base:
         check_version_bump(args.base)
 

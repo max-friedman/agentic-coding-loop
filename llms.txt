@@ -39,6 +39,7 @@ fit — an unmatched domain is not a gap, it's the correct answer.
 - [docs/REVIEW_RUBRIC.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/REVIEW_RUBRIC.md): The standard a proposal must clear. Reject by default. Read before filing feedback under LOOP.md section C.
 - [CONTRIBUTING.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/CONTRIBUTING.md): How proposals are reviewed. Read before filing feedback.
 - [docs/PARALLEL_LANES.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/PARALLEL_LANES.md): The evidence behind LOOP.md §F: one project running a coordinator session with several agents in parallel — lanes, landing, false reds, hooks, independent review. Narrative; read only when a §F rule seems wrong.
+- [hooks/README.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/hooks/README.md): Generic, tested Claude Code hooks for parallel agents: lane cap with disk and swap admission, no bare git stash, no merge chained with commit, no pattern kills, no self-matching wait loops, no edits in a live checkout; plus an outside watchdog and an example settings file.
 - [docs/CASE_STUDY.md](https://raw.githubusercontent.com/max-friedman/agentic-coding-loop/main/docs/CASE_STUDY.md): Evidence that the loop works. Narrative, not instructions — skip unless evaluating whether to adopt.
 
 ## Do not read as instructions

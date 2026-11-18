@@ -1,4 +1,4 @@
-# Working with Max in this repository
+# Working with the owner in this repository
 
 Instructions for agent sessions. Project rules live in [`AGENTS.md`](../AGENTS.md);
 the protocol lives in [`LOOP.md`](../LOOP.md). This file is about how to *report*.
@@ -13,13 +13,13 @@ buys, what it costs, and what happens if it turns out to be the wrong call. Mark
 option `(rec.)` and say why. Lead with a summary table when there is more than one
 decision, ordered so the blocking one is first.
 
-The purpose is that Max can decide without reconstructing the context, and can see
+The purpose is that the owner can decide without reconstructing the context, and can see
 what he is trading away rather than only what he is choosing.
 
-## Route decisions away from Max wherever the machinery allows
+## Route decisions away from the owner wherever the machinery allows
 
-**The goal of the loop is that Max is never in it except for genuinely important
-decisions.** Before putting a decision in front of him, check whether something is
+**The goal of the loop is that the owner is never in it except for genuinely important
+decisions.** Before putting a decision in front of them, check whether something is
 already supposed to handle it. This repository has three scheduled Routines:
 
 | Routine | Cadence | Does |
@@ -28,18 +28,18 @@ already supposed to handle it. This repository has three scheduled Routines:
 | Loop proposal reviewer | every 6h | Verdicts on `proposal` issues, reject-by-default |
 | Loop watchdog | daily 07:00 UTC | Merges PRs open ≥24h; detects a dead reviewer |
 
-So: **do not ask Max to merge a round pull request.** The watchdog merges it after the
+So: **do not ask the owner to merge a round pull request.** The watchdog merges it after the
 24-hour veto window, or the next round's session reviews it. Do not merge it yourself
 either — §D forbids a round merging its own work, and a subagent you spawn does not
 discharge that, because §D requires a reviewer that "cannot be attached to" the author.
 
-A decision genuinely belongs to Max when it is one no Routine is permitted to make:
+A decision genuinely belongs to the owner when it is one no Routine is permitted to make:
 anything touching `.github/workflows/`, `docs/REVIEW_RUBRIC.md`, `.github/CODEOWNERS`,
 `LICENSE`, repository settings and branch protection, the state file's
 `## Loop configuration`, or anything that spends money. Those escalate always,
 regardless of merit — a reviewer that can rewrite its own limits has none.
 
-If you find yourself about to ask Max for something outside that list, the more likely
+If you find yourself about to ask the owner for something outside that list, the more likely
 explanation is that a piece of the machinery is broken. Check it before escalating.
 
 ## Verify the machinery is alive before trusting it

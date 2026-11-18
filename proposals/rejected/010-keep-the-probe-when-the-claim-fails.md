@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-07
 area: protocol
 issue: "#30"
@@ -127,3 +127,7 @@ the submitter added the instance there rather than re-arguing it here.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #30 by the reject-by-default review: criteria 6 (self-criticism) and 5 (blast radius) were absent. The full reasoning is on the issue.

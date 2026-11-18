@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-09-02
 area: state-file
 issue: "#21"
@@ -90,3 +90,7 @@ what it claims. The counter-argument above still stands.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #21 by the reject-by-default review: criterion 5 (blast radius) was absent, for a change that would alter every state file's shape. The full reasoning is on the issue.

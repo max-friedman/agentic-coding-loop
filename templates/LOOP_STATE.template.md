@@ -86,11 +86,14 @@ to halt the loop.**
 Calls made on the human's behalf instead of asking them. **The human reads and
 clears this list**; a round only appends.
 
-<!-- One line each: the call, the default taken, and how to reverse it. This is
-     how decisions get routed away from the human without being hidden from them.
-     Anything that genuinely needs them goes in NEEDS-MAX instead, never here. -->
+<!-- One line each: the date, the call, why, and how to reverse it. Decide, act,
+     log it here, keep going: nothing in this list is waited on. This is how
+     decisions get routed away from the human without being hidden from them.
+     Only what is irreversible, spends money, acts as the human, or is reserved
+     to them goes in NEEDS-MAX instead, never here. Clear a line when the human
+     confirms or reverses it; a reversal is ordinary queue work. -->
 
-- _<date> — <the call> — <default taken> — reverse by: <how>_
+- _<date> — <the call> — <why> — reverse by: <how>_
 
 ---
 
@@ -126,7 +129,9 @@ code is wrong, not the assertion.
 
 <!-- The most important section in this file. Every one of these should be
      executable, and every one should name a specific way the project could
-     silently stop working while still looking fine. -->
+     silently stop working while still looking fine. With §F lanes, every
+     lane's prompt points here; keep it to one line per invariant, with the
+     spec it comes from and the test that guards it, so it is cheap to read. -->
 
 - _<property>_ — _<the test that enforces it>_
 

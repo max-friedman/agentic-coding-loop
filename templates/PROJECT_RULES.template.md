@@ -46,7 +46,8 @@ in real debugging time, not invented.>_ `<TestName>` enforces this. Do not weake
      pre-tool hook where your harness has them. Prose gets read and sometimes
      followed; a hook gets followed. List each one here with what it blocks, whether
      it fails closed (anything irreversible) or open, and what a blocked call should
-     do instead. LOOP.md §B step 6a. -->
+     do instead. LOOP.md §B step 6a. Generic examples: hooks/ in the
+     agentic-coding-loop repository. -->
 
 | rule | enforced by | on its own error |
 |---|---|---|

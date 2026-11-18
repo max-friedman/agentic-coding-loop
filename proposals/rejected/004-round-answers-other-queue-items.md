@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: rejected
 filed: 2026-07-30
 area: protocol
 issue: "#19"
@@ -104,3 +104,7 @@ a discipline about item-writing is the kind of prose rule that gets ignored.
 
 _None yet. Accepted for consideration on 2026-09-07 — triaged, not judged. No
 change has been written, and nothing here affects the protocol until one is._
+
+## Verdict
+
+**Rejected** in issue #19 by the reject-by-default review: criterion 3 (necessity). The change was advisory prose where a mechanism was available. The full reasoning is on the issue.
