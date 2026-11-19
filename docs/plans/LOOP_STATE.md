@@ -554,8 +554,9 @@ to halt the loop.**
    rather than deleted so the trail from bootstrap's default to the current
    value is visible. See `## Loop configuration`.
 
-5. **Two review-machinery files still say a change without a version bump "reaches
-   nobody".** Round 4 found that false for every project that fetches `main`. Rounds
+5. ~~**Two review-machinery files still say a change without a version bump "reaches
+   nobody".**~~ **Resolved 2026-11-18** — approved by the owner 2026-11-18; both
+   lines now carry the replacement below. Round 4 found that false for every project that fetches `main`. Rounds
    may not edit these files. The edits, word for word:
    - `docs/REVIEW_RUBRIC.md:141`: "Without the bump the change reaches nobody" →
      "Without the bump, plugin installs never receive it; projects fetching `main`
