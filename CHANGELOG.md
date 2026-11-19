@@ -8,21 +8,12 @@ round after the merge. Every release gets an entry here; it records what changed
 does not hold it back.
 
 Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
-that existing state files or rounds must adapt to, MINOR for new capability, PATCH
+that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
-
-## A note on these versions
-
-0.14.0 to 1.2.0 shipped in one evening, 2026-11-18 Pacific time (the entries carry the
-UTC date, 2026-11-19). That was the public repo catching up with two months of
-practice in the private project. It went to 1.0 because renaming `NEEDS-MAX` to
-`NEEDS-OWNER` changes a heading every existing state file has: a breaking change, so
-MAJOR under the rule above.
 
 ## [1.3.0] — 2026-11-19
 
-A blind recruiter review of 1.2.0 said "phone screen: yes" and listed what stopped it from being a "hire": the
-installer was unsafe on a real repository. This makes it safe. Behaviour change in the kit, no protocol change.
+Makes the installer safe on a real repository. Behaviour change in the kit, no protocol change.
 
 **Changed**
 - `bootstrap_kit.py` merges into an existing `.claude/settings.json` (adds missing env keys, matchers and hooks; never
@@ -34,7 +25,7 @@ installer was unsafe on a real repository. This makes it safe. Behaviour change 
   merge` block) and `coordinator.require_checks` (the coordinator Stop hook). `admission_gate` stays on; the README and
   `hooks/README.md` say its default disk floor (15 GB, `resources.min_free_disk_gb`) and how to change it.
 - README: a five-minute first path (gap brief, `docs/STARTER.md`, the kit with `--dry-run`) before the long docs, now
-  under "Deep dive"; "0.14 to 1.2 in one evening"; the 16 hooks are the private project's count, 10 ship here; an
+  under "Deep dive"; the 16 hooks are the private project's count, 10 ship here; an
   invitation to a first outside user.
 
 **Added**
@@ -43,10 +34,9 @@ installer was unsafe on a real repository. This makes it safe. Behaviour change 
 
 ## [1.2.0] — 2026-11-19
 
-A blind review of 1.1.0 found the project kit untrustworthy to install: the lane cap
-could never trip, the gates blocked every spawn out of the box, two copies of each
-hook disagreed, and the kit still named the source project's scripts and notes. No
-protocol change.
+Fixes the 1.1.0 kit: the lane cap could never trip, the gates blocked every spawn out
+of the box, two copies of each hook disagreed, and the kit still named the source
+project's scripts and notes. No protocol change.
 
 **Added**
 - `hooks/lane_ledger.py`, the ledger writer `admission_gate.py` said was "not shown".
