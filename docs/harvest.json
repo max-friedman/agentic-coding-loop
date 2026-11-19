@@ -1,0 +1,85 @@
+{
+ "_doc": "Written by the source project's harvest: per file, sha256 of the scrubbed source and of this repo's copy at the last harvest, so a difference says which side changed.",
+ "items": {
+  "templates/project-kit/.claude/hooks/_shell.py": {
+   "source": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3",
+   "dest": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3"
+  },
+  "templates/project-kit/.claude/hooks/gh_rules.py": {
+   "source": "d4e9986989c6b095a3ae702f7e610c7dc2b436eb5e424b148728616a0a2630fd",
+   "dest": "d4e9986989c6b095a3ae702f7e610c7dc2b436eb5e424b148728616a0a2630fd"
+  },
+  "templates/project-kit/.claude/hooks/git_rules.py": {
+   "source": "29b4372b082ab7b620c9c727b007169263904f645649ff3f98e47cf5fef35b41",
+   "dest": "29b4372b082ab7b620c9c727b007169263904f645649ff3f98e47cf5fef35b41"
+  },
+  "templates/project-kit/.claude/hooks/kill_rules.py": {
+   "source": "c75d9681292f8d4f38ba37e352e6cfebf4c35e9aa993e3f57789b32cde6e4209",
+   "dest": "c75d9681292f8d4f38ba37e352e6cfebf4c35e9aa993e3f57789b32cde6e4209"
+  },
+  "templates/project-kit/.claude/hooks/lander_clones.py": {
+   "source": "33253c1f9c1fb13ea0aedc2c8f463e5040e6678b1091fe34549f737a1375f9a5",
+   "dest": "33253c1f9c1fb13ea0aedc2c8f463e5040e6678b1091fe34549f737a1375f9a5"
+  },
+  "templates/project-kit/.claude/hooks/live_checkout.py": {
+   "source": "fb719d394ed7ab3f6202da8c4c36e1c524b2d11bb7a875aee992fa38b01c5c36",
+   "dest": "fb719d394ed7ab3f6202da8c4c36e1c524b2d11bb7a875aee992fa38b01c5c36"
+  },
+  "templates/project-kit/.claude/hooks/master_session.py": {
+   "source": "4cf781e6e020785295e76181668a170251576b2ac919fd00e8aa02015b98dcb9",
+   "dest": "4cf781e6e020785295e76181668a170251576b2ac919fd00e8aa02015b98dcb9"
+  },
+  "templates/project-kit/.claude/hooks/master_stop.py": {
+   "source": "e86a5517a8e2a6a1110a49072ba5dbf50872b3d3db43419fbbc3dababc78d5c8",
+   "dest": "e86a5517a8e2a6a1110a49072ba5dbf50872b3d3db43419fbbc3dababc78d5c8"
+  },
+  "templates/project-kit/.claude/hooks/session_reminder.py": {
+   "source": "f8d4c2a20766e690f6f78eeed3ab9f0aede61f40f1b027d0faef1dceaccb5c52",
+   "dest": "f8d4c2a20766e690f6f78eeed3ab9f0aede61f40f1b027d0faef1dceaccb5c52"
+  },
+  "templates/project-kit/.claude/hooks/spawn_gate.py": {
+   "source": "14dbe5c563e9956c7164e47f4fe737b5eb977a5dbff489fa3cf623c07d02cfb5",
+   "dest": "14dbe5c563e9956c7164e47f4fe737b5eb977a5dbff489fa3cf623c07d02cfb5"
+  },
+  "templates/project-kit/.claude/hooks/test_gh_rules.py": {
+   "source": "883297a692de010eaf599d4a417324d842ef92eaf68c1d961677275113eccc7c",
+   "dest": "883297a692de010eaf599d4a417324d842ef92eaf68c1d961677275113eccc7c"
+  },
+  "templates/project-kit/.claude/hooks/test_git_rules.py": {
+   "source": "2a3cc6ae41fb2afb1524e6bb7f7118a068bc312e53696e89a7d4e5051d85af98",
+   "dest": "2a3cc6ae41fb2afb1524e6bb7f7118a068bc312e53696e89a7d4e5051d85af98"
+  },
+  "templates/project-kit/.claude/hooks/test_kill_rules.py": {
+   "source": "e4cdac6488292ef2eac1c83259eff3c5397e14bbfdb71fa745a15b21e22888ee",
+   "dest": "e4cdac6488292ef2eac1c83259eff3c5397e14bbfdb71fa745a15b21e22888ee"
+  },
+  "templates/project-kit/.claude/hooks/test_lander_clones.py": {
+   "source": "ce88c0e00271e290053609d91fbb531a31aa324709e2527c26fb2505d1bcef69",
+   "dest": "ce88c0e00271e290053609d91fbb531a31aa324709e2527c26fb2505d1bcef69"
+  },
+  "templates/project-kit/.claude/hooks/test_live_checkout.py": {
+   "source": "2aaf86eb59da3df125cfa9803ab0a066de41a8497e7cf333bfca6e368cd55dca",
+   "dest": "2aaf86eb59da3df125cfa9803ab0a066de41a8497e7cf333bfca6e368cd55dca"
+  },
+  "templates/project-kit/.claude/hooks/test_master_stop.py": {
+   "source": "6db21b62f8730343ee52624cb48950982fb6156747e6b44aee9ce24611b4a7da",
+   "dest": "6db21b62f8730343ee52624cb48950982fb6156747e6b44aee9ce24611b4a7da"
+  },
+  "templates/project-kit/.claude/hooks/test_session_reminder.py": {
+   "source": "25afd171d005186595a94a26efab46f8f51b513d34bd9400fc789f0a8f26cc9b",
+   "dest": "25afd171d005186595a94a26efab46f8f51b513d34bd9400fc789f0a8f26cc9b"
+  },
+  "templates/project-kit/.claude/hooks/test_spawn_gate.py": {
+   "source": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db",
+   "dest": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db"
+  },
+  "templates/project-kit/scripts/repo_lock.py": {
+   "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",
+   "dest": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76"
+  },
+  "templates/project-kit/scripts/tmpclean.py": {
+   "source": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2",
+   "dest": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2"
+  }
+ }
+}
