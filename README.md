@@ -2,132 +2,117 @@
 
 [![checks](https://github.com/max-friedman/agentic-coding-loop/actions/workflows/checks.yml/badge.svg)](https://github.com/max-friedman/agentic-coding-loop/actions/workflows/checks.yml)
 
-One person running a fleet of Claude Code agents to build and ship a real product:
-an Android app and the plugin for the agent server it talks to. One coordinator
-session plans and merges. Up to five helper agents build in parallel, each in its own
-worktree. Hooks enforce the hard rules, so they hold even when an agent forgets them.
+How I run Claude Code agents for weeks on one codebase so their work adds up instead
+of drifting: a short protocol, a set of tested hooks, and a kit that installs both.
 
-This repo is that process, written down to reuse. The product's code is private.
+It comes from building a real product this way: an Android app plus the plugin for the
+agent server it talks to. One coordinator session and up to five helper agents merged
+about 1,900 pull requests in eight weeks, on one 16 GB laptop. That product is private;
+this repo is the method, made generic.
 
-## Start here (5 minutes)
+## The problem
 
-1. **The problems:** [the gap brief](docs/FOR_CLAUDE_CODE_TEAM.md), five product gaps with evidence (top three below).
-2. **Try the small version:** [`docs/STARTER.md`](docs/STARTER.md), a state file and three hooks. No installer.
-3. **Or the whole kit:** `python3 scripts/bootstrap_kit.py <your-repo> --dry-run` shows what would change; run it
-   without `--dry-run` (add `--test` to run the hook tests). It merges into an existing `.claude/settings.json` (backup
-   kept), never overwrites `CLAUDE.md`, and keeps two opinionated hooks off until `.loop/config.json` turns them on:
-   the `gh pr merge` block (`gh_rules.block_pr_merge`) and the coordinator Stop hook (`coordinator.require_checks`).
-   `admission_gate` is on: it blocks a spawn under 15 GB free disk (`resources.min_free_disk_gb`, lowered on a small
-   disk). Knobs: [`hooks/README.md`](hooks/README.md). The `loop-init` skill runs the same installer.
+A single agent session is good at a task. Long-running work with many agents fails in
+duller ways:
 
-**Words used here.** A *round* is one agent answering one question in one pull
-request: it reads a state file first and writes it last, so the next memoryless
-session can continue. A *lane* is one agent running rounds in its own branch and
-worktree, beside others. The *coordinator* is the session that starts lanes, reviews
-their work and merges it.
+- **Sessions forget.** The next session relaxes a test the last one wrote, or redoes a
+  fix it can't see.
+- **Written rules get ignored.** About 18 agents ran at once against a limit of five
+  that was written in the coordinator's own notes.
+- **Parallel agents collide.** `git stash` is one stack for every worktree; one
+  session's `stash pop` takes another's work.
+- **Landing becomes the bottleneck.** Writing code got cheap; merging it safely didn't.
+- **Unattended runs fail quietly.** A scheduled job reported success for weeks while
+  doing nothing.
 
-## For the Claude Code team
+## What's in it
 
-The three gaps that cost me most, ranked by a guess at reach × severity
-([all five, with evidence](docs/FOR_CLAUDE_CODE_TEAM.md)):
+**A state file read first and written last.** Each round is one agent answering one
+question in one pull request. It reads the state file, writes down what would prove
+it wrong, does the work, and records what it found. Here, a round tested a claim in a
+benchmark's own README:
 
-1. **Unattended runs report success when they did nothing.** This repo's round
-   Routine recorded SUCCEEDED five times with no output: its sessions had no MCP
-   tools, so it couldn't attach the repo
-   ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). Separately,
-   an expired CLI login failed every run for a week, unseen. *Likely affects anyone
-   running Routines, cron or CI jobs.*
-2. **No built-in limit on concurrent agents or their resources.** About 18 agents ran
-   against a written limit of 5 and starved the machine; later the disk hit zero with
-   the cap respected. *Affects anyone running parallel agents on one machine.*
-3. **Parallel sessions collide on shared state.** About 90 `pgrep -f` wait loops
-   matched their own shell and never ended; `git stash` is one stack for every
-   worktree. *Affects anyone running several sessions at once.*
+```markdown
+## Round 1 — shortcut resistance
+Finding: the claim was false. The probe hit 93.5% (floor 50%).
+Fix: both sides share an identical body; one signal swaps roles. Probe: 57.5%.
+```
 
-## Outcomes and scale
+**Hooks for every rule that must hold.** A rule in a prompt is a suggestion; a hook is
+a rule. When a hook blocks a call it says what to do instead:
 
-About eight weeks, late September to mid November 2026. These numbers come from the private app project's own history; what's published here is the process, its generic hooks and a starter kit, not that project's code.
+```text
+Blocked: this loop waits on `pgrep -f 'run_tests'`, which matches the loop's own
+shell, so it never ends. Use `pgrep -f '[r]un_tests'`, or better, run the job in the
+background and wait for its exit notification.
+```
+
+The [hooks](hooks/README.md) cap concurrent agents by count, disk and memory, block
+bare `git stash` and blanket process kills, catch self-matching wait loops, and keep
+agents out of the checkout a live service runs from. Each one is tested.
+
+**A coordinator, lanes, and a size set by landing.** One session plans and merges.
+Helpers each work in their own branch and worktree. How many run at once is set by how
+fast work can land safely, not by how much work is waiting. Cutting from four lanes to
+two, and splitting the files they shared, halved the tokens spent per merged change.
+
+**The author never signs off.** A fresh agent that never saw the author's session
+reviews the result: the build against the approved design, the claim against the
+evidence. Its first night found real defects in nine PRs whose tests all passed.
+
+**The human decides only what can't be undone.** Agents make reversible calls
+themselves, act on them, and log each with how to reverse it. Spending money, acting
+as the owner, anything public or irreversible still waits for the owner.
+
+## Try it
+
+- **Small:** [`docs/STARTER.md`](docs/STARTER.md): a state file and three hooks,
+  copied by hand. Ten minutes.
+- **Full kit:** `python3 scripts/bootstrap_kit.py <your-repo> --dry-run` shows what it
+  would add, then run it without `--dry-run`. It merges into an existing
+  `.claude/settings.json` and never overwrites your `CLAUDE.md`.
+- **As a Claude Code plugin:** [`docs/ADOPTING.md`](docs/ADOPTING.md).
+
+## What it showed about Claude Code
+
+Gaps I hit, ranked by a guess at how many users they affect
+([details and evidence](docs/FOR_CLAUDE_CODE_TEAM.md)):
+
+1. **Unattended runs report success when they did nothing.** Scheduled sessions had
+   no tools to attach the repo and still recorded SUCCEEDED
+   ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)); an expired
+   CLI login failed every headless run for a week without a visible error.
+2. **No built-in limit on concurrent agents or their resources.** Limits written in
+   prompts didn't hold; the disk later hit zero with the agent count respected.
+3. **Parallel sessions share state they can't see.** The stash stack, and shell
+   wait loops that match themselves.
+
+## By the numbers
+
+From the private product, over about eight weeks:
 
 | | |
 |---|---|
-| Pull requests merged | about 1,900; up to about 90 on a busy day |
-| Agents at once | 1 coordinator + 2 to 5 lanes |
-| Device tests | over 300 end-to-end scenarios on an emulator and real test phones |
-| Unit tests | about 5,000 JVM tests, plus about 1,600 tests for the tooling |
-| Enforcement | 16 hooks in the private project, one merge queue the only way onto main; 10 hooks ship here (plus a watchdog script) |
-| Releases | a test build of main about hourly; the full suite every night |
-| Hardware | one 16 GB laptop, one build slot, a few test devices |
-| Cost per merged change | 400–700k tokens with four feature lanes, 215–325k with two after shared files were split; three changes landed together, so no single one owns the drop |
-
-## How work flows
-
-```mermaid
-flowchart LR
-    F[Feedback and<br/>ranked list] --> P[Coordinator plans<br/>one slice per PR]
-    P --> L[Lanes, each in its own worktree<br/>kit: lane cap + ledger hooks]
-    L --> PL[Prelanding: cheap checks<br/>on branch + main<br/>kit: prelanding.py]
-    PL --> R[Independent review<br/>by a fresh agent]
-    R --> Q[Landing<br/>kit: land.sh, one PR at a time<br/>described: queue, batch, deploy]
-    Q --> N[Nightly full suite]
-    N -. reds become work .-> F
-    classDef described stroke-dasharray: 5 5
-    class F,P,R,N described
-```
-
-Solid boxes: the kit ships a hook or script. Dashed: described in the docs only.
-
-## Three ideas
-
-**The human decides only what can't be undone.** Agents make every reversible call
-themselves, act on it, and log it with how to reverse it. The owner reviews the log
-in one pass. *Why:* one night the coordinator held every lane idle, waiting on calls
-it could have undone in minutes.
-
-**Hooks are the guardrails.** Every rule that must hold without exception is a hook:
-no edits in the live checkout, no device use outside its lock, no spawn past the cap,
-no merge outside the queue. A blocked call says what to do instead. *Why:* the agent
-that started 18 agents had the limit of 5 in its own notes.
-
-**The author never signs off.** A fresh reviewer that never saw the author's session
-compares the real build with the approved design, state by state. *Why:* a release
-reached the owner unlike its designs with every test green; the reviewer's first
-night found real defects in nine PRs.
-
-## Who this is for
-
-- **For** people running two or more coding agents on one codebase, or one agent
-  across many sessions, who need the work to compound instead of drift.
-- **Not for** a single quick session, or a team that already has CI, a merge queue
-  and code review and runs one agent at a time. You have most of this already.
+| Pull requests merged | about 1,900, up to about 90 on a busy day |
+| Agents at once | 1 coordinator and 2 to 5 lanes |
+| Tests | about 5,000 unit tests, over 300 device scenarios on real phones |
+| Hardware | one 16 GB laptop, one build at a time |
 
 ## Status
 
-- **Last round:** Round 4, run by hand on 2026-11-18 ([state file](docs/plans/LOOP_STATE.md)).
-  Scheduled rounds are paused with no restart date: the Routine's sessions had no
-  tools to attach the repo, so it recorded SUCCEEDED and did nothing (#37).
-- **Nothing merges itself.** The owner reviews and merges every PR; the 24-hour
-  self-merge described in [`CONTRIBUTING.md`](CONTRIBUTING.md) is off.
-- **Versions.** 0.14 to 1.2 shipped in one evening, 2026-11-18, while the public repo
-  caught up with two months of private practice; 1.0 because renaming `NEEDS-MAX` to
-  `NEEDS-OWNER` breaks existing state files ([`CHANGELOG.md`](CHANGELOG.md)).
-- **Wanted: one outside user.** Try the starter or the kit, then [open a proposal issue](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml) with what you ran, what broke and what you'd change.
-- **One author.** Nobody else has run this yet. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md)
-  says what I'd measure to find out, and how I'd find a first outside user.
+Used every day on that one private project. Nobody else has run it yet; if you try it,
+[open an issue](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml)
+with what broke. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md) covers how it maps to a team
+and what I'd measure there.
 
 ## Deep dive
 
-| | |
-|---|---|
-| [`docs/FOR_CLAUDE_CODE_TEAM.md`](docs/FOR_CLAUDE_CODE_TEAM.md) | The five product gaps, with evidence. |
-| [`docs/STARTER.md`](docs/STARTER.md) | The 20% version: a state file and three hooks. |
-| [`hooks/`](hooks) | The tested, generic hooks and their knobs; the kit installs them. |
-| [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | The top ten lessons from the multi-agent project, each with its incident. |
-| [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) | One round end to end: the state file before, the finding, the PR. |
-| [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md) | How this maps to a team, what to measure, a first outside user. |
-| [`LOOP.md`](LOOP.md) | The full protocol, written for agents. |
-| [`docs/ADOPTING.md`](docs/ADOPTING.md) | Installing it as a Claude Code plugin, and its skills. |
-| [`CHANGELOG.md`](CHANGELOG.md) | What changed, release by release, and why. |
+- [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md): the lessons from running many agents, each with its incident.
+- [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md): one round end to end.
+- [`LOOP.md`](LOOP.md): the full protocol, written for agents to follow.
+- [`hooks/README.md`](hooks/README.md): every hook, what it blocks, and its settings.
+- [`CHANGELOG.md`](CHANGELOG.md): release history.
 
 ## License
 
-MIT. Use it, fork it, strip the parts you disagree with.
+MIT.
