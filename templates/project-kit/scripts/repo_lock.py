@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-Named locks shared by everyone who changes main or publishes from it on this Mac: the merge
-queue (scripts/land.py), the deploy and the release scripts. One lock per resource:
+Named locks shared by everyone who changes main or publishes from it on this machine: the
+landing script (scripts/land.sh), and the deploy and release scripts if you add them. One lock per resource:
 
     merge    check that main hasn't moved since the checks, then merge (held for seconds)
              and pull the live checkout

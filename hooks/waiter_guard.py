@@ -13,7 +13,7 @@ matches "run_suite.py", not the "[r]un_suite.py" written in the loop), and pgrep
 outside a loop. Better still: start the awaited job in the background and take its
 exit notification, with no loop at all.
 
-Wiring: see settings.example.json.
+Wiring: templates/project-kit/.claude/settings.json.
 
 Exit 2 with a message on stderr blocks the call. Fails open on its own errors:
 it guards a convenience, not something irreversible.

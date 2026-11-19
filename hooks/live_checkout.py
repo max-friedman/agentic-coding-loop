@@ -1,77 +1,136 @@
 #!/usr/bin/env python3
-"""PreToolUse hook (Edit|Write|NotebookEdit, Bash): never edit or commit in the checkout a live service runs from.
+"""PreToolUse(Edit|Write|NotebookEdit, Bash): never edit or commit in the live checkout (CLAUDE.md, Hard rules):
+the checkout a running service uses, set in LOOP_LIVE_CHECKOUT. Unset, the hook guards nothing.
 
-If a service runs from a checkout (a plugin symlinked into its host, a server
-started from the repo), an edit there is an unreviewed deploy. Every session works
-in its own worktree and lands by pull request; only the deploy script changes the
-live checkout.
+- Edit/Write/NotebookEdit: blocks a file under the live checkout unless it's under its .claude/worktrees/
+  (Claude Code's worktrees). Symlinks are resolved, so a symlink into it counts as live.
+  ~/.claude (user settings) and a sibling folder such as <checkout>-worktrees/ are outside it.
+- Bash: blocks git commands that change a checkout (commit, push, merge, reset, stash push/pop…, checkout,
+  switch, rebase, pull…) when their directory (the cwd after any `cd`, or `git -C <dir>`) is the live
+  checkout. Read-only git (status, log, diff, fetch…) and `git worktree add/remove/list` are fine, and so
+  are scripts (land.sh, a deploy script) whose git calls run inside them, not as Bash calls.
 
-Set LIVE_CHECKOUT to that checkout's path. Blocked: file edits under it, and git
-commands that change a checkout (commit, merge, reset, checkout, stash, pull, ...)
-when their directory is it. Allowed: read-only git (status, log, diff, fetch) and
-`git worktree add/remove/list`, which is how sessions get their own copy.
-
-Fails CLOSED on its own errors: an edit to a live service can't be taken back.
+Fails closed: a hook error
+(bad input, a command it can't parse) blocks the call.
 """
 from __future__ import annotations
 
-import json
 import os
-import shlex
 import sys
 
-WRITE_VERBS = {"commit", "push", "merge", "reset", "checkout", "switch", "rebase", "cherry-pick", "revert",
-               "am", "apply", "add", "rm", "mv", "restore", "clean", "pull", "stash"}
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _shell  # noqa: E402
+
+WRITE = {"commit", "push", "merge", "reset", "checkout", "switch", "rebase", "cherry-pick", "revert", "am",
+         "apply", "add", "rm", "mv", "restore", "clean", "pull", "commit-tree", "update-index"}
+STASH_READ = {"list", "show"}
+GLOBAL_WITH_ARG = {"-c", "--namespace", "--exec-path", "--config-env"}
 
 
-def within(path: str, root: str) -> bool:
-    path, root = os.path.realpath(path), os.path.realpath(root)
-    return path == root or path.startswith(root + os.sep)
+def live_root(environ=os.environ) -> str:
+    """The live checkout's real path, or "" when LOOP_LIVE_CHECKOUT isn't set (nothing is guarded)."""
+    path = environ.get("LOOP_LIVE_CHECKOUT") or ""
+    return os.path.realpath(os.path.expanduser(path)) if path else ""
 
 
-def check_edit(tool_input: dict, root: str) -> str | None:
+def is_live(path: str, root: str) -> bool:
+    return bool(root) and _shell.within(path, root) and not _shell.within(path, os.path.join(root, ".claude", "worktrees"))
+
+
+def check_edit(tool_input: dict, cwd: str, environ=os.environ) -> str | None:
     path = tool_input.get("file_path") or tool_input.get("notebook_path") or ""
-    if path and within(path, root):
-        return f"Blocked: {path} is in the live checkout. Work in your own worktree (`git worktree add`) and land by PR."
-    return None
+    if not path:
+        return None
+    root = live_root(environ)
+    full = _shell.resolve(path, cwd)
+    if not is_live(full, root):
+        return None
+    return (f"Blocked by .claude/hooks/live_checkout.py: {path} is in the live checkout ({root}), which the live "
+            "service runs from: never edit it (CLAUDE.md, Hard rules).\n"
+            "Edit the same file in your own worktree instead (claude --worktree, or git worktree add -b <branch> "
+            "<checkout>-worktrees/<name> origin/main) and land it with scripts/land.sh.")
 
 
-def check_bash(cmd: str, cwd: str, root: str) -> str | None:
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|")
-    lex.whitespace_split = True
-    words, here = list(lex), cwd
-    for i, word in enumerate(words):
-        if word == "cd" and i + 1 < len(words):
-            here = os.path.join(here, os.path.expanduser(words[i + 1]))
-        if word != "git":
+def git_target(args: list[str], cwd: str) -> tuple[list[str], str]:
+    """(the directories this git command acts on, its subcommand + args joined) for `git <global opts> sub …`."""
+    dirs, here, i = [], cwd, 0
+    while i < len(args) and args[i].startswith("-"):
+        a = args[i]
+        if a == "-C" and i + 1 < len(args):
+            here = _shell.resolve(args[i + 1], here)
+            i += 2
             continue
-        rest, where = words[i + 1:], here
-        if rest[:1] == ["-C"] and len(rest) > 1:
-            where, rest = os.path.join(here, os.path.expanduser(rest[1])), rest[2:]
-        if rest and rest[0] in WRITE_VERBS and within(where, root):
-            return (f"Blocked: `git {rest[0]}` in the live checkout. Use your own worktree and land by PR; "
-                    "only the deploy script changes the live checkout.")
+        if a.startswith(("--git-dir=", "--work-tree=")):
+            dirs.append(_shell.resolve(a.split("=", 1)[1], here))
+        elif a in ("--git-dir", "--work-tree") and i + 1 < len(args):
+            dirs.append(_shell.resolve(args[i + 1], here))
+            i += 1
+        elif a in GLOBAL_WITH_ARG:
+            i += 1
+        i += 1
+    dirs.append(here)
+    return dirs, args[i:]
+
+
+def is_write(sub: list[str]) -> bool:
+    if not sub:
+        return False
+    if sub[0] == "stash":
+        return not (len(sub) > 1 and sub[1] in STASH_READ)
+    if sub[0] == "branch":
+        return False  # refs are shared by every worktree; doesn't touch the live checkout's files
+    return sub[0] in WRITE
+
+
+def check_bash(cmd: str, cwd: str, environ=os.environ) -> str | None:
+    if "git" not in cmd:
+        return None  # fast path
+    return _walk(cmd, os.path.realpath(cwd or os.getcwd()), live_root(environ), 0)
+
+
+def _walk(cmd: str, here: str, root: str, depth: int) -> str | None:
+    for seg in _shell.segments(cmd):
+        env, word, args = _shell.split_command(seg)
+        base = os.path.basename(word)
+        if base in ("cd", "pushd"):
+            target = next((a for a in args if not a.startswith("-")), "~")
+            if target != "-":
+                here = _shell.resolve(target, here)
+            continue
+        inner = _shell.shell_c_script(word, args)
+        if inner is not None and depth < 3:
+            msg = _walk(inner, here, root, depth + 1)
+            if msg:
+                return msg
+            continue
+        if base != "git":
+            continue
+        dirs, sub = git_target(args, here)
+        if is_write(sub) and any(is_live(d, root) for d in dirs):
+            return (f"Blocked by .claude/hooks/live_checkout.py: `git {' '.join(sub[:3])}` in the live checkout ({root}). "
+                    "Never commit, switch branches or change files there (CLAUDE.md, Hard rules).\n"
+                    "Work in your own worktree (git worktree add -b <branch> <checkout>-worktrees/<name> "
+                    "origin/main) and land it with scripts/land.sh; only your deploy step updates the live checkout.")
     return None
 
 
-def main() -> int:
+def main() -> None:
     try:
-        root = os.environ["LIVE_CHECKOUT"]
-        data = json.load(sys.stdin)
-        tool, ti = data.get("tool_name"), data.get("tool_input") or {}
-        if tool in ("Edit", "Write", "NotebookEdit"):
-            msg = check_edit(ti, root)
-        elif tool == "Bash":
-            msg = check_bash(ti.get("command") or "", data.get("cwd") or os.getcwd(), root)
+        data = _shell.read_input()
+        tool, tin, cwd = data.get("tool_name"), data.get("tool_input") or {}, data.get("cwd") or os.getcwd()
+        if tool == "Bash":
+            msg = check_bash(tin.get("command") or "", cwd)
+        elif tool in ("Edit", "Write", "NotebookEdit", "MultiEdit"):
+            msg = check_edit(tin, cwd)
         else:
             msg = None
-    except Exception as e:  # noqa: BLE001 - fail closed
-        msg = f"Blocked: live_checkout hook error ({e}), blocked for safety. Fix the hook by PR."
+    except Exception as e:  # noqa: BLE001 - fail closed: a write to the live checkout can't be undone
+        _shell.fail_closed("live_checkout", e)
+        return
     if msg:
-        print(msg, file=sys.stderr)
-        return 2
-    return 0
+        _shell.block(msg)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

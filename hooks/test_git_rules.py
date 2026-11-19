@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """git_rules.py: blocks a bare stash and a merge chained with add/commit.  python3 .claude/hooks/test_git_rules.py"""
 
-# The validation gate runs this file when one of these paths changes (scripts/validate.py reads GATE_COVERS).
-# The project's Claude Code hooks (.claude/hooks/README.md): each hook's test, on any change there.
-GATE_COVERS = (".claude/hooks/", ".claude/settings.json")
 
 import json, os, subprocess as sp, sys, time
 

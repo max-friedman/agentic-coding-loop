@@ -10,13 +10,14 @@ One way onto main, so every change passes the same checks.
 
 ## land.sh
 
-`scripts/land.sh <PR>` refuses a pull request whose head has no recorded prelanding pass, takes the merge lock
+A starter version of the landing pattern, not the queue the source project runs. `scripts/land.sh <PR>` refuses a pull request whose head has no recorded prelanding pass, takes the merge lock
 (`scripts/repo_lock.py merge`), and squash-merges with `--match-head-commit`, so a push after the checks can't slip in.
 `.claude/hooks/gh_rules.py` blocks every other way to merge.
 
 ## A queue, when lanes land faster than one at a time
 
-The source project grew `land.sh` into a queue. The recipe, if you need it:
+Not shipped: the source project grew `land.sh` into a queue that is specific to its builds, devices and deploy. The
+recipe, if you need it:
 
 1. A queue file (`.loop/land_queue.json`) of pull requests whose prelanding passed; `add <PR>` appends.
 2. One worker takes the head of the queue, merges main into it, reruns the checks, merges under the merge lock, and
