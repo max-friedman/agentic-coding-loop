@@ -335,7 +335,7 @@ def check_kit() -> None:
             with open(os.path.join(td, ".claude", "settings.json"), encoding="utf-8") as fh:
                 wired = json.dumps(json.load(fh))
             hooks = [n for n in os.listdir(os.path.join(td, ".claude", "hooks"))
-                     if n.endswith(".py") and not n.startswith(("test_", "_")) and n not in ("master_session.py",)]
+                     if n.endswith(".py") and not n.startswith(("test_", "_")) and n not in ("coordinator_session.py",)]
             missing = [n for n in hooks if n not in wired]
             check("the kit's settings.json wires every hook", not missing, ", ".join(missing))
         except (OSError, ValueError) as exc:
@@ -343,18 +343,49 @@ def check_kit() -> None:
 
 
 def check_hooks() -> None:
-    """The example hooks are code people copy, so they get tested like code."""
+    """The hooks are code people install, so they get tested like code, where they live too (not only installed)."""
     print("\nhooks")
-    try:
-        with open(os.path.join(ROOT, "hooks", "settings.example.json"), encoding="utf-8") as fh:
-            json.load(fh)
-        check("hooks/settings.example.json parses", True)
-    except (OSError, ValueError) as exc:
-        check("hooks/settings.example.json parses", False, str(exc))
-    run = subprocess.run([sys.executable, os.path.join(ROOT, "hooks", "test_hooks.py")],
-                         capture_output=True, text=True, timeout=60)
-    tail = (run.stderr or run.stdout).strip().splitlines()[-1:] or ["no output"]
-    check("hooks/test_hooks.py passes", run.returncode == 0, tail[0])
+    tests = sorted(n for n in os.listdir(os.path.join(ROOT, "hooks")) if n.startswith("test_") and n.endswith(".py"))
+    for name in tests:
+        run = subprocess.run([sys.executable, name], cwd=os.path.join(ROOT, "hooks"),
+                             capture_output=True, text=True, timeout=120)
+        tail = (run.stderr or run.stdout).strip().splitlines()[-1:] or ["no output"]
+        check(f"hooks/{name} passes", run.returncode == 0, tail[0])
+    # One copy of each hook: the kit installs hooks/ (bootstrap_kit.py), so the template carries none of its own.
+    kit_hooks = os.path.join(ROOT, "templates", "project-kit", ".claude", "hooks")
+    check("hooks/ is the only copy of the hooks", not os.path.exists(kit_hooks),
+          "templates/project-kit/.claude/hooks/ exists; put hooks in hooks/")
+
+
+# What a private project's harvest has leaked into the kit before (1.1.0's review counted 13 in non-test files):
+# its own scripts and state paths, plan names, and notes only that project can read. The kit must stand alone.
+PROJECT_REFS = [
+    (r"master_(?:session|stop|digest|events|watch)", "a source-project script"),
+    (r"(?i)robustness plan", "a source-project plan"),
+    (r"feedback/", "a source-project state path"),
+    (r"scripts/validate\.py|validate\.json|GATE_COVERS", "the source project's validation gate"),
+    (r"(?i)\bhermes\b", "the source project's name"),
+    (r"\bTODO\b", "an unfinished promise"),
+    (r"(?i)memory note|\bthe memory\b|MEMORY\.md|memory \"", "a citation of the author's private notes"),
+    (r"disk_headroom|land\.py|land_queue\.py|next_lanes\.py", "a source-project script the kit doesn't ship"),
+]
+
+
+def check_no_project_refs() -> None:
+    """The kit (hooks/, templates/project-kit/, the installer) names nothing only the source project has."""
+    print("\nthe kit stands alone")
+    roots = [os.path.join(ROOT, "hooks"), os.path.join(ROOT, "templates", "project-kit")]
+    files = [os.path.join(d, n) for r in roots for d, _, ns in os.walk(r) for n in ns if "__pycache__" not in d]
+    files.append(os.path.join(ROOT, "scripts", "bootstrap_kit.py"))
+    hits = []
+    for path in sorted(files):
+        with open(path, encoding="utf-8") as fh:
+            for n, line in enumerate(fh, 1):
+                for rx, what in PROJECT_REFS:
+                    m = re.search(rx, line)
+                    if m:
+                        hits.append(f"{os.path.relpath(path, ROOT)}:{n} {what} ({m.group(0)})")
+    check("no source-project references in the kit", not hits, "; ".join(hits[:5]) + (" …" if len(hits) > 5 else ""))
 
 
 def main() -> int:
@@ -374,6 +405,7 @@ def main() -> int:
     check_pinning_claims()
     check_kit()
     check_hooks()
+    check_no_project_refs()
     if args.base:
         check_version_bump(args.base)
 

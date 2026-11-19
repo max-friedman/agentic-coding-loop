@@ -11,6 +11,57 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## A note on these versions
+
+0.14.0 to 1.1.0 shipped in one evening, 2026-11-18 Pacific time (the entries carry the
+UTC date, 2026-11-19). That was the public repo catching up with two months of
+practice in the private project. It went to 1.0 because renaming `NEEDS-MAX` to
+`NEEDS-OWNER` changes a heading every existing state file has: a breaking change, so
+MAJOR under the rule above.
+
+## [1.2.0] — 2026-11-19
+
+A blind review of 1.1.0 found the project kit untrustworthy to install: the lane cap
+could never trip, the gates blocked every spawn out of the box, two copies of each
+hook disagreed, and the kit still named the source project's scripts and notes. No
+protocol change.
+
+**Added**
+- `hooks/lane_ledger.py`, the ledger writer `admission_gate.py` said was "not shown".
+  PostToolUse on Agent/Task records a spawned lane in `.loop/lanes.json`, SubagentStop
+  removes it, and an entry older than `lanes.stale_hours` counts as ended. Tests
+  drive both hooks end to end and see the cap trip, then free a slot.
+- `.loop/config.json`, the knobs file (`hooks/_loop.py` holds the defaults;
+  `hooks/README.md` documents each knob). `bootstrap_kit.py` writes it.
+- `scripts/check.py` runs every `hooks/test_*.py` where it lives, fails if the
+  template grows its own copy of a hook, and fails on source-project references in
+  the kit (its scripts, state paths, plan names, private notes, `TODO`s).
+
+**Changed**
+- A spawn prompt without a `Lane:` line counts as the default kind (`feature`) with
+  a warning, instead of being blocked; `lanes.require_lane_line` restores the block.
+- `spawn_gate.py`'s model, rules and no-notify checks are opt-in
+  (`spawn_gate.require_*`), and the rules wording is configurable.
+- The disk floor (15 GB) and swap ceiling (6 GB) come from the config; on a smaller
+  machine the defaults scale down (`resources.scale_to_machine`). A value you set is
+  used as given.
+- One copy of each hook: `hooks/`. `bootstrap_kit.py` installs every file there into
+  `.claude/hooks/`; `templates/project-kit/.claude/hooks/` and
+  `hooks/settings.example.json` are gone (the kit's `settings.json` is the one
+  wiring). The stash rule is the kit's: a bare stash, `pop`, `clear`, or an
+  `apply`/`drop` naming no entry is blocked; a tagged `git stash push -m <tag>` is
+  allowed. The docs now say the same.
+- `master_session.py` / `master_stop.py` became `coordinator_session.py` /
+  `coordinator_stop.py`: their state lives in `.loop/`, and the watcher and check-in
+  they look for are config patterns, not the source project's scripts.
+- `live_checkout.py` guards nothing until `LOOP_LIVE_CHECKOUT` is set (it defaulted
+  to a made-up path).
+- README: the kit is "a starter version of the landing pattern", not "what that
+  project uses today"; the flow diagram marks which steps the kit ships.
+
+**Removed**
+- `lander_clones.py`: it guards clones the starter `land.sh` never makes.
+
 ## [1.1.0] — 2026-11-19
 
 A new project can install the working environment the loop runs in, not only the

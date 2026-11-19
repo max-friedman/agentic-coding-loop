@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Install the project kit into a repository: the hooks and their settings, a CLAUDE.md skeleton, process docs, the
-prelanding and landing scripts, the watchdog and the state file.
+prelanding and landing scripts, the watchdog, the knobs file and the state file.
 
     python3 scripts/bootstrap_kit.py <repo>             # install; files that already exist are left alone
     python3 scripts/bootstrap_kit.py <repo> --test      # install, then run every hook test there
@@ -8,17 +8,20 @@ prelanding and landing scripts, the watchdog and the state file.
     python3 scripts/bootstrap_kit.py <repo> --force     # overwrite existing files
 
 What it copies:
-  templates/project-kit/**          -> <repo>/** (CLAUDE.md, .claude/, docs/process/, scripts/)
-  hooks/admission_gate.py, hooks/waiter_guard.py -> <repo>/.claude/hooks/
-  hooks/watchdog.py                 -> <repo>/scripts/watchdog.py
+  hooks/*.py (every hook, its helpers and its tests) -> <repo>/.claude/hooks/   (hooks/ is the only copy of each hook)
+  hooks/watchdog.py                 -> <repo>/scripts/watchdog.py (not a hook: the OS scheduler runs it)
+  templates/project-kit/**          -> <repo>/** (CLAUDE.md, .claude/settings.json, docs/process/, scripts/)
   templates/LOOP_STATE.template.md  -> <repo>/docs/plans/LOOP_STATE.md
-and adds .loop/ (the lane ledger, prelanding passes, the watchdog's stamp) to <repo>/.gitignore.
+writes <repo>/.loop/config.json with every knob at its default (hooks/README.md documents them), and adds .loop/ (the
+knobs, the lane ledger, prelanding passes, the watchdog's stamp) to <repo>/.gitignore.
 
-Most of templates/project-kit/ is harvested from the project the loop runs in, so it is what that project uses today.
+The hooks are generic versions of the ones a private project runs; the scripts are a starter version of its landing
+pattern (README.md says which parts the kit ships and which it only describes).
 """
 from __future__ import annotations
 
 import argparse
+import json
 import shutil
 import subprocess
 import sys
@@ -26,17 +29,14 @@ from pathlib import Path
 
 ACL = Path(__file__).resolve().parent.parent
 KIT = ACL / "templates" / "project-kit"
-EXTRA = {
-    "hooks/admission_gate.py": ".claude/hooks/admission_gate.py",
-    "hooks/waiter_guard.py": ".claude/hooks/waiter_guard.py",
-    "hooks/watchdog.py": "scripts/watchdog.py",
-}
+HOOKS = ACL / "hooks"
+NOT_HOOKS = {"watchdog.py": "scripts/watchdog.py"}
 STATE = ("templates/LOOP_STATE.template.md", "docs/plans/LOOP_STATE.md")
 
 
 def plan(no_state: bool) -> list[tuple[Path, str]]:
-    files = [(p, p.relative_to(KIT).as_posix()) for p in sorted(KIT.rglob("*")) if p.is_file() and "__pycache__" not in p.parts]
-    files += [(ACL / src, dest) for src, dest in EXTRA.items()]
+    files = [(p, NOT_HOOKS.get(p.name, f".claude/hooks/{p.name}")) for p in sorted(HOOKS.glob("*.py"))]
+    files += [(p, p.relative_to(KIT).as_posix()) for p in sorted(KIT.rglob("*")) if p.is_file() and "__pycache__" not in p.parts]
     if not no_state:
         files.append((ACL / STATE[0], STATE[1]))
     return files
@@ -52,6 +52,15 @@ def install(repo: Path, force: bool = False, no_state: bool = False) -> tuple[li
         dest.parent.mkdir(parents=True, exist_ok=True)
         shutil.copy2(src, dest)
         written.append(rel)
+    config = repo / ".loop" / "config.json"
+    if force or not config.exists():
+        sys.path.insert(0, str(HOOKS))
+        import _loop  # noqa: E402 - the defaults live with the hooks that read them
+        config.parent.mkdir(parents=True, exist_ok=True)
+        config.write_text(json.dumps(_loop.DEFAULTS, indent=1) + "\n")
+        written.append(".loop/config.json")
+    else:
+        kept.append(".loop/config.json")
     ignore = repo / ".gitignore"
     lines = ignore.read_text().splitlines() if ignore.exists() else []
     if ".loop/" not in lines:
@@ -86,8 +95,8 @@ def main(argv: list[str] | None = None) -> int:
     print(f"bootstrap_kit: {len(written)} file(s) written, {len(kept)} left as they were")
     for rel in kept:
         print(f"  kept  {rel}")
-    print("Next: fill the <placeholders> in CLAUDE.md and docs/process/, set LOOP_LIVE_CHECKOUT in .claude/settings.json,"
-          " and schedule scripts/watchdog.py every 15 minutes.")
+    print("Next: fill the <placeholders> in CLAUDE.md and docs/process/, set LOOP_LIVE_CHECKOUT in .claude/settings.json"
+          " (empty: no checkout is guarded), tune .loop/config.json, and schedule scripts/watchdog.py every 15 minutes.")
     if a.test:
         print("hook tests:")
         failed = run_tests(repo)

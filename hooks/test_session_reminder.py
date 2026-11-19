@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """session_reminder.py: the context-loss reminder on compact/resume.  python3 .claude/hooks/test_session_reminder.py"""
 
-# The validation gate runs this file when one of these paths changes (scripts/validate.py reads GATE_COVERS).
-# The project's Claude Code hooks (.claude/hooks/README.md): each hook's test, on any change there.
-GATE_COVERS = (".claude/hooks/", ".claude/settings.json")
 
 import json, os, subprocess as sp, sys, time
 
@@ -28,8 +25,9 @@ def hook(source):
 
 
 print("session_reminder.py")
-text = s.reminder("compact", ["land.py 633 --full"])
-for want in ("Master checklist", "After a context loss", "30-minute checklist", "Monitor", "check-in", "nightly", "disk", "land.py 633 --full"):
+text = s.reminder("compact", ["land.sh 633"])
+for want in ("Coordinator checklist", "After a context loss", "coordinator_session.py register", "Monitor", "check-in",
+             "disk", "lane_ledger.py list", "land.sh 633"):
     check(f"the reminder mentions {want!r}", want in text, text)
 check("no landings: says none", "Landings running now: none." in s.reminder("resume", []))
 for src in ("compact", "resume"):

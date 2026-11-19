@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """gh_rules.py: blocks gh pr merge and a PR based on anything but main.  python3 .claude/hooks/test_gh_rules.py"""
 
-# The validation gate runs this file when one of these paths changes (scripts/validate.py reads GATE_COVERS).
-# The project's Claude Code hooks (.claude/hooks/README.md): each hook's test, on any change there.
-GATE_COVERS = (".claude/hooks/", ".claude/settings.json")
 
 import json, os, subprocess as sp, sys, time
 
@@ -41,7 +38,7 @@ blocked = [
 ]
 allowed = [
     "scripts/land.sh 1234",
-    "python3 scripts/land.py 1234 --full",
+    "scripts/land.sh 1234",
     "gh pr view 1234 --json mergeCommit",
     "gh pr list --state merged",
     "gh pr create --title x --body y",

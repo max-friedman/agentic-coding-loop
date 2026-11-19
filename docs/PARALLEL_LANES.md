@@ -245,7 +245,8 @@ device run.
 
 The stash stack is shared by every worktree of a repository. With many sessions in
 many worktrees, `git stash pop` can take another session's work. Set work aside with
-a WIP commit. A hook refuses a bare stash.
+a WIP commit. A hook refuses a bare stash, `pop`, `clear`, and an `apply` or `drop`
+that names no entry; a tagged `git stash push -m <tag>`, restored by sha, is allowed.
 
 ---
 

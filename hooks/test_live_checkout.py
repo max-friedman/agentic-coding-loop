@@ -2,10 +2,6 @@
 """live_checkout.py against a throwaway "live checkout" (LOOP_LIVE_CHECKOUT): edits and git writes there are
 blocked, worktrees and read-only git aren't.  python3 .claude/hooks/test_live_checkout.py"""
 
-# The validation gate runs this file when one of these paths changes (scripts/validate.py reads GATE_COVERS).
-# The project's Claude Code hooks (.claude/hooks/README.md): each hook's test, on any change there.
-GATE_COVERS = (".claude/hooks/", ".claude/settings.json")
-
 import json, os, subprocess as sp, sys, tempfile, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -50,7 +46,7 @@ check("blocks a relative path that lands there", edit("../../../CLAUDE.md", cwd=
 check("blocks the plugin through its plugin symlink", edit(os.path.join(link, "adapter.py")) is not None)
 check("allows a Claude Code worktree under .claude/worktrees/", edit(os.path.join(wt, "CLAUDE.md")) is None)
 check("allows ~/Projects/app-worktrees/ (a prefix of the name, not the folder)", edit(os.path.join(sibling, "x.py")) is None)
-check("allows memory and anything else outside", edit(os.path.join(root, ".claude", "projects", "m", "memory", "MEMORY.md")) is None)
+check("allows ~/.claude and anything else outside", edit(os.path.join(root, ".claude", "settings.json")) is None)
 check("allows NotebookEdit outside", live_checkout.check_edit({"notebook_path": "/tmp/x.ipynb"}, wt, ENV) is None)
 check("blocks NotebookEdit inside", live_checkout.check_edit({"notebook_path": os.path.join(live, "n.ipynb")}, wt, ENV) is not None)
 
@@ -92,12 +88,14 @@ check("a crash (broken input): fails closed (exit 2), says to fix the hook", r.r
       and "fix .claude/hooks/live_checkout.py" in r.stderr, (r.returncode, r.stderr))
 r, _ = hook({"tool_name": "Bash"})
 check("missing tool_input: exit 0", r.returncode == 0, r.stderr)
+check("LOOP_LIVE_CHECKOUT unset: guards nothing", live_checkout.check_edit({"file_path": os.path.join(live, "x.py")}, wt, {}) is None
+      and live_checkout.check_bash("git commit -m x", live, {}) is None)
 _, dt = hook({"tool_name": "Bash", "tool_input": {"command": f"cd {wt} && git add -A && git commit -m x && git push"}, "cwd": live})
 t = time.time()
 for _ in range(200):
     bash(f"cd {wt} && git add -A && git commit -m x && git push", live)
 per = (time.time() - t) / 200
-check(f"fast: {per * 1000:.2f} ms a check (< 10 ms); {dt * 1000:.0f} ms with python startup (< 1 s even on a loaded Mac)", per < 0.01 and dt < 1, dt)
+check(f"fast: {per * 1000:.2f} ms a check (< 10 ms); {dt * 1000:.0f} ms with python startup (< 1 s)", per < 0.01 and dt < 1, dt)
 
 print(f"\n{'FAILED: ' + ', '.join(fails) if fails else 'all passed'}")
 sys.exit(1 if fails else 0)

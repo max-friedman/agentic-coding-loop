@@ -35,7 +35,7 @@ The three gaps that cost me most, ranked by a guess at reach × severity
 
 ## Outcomes and scale
 
-About eight weeks, late September to mid November 2026. These numbers come from the private app project's own history; what's published here is the process and the six generic hooks, not that project's code.
+About eight weeks, late September to mid November 2026. These numbers come from the private app project's own history; what's published here is the process, its generic hooks and a starter kit, not that project's code.
 
 | | |
 |---|---|
@@ -53,13 +53,17 @@ About eight weeks, late September to mid November 2026. These numbers come from 
 ```mermaid
 flowchart LR
     F[Feedback and<br/>ranked list] --> P[Coordinator plans<br/>one slice per PR]
-    P --> L[Lanes, each in<br/>its own worktree]
-    L --> PL[Prelanding: cheap<br/>checks on branch + main]
+    P --> L[Lanes, each in its own worktree<br/>kit: lane cap + ledger hooks]
+    L --> PL[Prelanding: cheap checks<br/>on branch + main<br/>kit: prelanding.py]
     PL --> R[Independent review<br/>by a fresh agent]
-    R --> Q[Land queue: merge main,<br/>check, batch, deploy]
+    R --> Q[Landing<br/>kit: land.sh, one PR at a time<br/>described: queue, batch, deploy]
     Q --> N[Nightly full suite]
     N -. reds become work .-> F
+    classDef described stroke-dasharray: 5 5
+    class F,P,R,N described
 ```
+
+Solid boxes: the kit ships a hook or script. Dashed: described in the docs only.
 
 ## Three ideas
 
@@ -85,25 +89,24 @@ night found real defects in nine PRs.
 - **Not for** a single quick session, or a team that already has CI, a merge queue
   and code review and runs one agent at a time. You have most of this already.
 
-Start small: [`docs/STARTER.md`](docs/STARTER.md) is a state file and three hooks.
-
 ## Use it in your project
 
-`python3 scripts/bootstrap_kit.py <your-repo> --test` installs the whole working environment: hooks and settings, a
-`CLAUDE.md` skeleton, process docs, prelanding and landing scripts, the watchdog and the state file. The kit is
-harvested from the project that runs the loop, so it is what that project uses today; the `loop-init` skill runs it too.
+Start small with [`docs/STARTER.md`](docs/STARTER.md): a state file and three hooks. Or
+`python3 scripts/bootstrap_kit.py <your-repo> --test` (the `loop-init` skill runs it) installs the tested hooks from
+[`hooks/`](hooks), their settings and knobs (`.loop/config.json`), a `CLAUDE.md` skeleton, doc stubs, `prelanding.py`,
+the watchdog and the state file. `land.sh` is a starter version of the landing pattern; the full queue (batching,
+deploy, red-main rules) is project-specific, so it is described, not shipped.
 
 ## Status
 
-- **Last round:** Round 4 run on 2026-11-18 by hand to restart; scheduled rounds
-  still paused. It found that the docs promised every project was pinned to a
-  release, while every non-plugin path fetches from `main`
-  ([state file](docs/plans/LOOP_STATE.md)).
-- **Why scheduled rounds are paused:** the round Routine's sessions had no tools to
-  attach the repo, so it recorded SUCCEEDED and did nothing (#37). No date is set
-  for them to resume.
+- **Last round:** Round 4, run by hand on 2026-11-18 ([state file](docs/plans/LOOP_STATE.md)).
+  Scheduled rounds are paused with no restart date: the Routine's sessions had no
+  tools to attach the repo, so it recorded SUCCEEDED and did nothing (#37).
 - **Nothing merges itself.** The owner reviews and merges every PR; the 24-hour
   self-merge described in [`CONTRIBUTING.md`](CONTRIBUTING.md) is off.
+- **Versions.** 0.14 to 1.1 shipped in one evening, 2026-11-18, while the public repo
+  caught up with two months of private practice; 1.0 because renaming `NEEDS-MAX` to
+  `NEEDS-OWNER` breaks existing state files ([`CHANGELOG.md`](CHANGELOG.md)).
 - **One author.** Nobody else has run this yet. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md)
   says what I'd measure to find out, and how I'd find a first outside user.
 
@@ -112,7 +115,7 @@ harvested from the project that runs the loop, so it is what that project uses t
 | | |
 |---|---|
 | [`docs/STARTER.md`](docs/STARTER.md) | The 20% version: a state file and three hooks. |
-| [`hooks/`](hooks) | Tested, generic hooks and an example settings file. |
+| [`hooks/`](hooks) | The tested, generic hooks and their knobs; the kit installs them. |
 | [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | The top ten lessons from the multi-agent project, each with its incident. |
 | [`docs/WALKTHROUGH.md`](docs/WALKTHROUGH.md) | One round end to end: the state file before, the finding, the PR. |
 | [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md) | How this maps to a team, what to measure, a first outside user. |

@@ -31,7 +31,17 @@ STATE = Path(".loop")
 EVENTS = STATE / "job_events.jsonl"     # one JSON line per unattended job run: {"at", "job", "status", "error"}
 HEARTBEAT = STATE / "coordinator.heartbeat"
 STAMP = STATE / "watchdog.stamp"
-DISK_FLOOR_GB = 12.0
+
+
+def _config_floor(default: float = 12.0) -> float:
+    """`watchdog.min_free_disk_gb` in .loop/config.json (hooks/README.md), else the default."""
+    try:
+        return float(json.loads((STATE / "config.json").read_text()).get("watchdog", {}).get("min_free_disk_gb", default))
+    except (OSError, ValueError, AttributeError):
+        return default
+
+
+DISK_FLOOR_GB = _config_floor()
 HEARTBEAT_STALE_S = 45 * 60
 AUTH_LOOKBACK_S = 7 * 86400
 AUTH_ERROR = re.compile(r"authenticat|oauth|\blog(?:ged)?[ -]?in\b|token expired", re.I)

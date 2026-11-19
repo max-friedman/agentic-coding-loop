@@ -19,21 +19,22 @@ and write it last.*
 
 ## 2. Three hooks
 
-Copy these from [`../hooks/`](../hooks) into your project, and the matching entries
-from [`settings.example.json`](../hooks/settings.example.json) into
+Copy these and `_shell.py`, which they share, from [`../hooks/`](../hooks) into your
+project's `.claude/hooks/`, and the matching entries from the kit's
+[`settings.json`](../templates/project-kit/.claude/settings.json) into
 `.claude/settings.json`. They need no other setup.
 
 | hook | stops |
 |---|---|
-| `git_rules.py` | `git stash` shared across worktrees; a merge chained with commit |
+| `git_rules.py` | a `git stash` that can take another worktree's entry; a merge chained with commit |
 | `waiter_guard.py` | wait loops that wait on themselves forever |
-| `kill_rules.py` | one agent killing another agent's processes by name |
+| `kill_rules.py` | one agent killing another agent's processes by pattern (`pkill -f`, `killall`) |
 
 ## 3. When to add more
 
 | when this happens | add |
 |---|---|
-| You run more than two agents at once | `admission_gate.py` and a ledger of running lanes |
+| You run more than two agents at once | `admission_gate.py` and its ledger writer, `lane_ledger.py` |
 | A service runs from your checkout | `live_checkout.py` |
 | You schedule unattended runs | `watchdog.py`, reading each job's own output |
 | PRs wait in line to merge | one merge script, then a queue ([`../LOOP.md`](../LOOP.md) §F) |

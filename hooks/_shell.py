@@ -3,7 +3,7 @@ command into simple commands, find each one's command word, answer with the docu
 
 Not a shell parser: it understands what our commands look like (`&&`, `;`, `|`, newlines, subshells,
 `$(…)`, `sh -c '…'`, env assignments, heredocs, wrappers like `timeout`/`xargs`). What happens when it
-can't tokenize a command is each hook's choice: adb_lock and live_checkout fail closed, the others fail open.
+can't tokenize a command is each hook's choice: live_checkout fails closed, the others fail open.
 """
 from __future__ import annotations
 

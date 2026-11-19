@@ -1,9 +1,6 @@
 #!/usr/bin/env python3
 """kill_rules.py: blocks pkill -f and killall.  python3 .claude/hooks/test_kill_rules.py"""
 
-# The validation gate runs this file when one of these paths changes (scripts/validate.py reads GATE_COVERS).
-# The project's Claude Code hooks (.claude/hooks/README.md): each hook's test, on any change there.
-GATE_COVERS = (".claude/hooks/", ".claude/settings.json")
 
 import json, os, subprocess as sp, sys, time
 
@@ -29,7 +26,7 @@ def hook(cmd):
 
 print("kill_rules.py")
 blocked = [
-    "pkill -f land.py",
+    "pkill -f land.sh",
     "pkill -fl 'wait_for'",
     "pkill -9 -f make",
     "pkill -9f make",
@@ -40,7 +37,7 @@ blocked = [
     "bash -c 'killall java'",
 ]
 allowed = [
-    "pgrep -fl '[l]and.py'",
+    "pgrep -fl '[l]and.sh'",
     "kill 12345",
     "kill -9 12345 12346",
     "pkill make",  # an exact process name, no -f
@@ -55,7 +52,7 @@ for c in blocked:
 for c in allowed:
     check(f"allows: {c!r}", kill_rules.check(c) is None, kill_rules.check(c))
 
-r, dt = hook("pkill -f land.py")
+r, dt = hook("pkill -f land.sh")
 check("pkill -f: exit 2, says find the pid and kill it", r.returncode == 2 and "kill <pid>" in r.stderr, (r.returncode, r.stderr))
 r, _ = hook("killall tccd")
 check("killall: exit 2", r.returncode == 2 and "killall" in r.stderr, r.stderr)

@@ -12,14 +12,18 @@ A blocked call says what to do instead. Fix a wrong block in the hook, by pull r
 
 - **Never edit the live checkout.** `<path the running service uses>` is what runs: every session works on its own
   branch in its own worktree and lands by pull request (`live_checkout.py`; set `LOOP_LIVE_CHECKOUT`).
-- **Never a bare `git stash` / `git stash pop`**: the stash stack is shared by every worktree; set work aside with a
-  WIP commit. Never chain `git merge` with `add` and `commit` (`git_rules.py`).
+- **No `git stash` that can take another session's entry**: the stash stack is shared by every worktree. Set work
+  aside with a WIP commit. `git_rules.py` blocks a bare `git stash`, `pop`, `clear`, and an `apply`/`drop` that names
+  no entry; a tagged `git stash push -m <tag>`, restored by sha, is allowed. Never chain `git merge` with `add` and
+  `commit` (`git_rules.py`).
 - **Pull requests reach main one way: `scripts/land.sh <PR>`**, never `gh pr merge` or the merge button
   (`gh_rules.py`). `python3 scripts/prelanding.py` passes on the branch first.
 - **Kill by PID, never by pattern** (`kill_rules.py`); **no `pgrep -f` wait loop that matches itself**
   (`waiter_guard.py`).
-- **A helper is spawned with the rules** (`spawn_gate.py`: it points at `docs/process/helper-rules.md`) **and under
-  the lane cap** (`admission_gate.py`: every spawn prompt carries `Lane: <kind>; Hotspot: <area>`).
+- **A helper is spawned under the lane cap** (`admission_gate.py`; `lane_ledger.py` records running lanes). A spawn
+  prompt carries `Lane: <kind>; Hotspot: <area>`; without it the spawn counts as the default kind, with a warning.
+  `spawn_gate.py` can also require a model and the rules (`docs/process/helper-rules.md`): opt in through
+  `.loop/config.json`.
 - <Your project's own hard rules: a shared device behind a lock, a test-only channel, a build slot. Add a hook for
   each one that must never fail.>
 
@@ -33,6 +37,7 @@ A blocked call says what to do instead. Fix a wrong block in the hook, by pull r
 - Before handing back: `python3 scripts/prelanding.py`.
 - Land: `scripts/land.sh <PR>`.
 - Hook tests: `for t in .claude/hooks/test_*.py; do python3 "$t" || echo "FAILED $t"; done`.
+- Running lanes: `python3 .claude/hooks/lane_ledger.py list`. Caps, floors and gates: `.loop/config.json`.
 - Watchdog (from the OS scheduler, every 15 minutes): `python3 scripts/watchdog.py`.
 
 ## Read when it applies

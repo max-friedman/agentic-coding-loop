@@ -1,49 +1,50 @@
 #!/usr/bin/env python3
-"""PreToolUse hook (Bash): kill only PIDs you started; no kill by name pattern.
+"""PreToolUse(Bash): kill processes by PID, never by pattern (CLAUDE.md, Hard rules).
 
-With several agents on one machine, `pkill -f land.py` from one agent also kills the
-same-named processes of every other agent. In the project behind this repo, a
-helper's pattern kill took out the coordinator's landing waiters. Blocked: `pkill`
-and `killall` in any form. Allowed: `kill <pid>`, with the PID you recorded when you
-started the process.
+Blocks `pkill -f <pattern>` (also -fl, -9f…: any short-option cluster with f) and `killall <name>`: a pattern matches
+other sessions' processes too (a helper's `pkill -f` once killed the coordinator's waiters; `killall tccd` resets
+macOS permissions). Allowed: `pgrep` (read-only), `kill <pid>`, `pkill <name>` without -f (an exact process name),
+`killall -l` / `killall -s` (list signals, dry run).
 
-Fails open on its own errors.
+Fails open on its own errors (the rule in CLAUDE.md still applies).
 """
 from __future__ import annotations
 
-import json
-import shlex
+import os
 import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _shell  # noqa: E402
+
+INSTEAD = ("Find the PIDs first (`pgrep -fl '[p]attern'`, then `ps -ww -o pid,command -p <pid>` to check each is "
+           "yours), then `kill <pid>`. Kill only processes you started.")
 
 
 def check(cmd: str) -> str | None:
-    lex = shlex.shlex(cmd, posix=True, punctuation_chars=";&|()")
-    lex.whitespace_split = True
-    try:
-        words = list(lex)
-    except ValueError:
-        words = cmd.split()
-    for i, word in enumerate(words):
-        name = word.rsplit("/", 1)[-1]
-        at_start = i == 0 or words[i - 1] in {";", "&&", "||", "|", "&", "(", "sudo", "xargs"}
-        if name in ("pkill", "killall") and at_start:
-            return (f"Blocked: `{name}` kills by name, including other agents' processes. "
-                    "Kill only the PID you started: `kill <pid>`.")
+    if "pkill" not in cmd and "killall" not in cmd:
+        return None
+    for _env, word, args in _shell.commands(cmd):
+        base = os.path.basename(word)
+        if base == "pkill" and any(a.startswith("-") and not a.startswith("--") and "f" in a[1:] for a in args):
+            return ("Blocked by .claude/hooks/kill_rules.py: `pkill -f` matches every process whose command line "
+                    "contains the pattern, other sessions' waiters and landers included. " + INSTEAD)
+        if base == "killall" and any(not a.startswith("-") for a in args) and not any(a in ("-l", "-s") for a in args):
+            return ("Blocked by .claude/hooks/kill_rules.py: `killall` kills every process with that name, other "
+                    "sessions' too (and `killall tccd` resets macOS permissions). " + INSTEAD)
     return None
 
 
-def main() -> int:
+def main() -> None:
     try:
-        data = json.load(sys.stdin)
+        data = _shell.read_input()
         msg = check((data.get("tool_input") or {}).get("command") or "") if data.get("tool_name") == "Bash" else None
-    except Exception as e:  # noqa: BLE001 - fail open
-        print(f"kill_rules: hook error, allowed: {e}", file=sys.stderr)
-        return 0
+    except Exception as e:  # noqa: BLE001 - fail-open
+        _shell.fail_open("kill_rules", e)
+        return
     if msg:
-        print(msg, file=sys.stderr)
-        return 2
-    return 0
+        _shell.block(msg)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
