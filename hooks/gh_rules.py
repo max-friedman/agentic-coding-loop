@@ -2,7 +2,8 @@
 """PreToolUse(Bash): pull requests reach main only one way (CLAUDE.md, Hard rules; docs/process/landing.md).
 
 Blocks:
-- `gh pr merge` (any flags, --auto too) aimed at THIS repo (no `--repo`/`-R` and the working directory's origin is this
+- Only when `gh_rules.block_pr_merge` is true in `.loop/config.json` (default off: it's a landing-process opinion):
+  `gh pr merge` (any flags, --auto too) aimed at THIS repo (no `--repo`/`-R` and the working directory's origin is this
   repo, or `--repo` names it; the name comes from this checkout's git remote): PRs land with `scripts/land.sh <PR>`, which checks the head passed
   prelanding and merges under the landing lock. land.sh's own `gh pr merge` runs inside the script, not as a Bash call,
   so it isn't affected. A merge aimed at another repository (`--repo owner/other`, or a cwd whose origin is another
@@ -21,6 +22,7 @@ import subprocess
 import sys
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _loop  # noqa: E402
 import _shell  # noqa: E402
 
 MAIN = {"main", "origin/main"}
@@ -77,6 +79,15 @@ def targets_this_repo(args: list[str], cwd: str | None) -> bool:
     return there is None or mine is None or there == mine
 
 
+def merge_blocked() -> bool:
+    """The repo-wide `gh pr merge` block is opt-in (`gh_rules.block_pr_merge` in .loop/config.json); a config that
+    can't be read leaves it off, like every other failure of this hook."""
+    try:
+        return bool(_loop.config()["gh_rules"]["block_pr_merge"])
+    except Exception:  # noqa: BLE001
+        return False
+
+
 def check(cmd: str, cwd: str | None = None) -> str | None:
     if "gh" not in cmd or ("merge" not in cmd and "base" not in cmd and "-B" not in cmd):
         return None
@@ -84,8 +95,8 @@ def check(cmd: str, cwd: str | None = None) -> str | None:
         if os.path.basename(word) != "gh":
             continue
         sub = _shell.gh_subcommand(args)
-        if sub[:2] == ["pr", "merge"] and targets_this_repo(args, cwd):
-            return ("Blocked by .claude/hooks/gh_rules.py: never `gh pr merge` (or the GitHub merge button). Land with "
+        if sub[:2] == ["pr", "merge"] and merge_blocked() and targets_this_repo(args, cwd):
+            return ("Blocked by .claude/hooks/gh_rules.py: `gh pr merge` is off limits here (gh_rules.block_pr_merge is on in .loop/config.json). Land with "
                     "`scripts/land.sh <PR>`: it checks the PR's head passed prelanding and merges it under the landing "
                     "lock (docs/process/landing.md). A helper hands back instead; the coordinator runs land.sh.")
         if sub[:2] in (["pr", "create"], ["pr", "edit"]):

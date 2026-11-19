@@ -9,6 +9,17 @@ worktree. Hooks enforce the hard rules, so they hold even when an agent forgets 
 
 This repo is that process, written down to reuse. The product's code is private.
 
+## Start here (5 minutes)
+
+1. **The problems:** [the gap brief](docs/FOR_CLAUDE_CODE_TEAM.md), five product gaps with evidence (top three below).
+2. **Try the small version:** [`docs/STARTER.md`](docs/STARTER.md), a state file and three hooks. No installer.
+3. **Or the whole kit:** `python3 scripts/bootstrap_kit.py <your-repo> --dry-run` shows what would change; run it
+   without `--dry-run` (add `--test` to run the hook tests). It merges into an existing `.claude/settings.json` (backup
+   kept), never overwrites `CLAUDE.md`, and keeps two opinionated hooks off until `.loop/config.json` turns them on:
+   the `gh pr merge` block (`gh_rules.block_pr_merge`) and the coordinator Stop hook (`coordinator.require_checks`).
+   `admission_gate` is on: it blocks a spawn under 15 GB free disk (`resources.min_free_disk_gb`, lowered on a small
+   disk). Knobs: [`hooks/README.md`](hooks/README.md). The `loop-init` skill runs the same installer.
+
 **Words used here.** A *round* is one agent answering one question in one pull
 request: it reads a state file first and writes it last, so the next memoryless
 session can continue. A *lane* is one agent running rounds in its own branch and
@@ -43,7 +54,7 @@ About eight weeks, late September to mid November 2026. These numbers come from 
 | Agents at once | 1 coordinator + 2 to 5 lanes |
 | Device tests | over 300 end-to-end scenarios on an emulator and real test phones |
 | Unit tests | about 5,000 JVM tests, plus about 1,600 tests for the tooling |
-| Enforcement | 16 hooks; one merge queue, the only way onto main |
+| Enforcement | 16 hooks in the private project, one merge queue the only way onto main; 10 hooks ship here (plus a watchdog script) |
 | Releases | a test build of main about hourly; the full suite every night |
 | Hardware | one 16 GB laptop, one build slot, a few test devices |
 | Cost per merged change | 400–700k tokens with four feature lanes, 215–325k with two after shared files were split; three changes landed together, so no single one owns the drop |
@@ -89,14 +100,6 @@ night found real defects in nine PRs.
 - **Not for** a single quick session, or a team that already has CI, a merge queue
   and code review and runs one agent at a time. You have most of this already.
 
-## Use it in your project
-
-Start small with [`docs/STARTER.md`](docs/STARTER.md): a state file and three hooks. Or
-`python3 scripts/bootstrap_kit.py <your-repo> --test` (the `loop-init` skill runs it) installs the tested hooks from
-[`hooks/`](hooks), their settings and knobs (`.loop/config.json`), a `CLAUDE.md` skeleton, doc stubs, `prelanding.py`,
-the watchdog and the state file. `land.sh` is a starter version of the landing pattern; the full queue (batching,
-deploy, red-main rules) is project-specific, so it is described, not shipped.
-
 ## Status
 
 - **Last round:** Round 4, run by hand on 2026-11-18 ([state file](docs/plans/LOOP_STATE.md)).
@@ -104,16 +107,18 @@ deploy, red-main rules) is project-specific, so it is described, not shipped.
   tools to attach the repo, so it recorded SUCCEEDED and did nothing (#37).
 - **Nothing merges itself.** The owner reviews and merges every PR; the 24-hour
   self-merge described in [`CONTRIBUTING.md`](CONTRIBUTING.md) is off.
-- **Versions.** 0.14 to 1.1 shipped in one evening, 2026-11-18, while the public repo
+- **Versions.** 0.14 to 1.2 shipped in one evening, 2026-11-18, while the public repo
   caught up with two months of private practice; 1.0 because renaming `NEEDS-MAX` to
   `NEEDS-OWNER` breaks existing state files ([`CHANGELOG.md`](CHANGELOG.md)).
+- **Wanted: one outside user.** Try the starter or the kit, then [open a proposal issue](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml) with what you ran, what broke and what you'd change.
 - **One author.** Nobody else has run this yet. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md)
   says what I'd measure to find out, and how I'd find a first outside user.
 
-## Where to look
+## Deep dive
 
 | | |
 |---|---|
+| [`docs/FOR_CLAUDE_CODE_TEAM.md`](docs/FOR_CLAUDE_CODE_TEAM.md) | The five product gaps, with evidence. |
 | [`docs/STARTER.md`](docs/STARTER.md) | The 20% version: a state file and three hooks. |
 | [`hooks/`](hooks) | The tested, generic hooks and their knobs; the kit installs them. |
 | [`docs/PARALLEL_LANES.md`](docs/PARALLEL_LANES.md) | The top ten lessons from the multi-agent project, each with its incident. |

@@ -331,6 +331,10 @@ def check_kit() -> None:
                              capture_output=True, text=True, timeout=600)
         tail = (run.stdout + run.stderr).strip().splitlines()[-1:] or ["no output"]
         check("bootstrap_kit.py installs and its hook tests pass", run.returncode == 0, tail[0])
+        test = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "test_bootstrap_kit.py")],
+                              capture_output=True, text=True, timeout=600)
+        check("scripts/test_bootstrap_kit.py passes", test.returncode == 0,
+              (test.stdout + test.stderr).strip().splitlines()[-1:] and (test.stdout + test.stderr).strip().splitlines()[-1])
         try:
             with open(os.path.join(td, ".claude", "settings.json"), encoding="utf-8") as fh:
                 wired = json.dumps(json.load(fh))

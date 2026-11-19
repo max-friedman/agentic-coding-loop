@@ -13,11 +13,33 @@ for wording and fixes.
 
 ## A note on these versions
 
-0.14.0 to 1.1.0 shipped in one evening, 2026-11-18 Pacific time (the entries carry the
+0.14.0 to 1.2.0 shipped in one evening, 2026-11-18 Pacific time (the entries carry the
 UTC date, 2026-11-19). That was the public repo catching up with two months of
 practice in the private project. It went to 1.0 because renaming `NEEDS-MAX` to
 `NEEDS-OWNER` changes a heading every existing state file has: a breaking change, so
 MAJOR under the rule above.
+
+## [1.3.0] — 2026-11-19
+
+A blind recruiter review of 1.2.0 said "phone screen: yes" and listed what stopped it from being a "hire": the
+installer was unsafe on a real repository. This makes it safe. Behaviour change in the kit, no protocol change.
+
+**Changed**
+- `bootstrap_kit.py` merges into an existing `.claude/settings.json` (adds missing env keys, matchers and hooks; never
+  drops or reorders yours; keeps `settings.json.bak-<time>`) and stops with a loud message, changing nothing, when it
+  can't merge safely. It never overwrites `CLAUDE.md`: an existing one gets `CLAUDE.loop.md`, or with `--force` a marked
+  section. `--force` no longer rewrites `.loop/config.json`. New `--dry-run`.
+- It no longer copies `test_*.py` into the project; `--test` runs them from this repo's `hooks/`.
+- Two opinionated hooks are now off until `.loop/config.json` turns them on: `gh_rules.block_pr_merge` (the `gh pr
+  merge` block) and `coordinator.require_checks` (the coordinator Stop hook). `admission_gate` stays on; the README and
+  `hooks/README.md` say its default disk floor (15 GB, `resources.min_free_disk_gb`) and how to change it.
+- README: a five-minute first path (gap brief, `docs/STARTER.md`, the kit with `--dry-run`) before the long docs, now
+  under "Deep dive"; "0.14 to 1.2 in one evening"; the 16 hooks are the private project's count, 10 ship here; an
+  invitation to a first outside user.
+
+**Added**
+- `scripts/test_bootstrap_kit.py`, run by the gate: merge, dry-run, no tests copied, an unmergeable settings file,
+  `CLAUDE.md`.
 
 ## [1.2.0] — 2026-11-19
 

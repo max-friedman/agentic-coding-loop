@@ -38,10 +38,14 @@ DEFAULTS: dict = {
         "rules_markers": [["helper-rules.md"], ["playbook", "prelanding"]],  # alternatives; each: phrases all present
         "require_no_notify": False,       # True: a RemoteTrigger prompt must say it won't notify the owner
     },
+    "gh_rules": {
+        "block_pr_merge": False,          # True: block `gh pr merge` on this repo (land with scripts/land.sh); opt-in
+    },
     "watchdog": {
         "min_free_disk_gb": 12,           # watchdog.py flags disk_low under this (it reads the file itself)
     },
     "coordinator": {                      # coordinator_stop.py: what must keep running in the coordinator's session
+        "require_checks": False,          # True: the coordinator's turn can't end without a watcher and a check-in; opt-in
         "monitor_pattern": "events|watch",  # a running background task whose description/command/name matches
         "checkin_pattern": "check-?in|checklist|heartbeat",  # a recurring session cron whose prompt matches
         "monitor_command": "Monitor(description=\"events: the coordinator's event stream\", command=\"<your event "
