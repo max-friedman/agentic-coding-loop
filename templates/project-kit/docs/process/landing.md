@@ -5,14 +5,14 @@ One way onto main, so every change passes the same checks.
 ## Prelanding
 
 `python3 scripts/prelanding.py` merges `origin/main` into the branch in a scratch worktree, runs the checks in
-`PRELANDING_CHECKS` (default: every `.claude/hooks/test_*.py`; set it to your project's fast checks, separated by
+`PRELANDING_CHECKS` or `prelanding.checks` in `.loop/config.json` (no default: with none set it fails rather than pass on nothing; list your project's fast checks, separated by
 `;`), and records the pass for the branch's head commit in `.loop/prelanding/`. Hand back only after it passes.
 
 ## land.sh
 
 A starter version of the landing pattern, not the queue the source project runs. `scripts/land.sh <PR>` refuses a pull request whose head has no recorded prelanding pass, takes the merge lock
 (`scripts/repo_lock.py merge`), and squash-merges with `--match-head-commit`, so a push after the checks can't slip in.
-`.claude/hooks/gh_rules.py` blocks every other way to merge.
+With `gh_rules.block_pr_merge` on in `.loop/config.json`, `.claude/hooks/gh_rules.py` blocks every other way to merge.
 
 ## A queue, when lanes land faster than one at a time
 

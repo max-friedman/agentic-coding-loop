@@ -1,94 +1,93 @@
-# The agentic coding loop
+# agentic-coding-loop
 
 [![checks](https://github.com/max-friedman/agentic-coding-loop/actions/workflows/checks.yml/badge.svg)](https://github.com/max-friedman/agentic-coding-loop/actions/workflows/checks.yml)
 
-**How I run a team of Claude Code agents on one codebase for weeks.**
+Hooks, a state file and a setup script for running several Claude Code agents on one
+repo across many sessions.
 
-A year ago the hard part was getting an agent to finish a task. Now the hard part is
-everything after that. Ten sessions in a row that don't remember each other. Five
-agents on one laptop at once. A pile of finished work that still has to land safely.
+I use this every day on a private project, an Android app plus a plugin for the agent
+server it talks to. Since late September that project has had one coordinator session
+and two to five helper sessions working in parallel, and about 1,900 pull requests
+merged. Most of what's in this repo is here because something went wrong there.
 
-I built an Android app and its agent server plugin this way. One coordinator session,
-up to five helper agents, **about 1,900 merged pull requests in eight weeks**. That
-product is private. This repo is the part that transfers to any project.
+## Install
 
 ```bash
 git clone https://github.com/max-friedman/agentic-coding-loop
-python3 agentic-coding-loop/scripts/bootstrap_kit.py <your-repo> --dry-run
+python3 agentic-coding-loop/scripts/bootstrap_kit.py path/to/your/repo --dry-run
 ```
 
-## The pain points
+Drop `--dry-run` to apply it. The script adds its hooks to `.claude/settings.json`,
+merging with what's already there and keeping a backup. It writes `CLAUDE.loop.md`
+next to your `CLAUDE.md` instead of editing it. Then put your test command in
+`.loop/config.json` under `prelanding.checks`, so `scripts/prelanding.py` has
+something to run.
 
-The model was rarely the problem. The workflow around it was.
+If you just want the idea, [docs/STARTER.md](docs/STARTER.md) is a state file and
+three hooks you can copy by hand.
 
-- The next session can't see why a test exists, so it relaxes it.
-- A limit in the prompt is only a suggestion. I once found **18 agents running against a limit of five** written in the coordinator's own notes.
-- Parallel sessions share state they don't know about, like one `git stash` stack across every worktree.
-- A scheduled run reported success for weeks while doing nothing.
-- Once code got cheap to write, landing it safely became the bottleneck.
+## The hooks
 
-## What I do about it
+| Hook | What it stops |
+|---|---|
+| `admission_gate` | Starting a new agent past the cap, or when disk or memory is low |
+| `lane_ledger` | Nothing. It records which agents are running so the cap can count them |
+| `git_rules` | A bare `git stash` or `stash pop`, and `git merge` chained with a commit |
+| `kill_rules` | `pkill -f` and `killall`, which also hit other sessions' processes |
+| `waiter_guard` | A wait loop on `pgrep -f` that matches its own command line |
+| `live_checkout` | Edits in the checkout a running service is deployed from |
+| `gh_rules` | PRs against a branch other than main. Optionally, `gh pr merge` |
+| `session_reminder` | Nothing. It prints how to rebuild state after a context reset |
 
-**Keep one state file.** Every round reads it first and writes it last. Each round
-answers one question in one pull request, and starts by writing down what would prove
-it wrong. The first round on one of my own projects disproved a claim in its README:
+Each one came from a specific failure. The cap went in after I found 18 agents running
+at once while the coordinator's own notes said five. The stash rule went in after one
+session's `git stash pop` picked up another session's unfinished work, since every
+worktree in a repo shares one stash list. The waiter guard went in after I counted
+about 90 shell loops, some a week old, waiting on patterns that matched themselves.
+
+When a hook blocks something it says what to do instead. [hooks/README.md](hooks/README.md)
+lists the settings for each.
+
+## The state file
+
+Every session reads `docs/plans/LOOP_STATE.md` before doing anything and updates it
+before it stops. Each round answers one question in one pull request and writes down
+first what result would prove it wrong. This is from a benchmark I maintain:
 
 ```markdown
 ## Round 1: shortcut resistance
 Finding: the claim was false. The probe hit 93.5% (floor 50%).
+Fix: both sides share an identical body; one signal swaps roles. Probe: 57.5%.
 ```
 
-**Enforce rules with hooks.** If a rule has to hold, it's a hook that blocks the call
-and says what to do instead:
+The README of that benchmark had claimed its test pairs couldn't be gamed by keyword
+matching. Nobody had measured it. The first round did, and it was wrong.
 
-```text
-Blocked: this loop waits on `pgrep -f 'run_tests'`, which matches the loop's own
-shell, so it never ends. Use `pgrep -f '[r]un_tests'`, or run the job in the
-background and wait for its exit notification.
-```
+## What I'd change in Claude Code
 
-**Size the team to the merge path.** More agents meant a longer queue, not more
-shipped work. Going from four helpers to two, and splitting the files they fought
-over, **cut the cost of each merged change roughly in half**.
+1. A scheduled run should fail when it did nothing. Mine reported SUCCEEDED five
+   times with no tools loaded ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)).
+   Separately, the CLI login expired and every headless run failed for a week before
+   I noticed.
+2. There should be a built-in limit on concurrent subagents, and on the disk and
+   memory they use. A limit written in a prompt didn't hold for me.
+3. Sessions running in parallel should know about state they share, like the stash
+   list.
 
-**Never let the author approve its own work.** A fresh agent that never saw the
-session checks the build against the design. On its first night it found real bugs in
-nine PRs that had passed every test.
+The longer version, with evidence, is in [docs/FOR_CLAUDE_CODE_TEAM.md](docs/FOR_CLAUDE_CODE_TEAM.md).
 
-**Only ask the human about what can't be undone.** The agents decide everything else,
-log it, and keep going. I read the log when I have time.
+## Limitations
 
-## What it taught me about Claude Code
+- I'm the only person who has used it. If you try it, I'd like to hear
+  [what broke](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml).
+- [LOOP.md](LOOP.md), the full protocol, is long. It's written for agents to follow
+  more than for people to read.
+- The kit's `land.sh` is simple. The landing queue I use depends on that project's
+  builds and test phones, so it isn't included.
+- The numbers above come from a private repo, so you can't check them here.
+- I work on this privately every day and update this repo every so often.
 
-The gaps I'd fix first. Evidence is in [`docs/FOR_CLAUDE_CODE_TEAM.md`](docs/FOR_CLAUDE_CODE_TEAM.md).
+Also: [lessons from running several agents](docs/PARALLEL_LANES.md),
+[one round end to end](docs/WALKTHROUGH.md), [installing it as a plugin](docs/ADOPTING.md).
 
-1. **Unattended runs report success when they did nothing.** Scheduled sessions came
-   up without tools and still said SUCCEEDED
-   ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). An expired
-   CLI login failed every headless run for a week without an error anyone could see.
-2. **Nothing caps concurrent agents or what they use.** Prompt limits don't hold. The
-   disk still hit zero after the agent count was under control.
-3. **Parallel sessions share state they can't see.** The stash stack is one example.
-   Shell wait loops that match their own command line are another.
-
-## Try it
-
-1. Start small with [`docs/STARTER.md`](docs/STARTER.md): a state file and three hooks, copied by hand.
-2. Or run the full kit with the two lines above. It merges into your existing `.claude/settings.json` and never touches your `CLAUDE.md`.
-3. Or install it as a plugin: [`docs/ADOPTING.md`](docs/ADOPTING.md).
-
-## Status
-
-I iterate on this every day in a private project and publish the generic parts here
-periodically. Nobody else has run it yet. If you try it, I'd appreciate hearing
-[what broke](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml).
-
-## More
-
-- [Lessons from running many agents](docs/PARALLEL_LANES.md)
-- [One round, end to end](docs/WALKTHROUGH.md)
-- [Every hook and what it blocks](hooks/README.md)
-- [The full protocol](LOOP.md)
-- [How this maps to a team](docs/ON_A_TEAM.md)
-
-MIT licensed.
+MIT license.
