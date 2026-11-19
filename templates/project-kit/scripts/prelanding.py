@@ -5,12 +5,13 @@
     python3 scripts/prelanding.py --status   # has HEAD a recorded pass?
 
 The checks run in a scratch worktree of HEAD with origin/main merged in, so what passes is what main would get.
-PRELANDING_CHECKS lists them, separated by ";" (default: every .claude/hooks/test_*.py). A pass is recorded in
+PRELANDING_CHECKS lists them, separated by ";" (or the "prelanding": {"checks": [...]} list in .loop/config.json).
+With no checks configured it fails: a check that ran nothing is no verdict. A pass is recorded in
 .loop/prelanding/<sha> of the main checkout; scripts/land.sh refuses a pull request whose head has none.
 """
 from __future__ import annotations
 
-import glob
+import json
 import os
 import subprocess
 import sys
@@ -32,7 +33,11 @@ def checks(root: str) -> list[str]:
     env = os.environ.get("PRELANDING_CHECKS")
     if env:
         return [c.strip() for c in env.split(";") if c.strip()]
-    return [f"python3 {os.path.relpath(t, root)}" for t in sorted(glob.glob(os.path.join(root, ".claude/hooks/test_*.py")))]
+    try:
+        cfg = json.loads(Path(root, ".loop", "config.json").read_text())
+    except (OSError, ValueError):
+        cfg = {}
+    return [c for c in (cfg.get("prelanding") or {}).get("checks") or [] if isinstance(c, str) and c.strip()]
 
 
 def main() -> int:
@@ -49,8 +54,13 @@ def main() -> int:
         if merge.returncode:
             print("prelanding: the branch conflicts with origin/main; merge main in and rerun")
             return 1
+        cmds = checks(wt)
+        if not cmds:
+            print('prelanding: no checks configured, so nothing would be verified. Set PRELANDING_CHECKS or '
+                  '"prelanding": {"checks": ["<your test command>"]} in .loop/config.json')
+            return 1
         failed = []
-        for cmd in checks(wt):
+        for cmd in cmds:
             print(f"== {cmd}", flush=True)
             if subprocess.run(cmd, shell=True, cwd=wt).returncode:
                 failed.append(cmd)
