@@ -115,7 +115,8 @@ jobs:
                  what the addition replaces.
               3. Add proposals/NNN-slug.md recording the finding and disposition.
               4. Bump "version" in .claude-plugin/marketplace.json and add a
-                 CHANGELOG.md entry. Without the bump the change reaches nobody.
+                 CHANGELOG.md entry. Without the bump, plugin installs never
+                 receive it; projects fetching `main` run it on their next round.
               5. Open a PR on branch proposal/NNN-slug, then merge it. Comment on
                  the issue with the PR link and which criteria were strongest.
                  Close the issue.

@@ -138,8 +138,9 @@ proposal has not examined it, and the reviewer inherits work the author skipped.
 - `CHANGELOG.md` entry naming what changed and why.
 - Proposal file status updated.
 
-**Fails if:** missing. Without the bump the change reaches nobody, and a merged PR
-that silently does nothing is worse than an open one.
+**Fails if:** missing. Without the bump, plugin installs never receive it; projects
+fetching `main` run it on their next round. A merged PR that silently does nothing for
+plugin installs is worse than an open one.
 
 ---
 
