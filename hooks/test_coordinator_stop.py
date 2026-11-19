@@ -23,7 +23,10 @@ def check(name, ok, detail=""):
 tmp = Path(tempfile.mkdtemp(prefix="coordinator-stop-test-"))
 FB = tmp / ".loop"
 MARK, STATE = FB / "coordinator_session.json", FB / "coordinator_stop.json"
-CFG = _loop.config(tmp / "no-config.json")
+FB.mkdir(parents=True, exist_ok=True)
+(FB / "config.json").write_text(json.dumps({"coordinator": {"require_checks": True}}))
+DEFAULT_CFG = _loop.config(tmp / "no-config.json")
+CFG = _loop._merge(DEFAULT_CFG, {"coordinator": {"require_checks": True}})
 COOLDOWN_S = CFG["coordinator"]["cooldown_minutes"] * 60
 SID = "11111111-2222-3333-4444-555555555555"
 MONITOR = {"id": "t1", "type": "monitor", "status": "running", "description": "events: the coordinator's event stream"}
@@ -58,6 +61,7 @@ def hook(d, home=tmp, raw=None):
 
 print("coordinator_stop.py")
 fresh()
+check("opt-in: off by default, nothing blocks", DEFAULT_CFG["coordinator"]["require_checks"] is False and decide(inp(background_tasks=[], session_crons=[]), cfg=DEFAULT_CFG) is None)
 check("all armed: the turn ends", decide(inp()) is None)
 why = decide(inp(background_tasks=[]))
 check("no Monitor: blocks, says how to re-arm it", why and "event watcher" in why and "Monitor(" in why, why)

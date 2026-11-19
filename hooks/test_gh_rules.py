@@ -6,6 +6,11 @@ import json, os, subprocess as sp, sys, time
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, HERE)
+import tempfile  # noqa: E402
+CONF = tempfile.mkdtemp(prefix="gh-rules-test-")
+with open(os.path.join(CONF, "on.json"), "w") as fh:
+    json.dump({"gh_rules": {"block_pr_merge": True}}, fh)
+os.environ["LOOP_CONFIG"] = os.path.join(CONF, "on.json")  # the merge block is opt-in; the subprocess hook inherits this
 import gh_rules  # noqa: E402
 
 fails = []
@@ -75,6 +80,10 @@ check("cwd in this repo: blocked", gh_rules.check("gh pr merge 40", HERE) is not
 check("cwd without a repo: blocked", gh_rules.check("gh pr merge 40", tempfile.gettempdir()) is not None)
 check("slug parse", gh_rules.repo_slug("https://github.com/A/b.git") == "a/b" and gh_rules.repo_slug("git@github.com:A/b.git") == "a/b")
 
+os.environ["LOOP_CONFIG"] = os.path.join(CONF, "none.json")
+check("opt-in: with no config, gh pr merge is allowed", gh_rules.check("gh pr merge 12 --squash", HERE) is None)
+check("opt-in: with no config, a stacked PR is still blocked", gh_rules.check("gh pr create --base feat/x --fill") is not None)
+os.environ["LOOP_CONFIG"] = os.path.join(CONF, "on.json")
 r, dt = hook("gh pr merge 12 --squash")
 check("gh pr merge: exit 2, says land.sh", r.returncode == 2 and "scripts/land.sh <PR>" in r.stderr, (r.returncode, r.stderr))
 r, _ = hook("gh pr create --base feat/x --fill")

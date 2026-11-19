@@ -7,6 +7,9 @@ them slipped three times, each followed by another written rule; this hook repla
 lists the session's `background_tasks` and `session_crons` to tell "done" from "paused waiting for background work"
 (https://code.claude.com/docs/en/hooks#stop-input).
 
+Opt-in: does nothing unless `coordinator.require_checks` is true in `.loop/config.json` (it assumes you run a
+coordinator session with an event watcher and a recurring check-in).
+
 It blocks (`{"decision": "block", "reason": …}`: Claude gets the reason as its next instruction) when:
   (a) no in-flight background task matches `coordinator.monitor_pattern` (its description, command or name);
   (b) no recurring session cron's prompt matches `coordinator.checkin_pattern`.
@@ -108,6 +111,8 @@ def decide(data: dict, now: float, marker_path: Optional[Path] = None, state: Op
     if not cs.is_coordinator(data, marker_path):
         return None
     cfg = cfg or _loop.config()
+    if not cfg["coordinator"].get("require_checks"):
+        return None
     cooldown = float(cfg["coordinator"]["cooldown_minutes"]) * 60
     sp = state or state_path()
     st = load_state(sp, data["session_id"])
