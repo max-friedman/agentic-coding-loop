@@ -11,6 +11,29 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to, MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.1.0] — 2026-11-19
+
+A new project can install the working environment the loop runs in, not only the
+state file. No protocol change.
+
+**Added**
+- `templates/project-kit/` and `scripts/bootstrap_kit.py`: hooks and their
+  `settings.json`, a `CLAUDE.md` skeleton with a hard-rules section, process doc stubs
+  (playbook, helper rules, landing), generic `prelanding.py` and `land.sh`, the
+  watchdog and the state file. It never overwrites a file; `--test` runs the hook
+  tests in the new repository.
+- Most of the kit is harvested from the project that runs the loop (its own
+  `loop_harvest.py`), scrubbed of that project's details; `docs/harvest.json` records
+  what was harvested, so drift says which side changed.
+- The `loop-init` skill installs the kit before §B when asked for the whole
+  environment.
+- `scripts/check.py` installs the kit into an empty repository and runs its hook
+  tests, and checks its `settings.json` wires every hook.
+
+**Fixed**
+- `scripts/check.py` read every entry under `templates/` as a file; it now skips
+  folders.
+
 ## [1.0.1] — 2026-11-19
 
 Fixes three places that contradicted the rest of the repo. No protocol change.

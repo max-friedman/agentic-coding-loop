@@ -87,6 +87,12 @@ night found real defects in nine PRs.
 
 Start small: [`docs/STARTER.md`](docs/STARTER.md) is a state file and three hooks.
 
+## Use it in your project
+
+`python3 scripts/bootstrap_kit.py <your-repo> --test` installs the whole working environment: hooks and settings, a
+`CLAUDE.md` skeleton, process docs, prelanding and landing scripts, the watchdog and the state file. The kit is
+harvested from the project that runs the loop, so it is what that project uses today; the `loop-init` skill runs it too.
+
 ## Status
 
 - **Last round:** Round 4 run on 2026-11-18 by hand to restart; scheduled rounds

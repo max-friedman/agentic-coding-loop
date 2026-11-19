@@ -14,7 +14,7 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   because its sessions had no tools to attach this repository
   ([#37](https://github.com/max-friedman/agentic-coding-loop/issues/37)). No date is
   set for scheduled rounds to resume. The owner reviews and merges every PR; nothing
-  merges itself. Protocol releases 0.13.0 to 1.0.1 were made outside the loop (see
+  merges itself. Protocol releases 0.13.0 to 1.1.0 were made outside the loop (see
   `CHANGELOG.md`).
 - **Round:** 4 (run by hand 2026-11-18) — the "consumers are pinned" guarantee was
   false for every non-plugin path, including TactBench's. **Gate green on `main`.**
@@ -23,14 +23,14 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   product, so its roast mechanics have no surface to key a coverage map to.
 - **Gate:** `python3 scripts/check.py` (and `python3 scripts/check.py --base
   origin/<base>` on pull requests, via `.github/workflows/checks.yml`).
-  **GREEN — 50 checks, 0 failed** after Round 4 (it was 37 after R3; releases
-  0.13.0 to 1.0.1 and R4 added the rest). First green state was R2, the first since `d2a6353` (0.8.0,
+  **GREEN — 52 checks, 0 failed** after 1.1.0 (it was 37 after R3; releases
+  0.13.0 to 1.0.1 and R4 added 13, and 1.1.0's project kit 2). First green state was R2, the first since `d2a6353` (0.8.0,
   #12). Was 32 checks / 2 failed at bootstrap: R1 added 5 checks and closed one
   failure, R2 closed the other. The merge train landed 2026-09-07, so this is now
   green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
   required status check (NEEDS-OWNER 2), and R3 measured what that has cost.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
-  `loop` 1.0.1 (`LOOP.md`; 7 skills; 5 templates) and
+  `loop` 1.1.0 (`LOOP.md`; 7 skills; 5 templates and the project kit) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
 - **Headline:** the docs promised that a merge changes nothing downstream until a
   release. Every documented path except the plugin fetches `LOOP.md` from `main`,
