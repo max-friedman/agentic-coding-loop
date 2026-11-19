@@ -11,6 +11,14 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.3.1] — 2026-11-19
+
+**Fixed**
+- The kit's `scripts/prelanding.py` no longer passes when nothing ran. Since 1.3.0 stopped copying hook tests into a
+  project, its default ran zero checks and recorded a pass. It now reads `prelanding.checks` from `.loop/config.json`
+  (or `PRELANDING_CHECKS`) and fails when neither lists a check. The kit's `CLAUDE.md` and `landing.md` say so.
+- `.gitignore` ignores `__pycache__/`, so running `scripts/check.py` leaves a clean tree.
+
 ## [1.3.0] — 2026-11-19
 
 Makes the installer safe on a real repository. Behaviour change in the kit, no protocol change.
