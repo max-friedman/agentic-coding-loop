@@ -1,6 +1,30 @@
 {
  "_doc": "Written by the source project's harvest: per file, sha256 of the scrubbed source and of this repo's copy at the last harvest, so a difference says which side changed.",
  "items": {
+  "docs/PARALLEL_LANES.md": {
+   "source": "cce0ce51976e117ddb7b674bdc3750003bc78e341a070a319e8b0da0e7183a81",
+   "dest": "413380d3fdc5426ad931fccfd3ae6252508afb556a99345057e43799ef7b5755"
+  },
+  "hooks/admission_gate.py": {
+   "source": "fd342ea9d93244070cecff2a6629991d38d6f165655be8c8addfcdba428b120d",
+   "dest": "163f72776b105eeaa06bc8e768f47c14a8f4e648d34baa6bf21bef35edafae11"
+  },
+  "hooks/git_rules.py": {
+   "source": "29b4372b082ab7b620c9c727b007169263904f645649ff3f98e47cf5fef35b41",
+   "dest": "bcba00ebfbdea565612e7aa4f61329ac2115ea0c64b29b60dbb94a6ffd01d1ee"
+  },
+  "hooks/kill_rules.py": {
+   "source": "c75d9681292f8d4f38ba37e352e6cfebf4c35e9aa993e3f57789b32cde6e4209",
+   "dest": "20047b031eb3572383a5dd7676d2ee934154178afebafff9e42eab54fca8674f"
+  },
+  "hooks/live_checkout.py": {
+   "source": "4d707b6fd8c784382a0456d49cee98a1c3dfe7d35a5067b532b58f1633820686",
+   "dest": "fb71874220bfc80ba0db7f387df7c7c37f32aadab2cf0acb3819d93085941bf3"
+  },
+  "hooks/watchdog.py": {
+   "source": "30e2f45a3d93a7e41b1f311a43287d07a4ffb00b1d49f9cd4f3d9e78254b21cf",
+   "dest": "42f6e91b77a4744dd5b42b48f42112c3a63e68647e40ad370efa39c7f0d35096"
+  },
   "templates/project-kit/.claude/hooks/_shell.py": {
    "source": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3",
    "dest": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3"
@@ -72,6 +96,18 @@
   "templates/project-kit/.claude/hooks/test_spawn_gate.py": {
    "source": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db",
    "dest": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db"
+  },
+  "templates/project-kit/docs/process/helper-rules.md": {
+   "source": "cbd703fa16807ce139ee95a2e804bfb205cd609c4a1bb69790fc59d600e14565",
+   "dest": "9c4bf566626601446c36c63fefc5dda68367e0634a23d4416ebf4c73efaabfec"
+  },
+  "templates/project-kit/docs/process/landing.md": {
+   "source": "2fa1946cebd3af0289271ee2f3deeeafde32c57c6d2d3da7edda2ae5d991a25b",
+   "dest": "0772f02a5210eaf08e2dcc726676512658dfd6fdd24f93123884d0b835a26ab9"
+  },
+  "templates/project-kit/scripts/prelanding.py": {
+   "source": "75563bfb0d800e7c72643b7045e6a1bf79b09b98fc6a521d377671e9c92dcebf",
+   "dest": "054bbcd241d4a201509578dadfd0a77ca0cb8ab3a3217b34e9ef21fad3a77102"
   },
   "templates/project-kit/scripts/repo_lock.py": {
    "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",
