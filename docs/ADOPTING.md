@@ -42,7 +42,7 @@ The only hard requirement is that the agent can read and write
 
 | skill | what it does |
 |---|---|
-| `loop-init` | Bootstraps the state file from the real project. Refuses to overwrite. |
+| `loop-init` | Bootstraps the state file from the real project. Refuses to overwrite. Asked for the whole environment, it first installs the project kit (`scripts/bootstrap_kit.py`). |
 | `loop-run` | Repeated rounds until a stop condition fires. Optional budget: `loop-run 5`. |
 | `loop-round` | Exactly one round. Optional item: `loop-round tighten the retry test`. |
 | `loop-audit` | Ships nothing. Measures whether a claim still holds. |

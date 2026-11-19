@@ -310,6 +310,7 @@ def check_pinning_claims() -> None:
     print("\npinning claims match the documented fetch paths")
     sources = ["docs/ADOPTING.md", "llms.txt"] + [
         f"templates/{n}" for n in sorted(os.listdir(os.path.join(ROOT, "templates")))
+        if os.path.isfile(os.path.join(ROOT, "templates", n))
     ]
     fetch_main = [p for p in sources if re.search(r"raw\.githubusercontent\.com/[^\s)]*/main/LOOP\.md", read(p))]
     claims = [f"{d}: {phrase!r}" for d in PINNING_DOCS for phrase in UNSCOPED_PINNING if phrase in read(d)]
@@ -317,6 +318,28 @@ def check_pinning_claims() -> None:
     check("no doc promises pinning to every consumer",
           not (fetch_main and claims),
           f"{'; '.join(claims)} — but {', '.join(fetch_main)} fetch LOOP.md from main")
+
+
+def check_kit() -> None:
+    """The project kit installs into an empty repository and every hook test passes there."""
+    print("\nproject kit")
+    import tempfile
+    with tempfile.TemporaryDirectory() as td:
+        subprocess.run(["git", "init", "-q", td], check=True)
+        subprocess.run(["git", "-C", td, "remote", "add", "origin", "https://github.com/example/project.git"], check=True)
+        run = subprocess.run([sys.executable, os.path.join(ROOT, "scripts", "bootstrap_kit.py"), td, "--test"],
+                             capture_output=True, text=True, timeout=600)
+        tail = (run.stdout + run.stderr).strip().splitlines()[-1:] or ["no output"]
+        check("bootstrap_kit.py installs and its hook tests pass", run.returncode == 0, tail[0])
+        try:
+            with open(os.path.join(td, ".claude", "settings.json"), encoding="utf-8") as fh:
+                wired = json.dumps(json.load(fh))
+            hooks = [n for n in os.listdir(os.path.join(td, ".claude", "hooks"))
+                     if n.endswith(".py") and not n.startswith(("test_", "_")) and n not in ("master_session.py",)]
+            missing = [n for n in hooks if n not in wired]
+            check("the kit's settings.json wires every hook", not missing, ", ".join(missing))
+        except (OSError, ValueError) as exc:
+            check("the kit's settings.json wires every hook", False, str(exc))
 
 
 def check_hooks() -> None:
@@ -349,6 +372,7 @@ def main() -> int:
     check_docs_derive()
     check_state_version(manifest)
     check_pinning_claims()
+    check_kit()
     check_hooks()
     if args.base:
         check_version_bump(args.base)
