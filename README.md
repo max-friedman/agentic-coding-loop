@@ -8,7 +8,7 @@ repo across many sessions.
 I use this every day on a private project, an Android app plus a plugin for the agent
 server it talks to. Since late September that project has had one coordinator session
 and two to five helper sessions working in parallel, and about 1,900 pull requests
-merged. Most of what's in this repo is here because something went wrong there.
+merged. Most of the hooks exist because an agent broke something on that project.
 
 ## Install
 
@@ -39,11 +39,11 @@ three hooks you can copy by hand.
 | `gh_rules` | PRs against a branch other than main. Optionally, `gh pr merge` |
 | `session_reminder` | Nothing. It prints how to rebuild state after a context reset |
 
-Each one came from a specific failure. The cap went in after I found 18 agents running
-at once while the coordinator's own notes said five. The stash rule went in after one
-session's `git stash pop` picked up another session's unfinished work, since every
-worktree in a repo shares one stash list. The waiter guard went in after I counted
-about 90 shell loops, some a week old, waiting on patterns that matched themselves.
+I added the cap after finding 18 agents running at once while the coordinator's own
+notes said five. The stash rule is there because one session's `git stash pop` picked
+up another session's unfinished work; every worktree in a repo shares one stash list,
+which I didn't know until then. And at one point I counted about 90 shell loops, some
+a week old, waiting on `pgrep` patterns that matched their own command line.
 
 When a hook blocks something it says what to do instead. [hooks/README.md](hooks/README.md)
 lists the settings for each.
@@ -57,11 +57,11 @@ first what result would prove it wrong. This is from a benchmark I maintain:
 ```markdown
 ## Round 1: shortcut resistance
 Finding: the claim was false. The probe hit 93.5% (floor 50%).
-Fix: both sides share an identical body; one signal swaps roles. Probe: 57.5%.
+Fix: both scenarios in a pair now use the same text, and only one detail differs. Probe: 57.5%.
 ```
 
-The README of that benchmark had claimed its test pairs couldn't be gamed by keyword
-matching. Nobody had measured it. The first round did, and it was wrong.
+That benchmark's README claimed its paired test scenarios couldn't be gamed by keyword
+matching. Nobody had measured that until the first round, which showed it was false.
 
 ## What I'd change in Claude Code
 
@@ -70,9 +70,8 @@ matching. Nobody had measured it. The first round did, and it was wrong.
    Separately, the CLI login expired and every headless run failed for a week before
    I noticed.
 2. There should be a built-in limit on concurrent subagents, and on the disk and
-   memory they use. A limit written in a prompt didn't hold for me.
-3. Sessions running in parallel should know about state they share, like the stash
-   list.
+   memory they use. A limit written in a prompt didn't hold for me, and parallel
+   sessions had no way to know they were sharing things like the stash list.
 
 The longer version, with evidence, is in [docs/FOR_CLAUDE_CODE_TEAM.md](docs/FOR_CLAUDE_CODE_TEAM.md).
 
@@ -85,9 +84,10 @@ The longer version, with evidence, is in [docs/FOR_CLAUDE_CODE_TEAM.md](docs/FOR
 - The kit's `land.sh` is simple. The landing queue I use depends on that project's
   builds and test phones, so it isn't included.
 - The numbers above come from a private repo, so you can't check them here.
-- I work on this privately every day and update this repo every so often.
+- This repo lags my private copy. I update it every few weeks.
 
-Also: [lessons from running several agents](docs/PARALLEL_LANES.md),
-[one round end to end](docs/WALKTHROUGH.md), [installing it as a plugin](docs/ADOPTING.md).
+To install it as a Claude Code plugin instead, see [docs/ADOPTING.md](docs/ADOPTING.md).
+The longer write-up of what went wrong running several agents is
+[docs/PARALLEL_LANES.md](docs/PARALLEL_LANES.md).
 
 MIT license.
