@@ -100,7 +100,8 @@ From the private product, over about eight weeks:
 
 ## Status
 
-Used every day on that one private project. Nobody else has run it yet; if you try it,
+I iterate on this every day in a private project and publish the generic parts here
+periodically. Nobody else has run it yet; if you try it,
 [open an issue](https://github.com/max-friedman/agentic-coding-loop/issues/new?template=loop-proposal.yml)
 with what broke. [`docs/ON_A_TEAM.md`](docs/ON_A_TEAM.md) covers how it maps to a team
 and what I'd measure there.
