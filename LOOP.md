@@ -672,6 +672,11 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
    `land.py`), or better, no loop: run the awaited thing in the background and take
    its exit notification. A hook refuses the self-matching form; an outside job
    reaps waiter shells past an age limit.
+7. **A WIP limit on open PRs**, enforced where PRs are opened: at the limit, a lane
+   lands or closes one before opening another (drafts and reverts excepted).
+8. **Worktrees live only in the managed directories**, and each lane removes its own
+   once its PR is queued. A sweeper removes finished worktrees wherever they are;
+   worktrees outside the managed directory are the ones nobody cleans.
 
 ### The one way onto the default branch
 
@@ -683,6 +688,10 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 | **Batch by default.** With three or more compatible PRs ready, gate them as one merged tree and bisect a red batch by halves. Any rule that keeps a PR out of a batch states what it buys. | One run per PR on serial capacity is the bottleneck; batch-exclusion rules accumulate silently until nothing batches. |
 | **Never stack PRs.** Dependent slices land in order, or as one combined PR. After a PR's third conflict, rebuild it on the current default branch. Resolve conflicts with a merge commit, never a force-push. | Squash-merging a base orphans the PR stacked on it. |
 | **Refuse a stale merge**: a PR missing lines the default branch added to a file the PR also changes, unless the PR says the revert is intended. | A bad conflict resolution silently undoes merged work. |
+| **Never skip a gate.** No `--no-verify`, no stubbed check, no environment variable that turns a check off for one command. An override flag on the merge path belongs to the coordinator only, and every use is logged where the human reviews it. A wrong gate is fixed in the gate. | A gate a lane can skip is a suggestion. |
+| **A gate change is its own PR.** A PR that changes a gate (anything that decides what runs, what is skipped or what passes) together with product code is refused unless an independent reviewer — a fresh agent or the human, never the author or the coordinator that steered it — read the gate diff and the PR says so. | Changed together, the check and the code it checks are loosened in one step and reviewed as one. |
+| **Per-PR scratch files.** A PR description, log or result file is named after its PR or lives in its lane's worktree; never a shared fixed path. | Two lanes writing one `pr_body.md` put one PR's description on the other. |
+| **Selecting where a check runs fails closed.** When the list that says which checks need the strict target can't be read, everything goes to the strict target. | Read as empty, the list sends those checks where they are skipped, and a skip reads as a pass. |
 
 ### Red default branch
 
@@ -714,6 +723,18 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 - Every update to the human leads with **what waits on them** and what each item
   unblocks. Everything else they asked to be left out of goes in `## Decided, not
   asked`, reviewed together.
+- **Never wait on the human for a reversible call.** Pick the recommendation, act,
+  and log it — date, decision, why, how to undo — in an assumptions log the human
+  reviews in one pass. Zero lanes while ready work exists is never "waiting on the
+  human"; the watchdog flags it.
+- **One number per limit, and it lives in the mechanism.** The lane cap is the value
+  the hook reads; a second number in notes or prompts drifts from it.
+- **Rules live in the written docs, not in one session's notes.** A rule the human
+  gives the coordinator lands in the process docs by PR the same day; the watchdog
+  flags a private rule note newer than the docs' last change.
+- **A per-turn digest of facts** (lanes against the floor, open watchdog flags, open
+  assumptions) goes in front of the coordinator on every turn, so what sits in files
+  isn't forgotten.
 
 ### Goal loops (opt-in)
 

@@ -13,37 +13,57 @@ matches "run_suite.py", not the "[r]un_suite.py" written in the loop), and pgrep
 outside a loop. Better still: start the awaited job in the background and take its
 exit notification, with no loop at all.
 
-Wiring: templates/project-kit/.claude/settings.json.
+Wiring: templates/project-kit/.claude/settings.json. The pgrep parser reads `pgrep` inside `$(...)` and skips
+options that take a value (`pgrep -u <user> -f <pattern>`). templates/project-kit/scripts/waiter_reaper.py kills old
+waiter shells that got through.
 
 Exit 2 with a message on stderr blocks the call. Fails open on its own errors:
 it guards a convenience, not something irreversible.
 """
 from __future__ import annotations
 
-import json
+import os
 import re
-import shlex
 import sys
 
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import _shell  # noqa: E402
+
 LOOP = re.compile(r"(?:^|[\s;&|(`'\"])(?:while|until)\s")
+PGREP = re.compile(r"\bpgrep\b")
+ARG_OPTS = set("uUgGPtFsdJ")  # pgrep options that take a value
+_TOKEN = re.compile(r"""'([^']*)'|"((?:[^"\\]|\\.)*)"|([^\s;&|()"'`]+)""")
 
 
-def pgrep_patterns(cmd: str) -> list[str]:
-    """Patterns of every `pgrep -f …` call in the command (best effort, shell-tokenized)."""
-    try:
-        words = shlex.split(cmd.replace("$(", " ").replace(")", " ").replace(";", " ; "))
-    except ValueError:
-        words = cmd.split()
+def pgrep_calls(cmd: str) -> list[tuple[bool, str]]:
+    """[(has -f, pattern)] for every `pgrep` in the text (also inside "$(...)", where shell tokenizing can't see it)."""
     out = []
-    for i, w in enumerate(words):
-        if w != "pgrep":
-            continue
-        has_f, j = False, i + 1
-        while j < len(words) and words[j].startswith("-"):
-            has_f = has_f or "f" in words[j].lstrip("-")
-            j += 1
-        if has_f and j < len(words):
-            out.append(words[j])
+    for m in PGREP.finditer(cmd):
+        i, has_f, pattern = m.end(), False, None
+        while True:
+            while i < len(cmd) and cmd[i] in " \t":
+                i += 1
+            t = _TOKEN.match(cmd, i)
+            if not t:
+                break
+            word = next(g for g in t.groups() if g is not None)
+            i = t.end()
+            if word.startswith("--"):
+                continue
+            if word.startswith("-") and len(word) > 1:
+                letters = word[1:]
+                has_f = has_f or "f" in letters
+                if letters.isalpha() and letters[-1] in ARG_OPTS:  # `-u <user>`: the value is the next word
+                    while i < len(cmd) and cmd[i] in " \t":
+                        i += 1
+                    nxt = _TOKEN.match(cmd, i)
+                    if nxt:
+                        i = nxt.end()
+                continue
+            pattern = word
+            break
+        if pattern is not None:
+            out.append((has_f, pattern))
     return out
 
 
@@ -54,7 +74,8 @@ def matches_itself(pattern: str, text: str) -> bool:
         return pattern in text
 
 
-def bracketed(pattern: str) -> str:
+def fixed(pattern: str) -> str:
+    """The bracket-trick form of a pattern: its first letter in a one-letter class."""
     j = next((k for k, ch in enumerate(pattern) if ch.isalnum()), None)
     return pattern if j is None else f"{pattern[:j]}[{pattern[j]}]{pattern[j + 1:]}"
 
@@ -62,27 +83,29 @@ def bracketed(pattern: str) -> str:
 def check(cmd: str) -> str | None:
     if "pgrep" not in cmd or not LOOP.search(cmd):
         return None
-    for pattern in pgrep_patterns(cmd):
-        if matches_itself(pattern, cmd):
-            return (f"Blocked: this loop waits on `pgrep -f {pattern!r}`, which matches the loop's own shell, "
-                    f"so it never ends. Use `pgrep -f '{bracketed(pattern)}'`, or better, run the job in the "
-                    "background and wait for its exit notification.")
+    loop_at = LOOP.search(cmd).start()
+    body = cmd[loop_at:]
+    for has_f, pattern in pgrep_calls(body):
+        if not has_f or not matches_itself(pattern, cmd):
+            continue
+        return (f"Blocked: this loop waits on `pgrep -f {pattern!r}`, which matches the loop's own shell, "
+                f"so it never ends. Use `pgrep -f '{fixed(pattern)}'` (and don't spell the plain name elsewhere in the "
+                "same command), or better, run the job in the background (run_in_background) and wait for its exit "
+                "notification.")
     return None
 
 
-def main() -> int:
+def main() -> None:
     try:
-        data = json.load(sys.stdin)
-        cmd = (data.get("tool_input") or {}).get("command") or ""
-        msg = check(cmd) if data.get("tool_name") == "Bash" else None
-    except Exception as e:  # noqa: BLE001 - fail open
-        print(f"waiter_guard: hook error, allowed: {e}", file=sys.stderr)
-        return 0
+        data = _shell.read_input()
+        msg = check((data.get("tool_input") or {}).get("command") or "") if data.get("tool_name") == "Bash" else None
+    except Exception as e:  # noqa: BLE001 - fail-open
+        _shell.fail_open("waiter_guard", e)
+        return
     if msg:
-        print(msg, file=sys.stderr)
-        return 2
-    return 0
+        _shell.block(msg)
+    sys.exit(0)
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()

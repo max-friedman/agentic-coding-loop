@@ -21,7 +21,7 @@ Safe on a real repository:
 What it copies:
   hooks/*.py (every hook and its helpers, not the tests) -> <repo>/.claude/hooks/   (hooks/ is the only copy of each hook)
   hooks/watchdog.py                 -> <repo>/scripts/watchdog.py (not a hook: the OS scheduler runs it)
-  templates/project-kit/**          -> <repo>/** (CLAUDE.md, .claude/settings.json, docs/process/, scripts/)
+  templates/project-kit/**          -> <repo>/** (CLAUDE.md, .claude/settings.json, docs/process/, scripts/; not its tests)
   templates/LOOP_STATE.template.md  -> <repo>/docs/plans/LOOP_STATE.md
 writes <repo>/.loop/config.json with every knob at its default (hooks/README.md documents them), and adds .loop/ (the
 knobs, the lane ledger, prelanding passes, the watchdog's stamp) to <repo>/.gitignore.
@@ -58,7 +58,8 @@ class Refuse(Exception):
 def plan(no_state: bool) -> list[tuple[Path, str]]:
     files = [(p, NOT_HOOKS.get(p.name, f".claude/hooks/{p.name}")) for p in sorted(HOOKS.glob("*.py"))
              if not p.name.startswith("test_")]
-    files += [(p, p.relative_to(KIT).as_posix()) for p in sorted(KIT.rglob("*")) if p.is_file() and "__pycache__" not in p.parts]
+    files += [(p, p.relative_to(KIT).as_posix()) for p in sorted(KIT.rglob("*"))
+              if p.is_file() and "__pycache__" not in p.parts and not p.name.startswith("test_")]
     if not no_state:
         files.append((ACL / STATE[0], STATE[1]))
     return files
@@ -230,10 +231,14 @@ def main(argv: list[str] | None = None) -> int:
     if a.dry_run:
         return 0
     print("Next: fill the <placeholders> in CLAUDE.md (or CLAUDE.loop.md) and docs/process/, set LOOP_LIVE_CHECKOUT in "
-          ".claude/settings.json (empty: no checkout is guarded), and schedule scripts/watchdog.py every 15 minutes.")
+          ".claude/settings.json (empty: no checkout is guarded), and schedule scripts/watchdog.py, "
+          "scripts/worktree_gc.py --apply and scripts/waiter_reaper.py --apply every 15 minutes.")
     print("Config (.loop/config.json, hooks/README.md): off until you turn them on: gh_rules.block_pr_merge (blocks "
-          "`gh pr merge`), coordinator.require_checks (Stop hook). On by default: admission_gate blocks a spawn under "
-          "resources.min_free_disk_gb (15 GB free, lowered on a small disk) or over max_swap_used_gb; change them there.")
+          "`gh pr merge`), coordinator.require_checks (Stop hook), finish_before_start.max_waiting_prs, "
+          "prelanding.code_paths (the gate-change rule). On by default: admission_gate blocks a spawn under "
+          "resources.min_free_disk_gb (15 GB free, lowered on a small disk) or over max_swap_used_gb; wip_limit blocks "
+          "`gh pr create` at 7 open product PRs; git_rules blocks --no-verify and a helper's worktree outside "
+          "git_rules.worktree_dirs. Change them there.")
     if a.test:
         print("hook tests (run from the kit source):")
         failed = run_tests()

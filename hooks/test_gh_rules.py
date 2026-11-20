@@ -98,5 +98,22 @@ for _ in range(200):
 per = (time.time() - t) / 200
 check(f"fast: {per * 1000:.2f} ms a check (< 10 ms); {dt * 1000:.0f} ms with python startup (< 1 s)", per < 0.01 and dt < 1, dt)
 
+print("gh_rules.py: a shared --body-file warns (one PR's body once landed on another)")
+WT = "/srv/work/proj-worktrees"
+W = lambda c, cwd: gh_rules.body_file_warning(c, cwd, [WT])  # noqa: E731
+for c, cwd in (("gh pr create --body-file /tmp/pr_body.md", "/srv"), ("gh pr edit 12 -F pr_body.md", "/srv/work/proj"),
+               ("gh pr comment 12 --body-file=/srv/body.md", "/srv")):
+    check(f"warns: {c!r}", W(c, cwd) is not None)
+for c, cwd in (("gh pr create --body-file scratch/body.md", WT + "/x"), ("gh pr edit 2519 --body-file /tmp/body2519.md", "/srv"),
+               ("gh pr edit 12 --body-file /tmp/12/body.md", "/srv"), ("gh pr create --body-file -", "/srv"),
+               ("gh pr create --body-file .claude/worktrees/a/body.md", "/srv/work/proj"),
+               ("gh issue create -F notes.md", "/srv"), ("gh pr create --fill", "/srv")):
+    check(f"quiet: {c!r}", W(c, cwd) is None, W(c, cwd))
+r = sp.run([sys.executable, os.path.join(HERE, "gh_rules.py")], capture_output=True, text=True,
+           input=json.dumps({"tool_name": "Bash", "cwd": "/srv", "tool_input": {"command": "gh pr create --body-file /tmp/pr_body.md"}}))
+out = json.loads(r.stdout or "{}")
+check("the hook lets it run (exit 0) and warns on stdout as JSON", r.returncode == 0 and "per-PR file" in out.get("systemMessage", ""),
+      (r.returncode, r.stdout, r.stderr))
+
 print(f"\n{'FAILED: ' + ', '.join(fails) if fails else 'all passed'}")
 sys.exit(1 if fails else 0)

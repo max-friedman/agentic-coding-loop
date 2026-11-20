@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """SessionStart (matcher compact|resume): after a context loss, put the rebuild steps back in context.
 
-A compacted or resumed session forgets what it had armed (the event Monitor, the check-in cron) and the checklist it
+A compacted or resumed session forgets what it had armed (the quiet watch, the check-in cron) and the checklist it
 ran. This prints a short reminder on stdout, which Claude Code adds to the session's context: re-read the PLAYBOOK's
-"After a context loss" section and the coordinator checklist, re-arm the Monitor and the check-in, re-register the
+"After a context loss" section and the coordinator checklist, restart the quiet watch and the check-in, re-register the
 coordinator, check free disk, and the landings running now (`land.sh` processes, from `ps`; a few ms). It never blocks
 (SessionStart can't); on its own error it fails open (exit 1, nothing added).
 """
@@ -41,7 +41,8 @@ def reminder(source: str, running: list[str]) -> str:
         "- The coordinator: re-read docs/process/PLAYBOOK.md's \"Coordinator checklist\" (top of the file) and \"After a "
         "context loss\", then rebuild the state it lists (open PRs and their landings, helpers, "
         "uncommitted helper worktrees) and run the check-in checklist (\"Watching\").",
-        "- Re-arm the event Monitor and the check-in cron; neither survives.",
+        "- Restart the quiet watch (a background task that exits when something needs you) and the sparse check-in "
+        "cron; neither survives.",
         "- The coordinator: re-register its session for the coordinator-only hooks: "
         "`python3 .claude/hooks/coordinator_session.py register`.",
         "- Check free disk (`df -h ~`) and the lanes the ledger still counts (`python3 .claude/hooks/lane_ledger.py list`).",

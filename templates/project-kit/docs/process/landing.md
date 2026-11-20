@@ -8,6 +8,23 @@ One way onto main, so every change passes the same checks.
 `PRELANDING_CHECKS` or `prelanding.checks` in `.loop/config.json` (no default: with none set it fails rather than pass on nothing; list your project's fast checks, separated by
 `;`), and records the pass for the branch's head commit in `.loop/prelanding/`. Hand back only after it passes.
 
+Before the checks it refuses two things (knobs under `prelanding` in `.loop/config.json`):
+
+- **A gate changed together with product code** (exit 11), unless the PR body says `Gate change: reviewed by
+  <reviewer>` with someone independent: a fresh reviewer agent or the owner, never the author or the coordinator. A
+  gate is any file that decides what runs, what is skipped or what passes (`prelanding.gate_paths`); product code is
+  `prelanding.code_paths` (set it to turn the rule on). Reviewed together, the check and the code it checks can be
+  loosened in one step and nobody sees it. Split the gate change into its own PR.
+- **A stale merge** (exit 12, `scripts/stale_revert.py`): the branch removes lines that main added since it forked,
+  usually a merge resolved to the old copy. Merge main again keeping both sides; if removing them is the point, say
+  `Intentional revert: <what and why>` in the PR body.
+
+## Never skip a gate
+
+No `--no-verify`, no stub, no env var that turns a check off on the command line (`git_rules.py` blocks or warns). An
+override flag on the landing scripts exists for the coordinator only (`git_rules.coordinator_only_flags`), and each use
+should be logged where the owner reviews it. A wrong gate is fixed in the gate, in its own pull request.
+
 ## land.sh
 
 A starter version of the landing pattern, not the queue the source project runs. `scripts/land.sh <PR>` refuses a pull request whose head has no recorded prelanding pass, takes the merge lock

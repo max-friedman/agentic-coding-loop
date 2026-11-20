@@ -12,7 +12,8 @@
           {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/git_rules.py\"", "timeout": 5},
           {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/gh_rules.py\"", "timeout": 5},
           {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/kill_rules.py\"", "timeout": 5},
-          {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/waiter_guard.py\"", "timeout": 5}
+          {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/waiter_guard.py\"", "timeout": 5},
+          {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/wip_limit.py\"", "timeout": 15}
         ]
       },
       {
@@ -41,6 +42,13 @@
       {
         "hooks": [
           {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/lane_ledger.py\"", "timeout": 5}
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {"type": "command", "command": "python3 \"${CLAUDE_PROJECT_DIR}/.claude/hooks/coordinator_digest.py\"", "timeout": 5}
         ]
       }
     ],

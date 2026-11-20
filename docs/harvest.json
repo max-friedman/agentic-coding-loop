@@ -10,24 +10,28 @@
    "dest": "fb5b5338292a7db782d2918d4a79bd58b794dfaac55839eafe2f5dda24eee300"
   },
   "hooks/admission_gate.py": {
-   "source": "674b1fcea8085aa033e1d1fb8ac1350f66ab18bda90003621d181bc132394055",
-   "dest": "c9a7a793918d5db4994af59411e8f57ddc43bc44d91f8b8bb80b12ec4c0567f0"
+   "source": "efd8ddd07b82f123540bf68d92997febc1b27ce251ffb80aa6fd359a40da5744",
+   "dest": "fe7439691b090214ff390188675c41608ab817d11804d7e2daa6ef557c18d72c"
+  },
+  "hooks/coordinator_digest.py": {
+   "source": "c4114670882e368a3a3550bd22325cdb634a6471bb3090b739ed51ae35d6118e",
+   "dest": "f4e801e43510aa09476f29a960c86102f85540763e426e9a49d28d522876f1a8"
   },
   "hooks/coordinator_session.py": {
-   "source": "4cf781e6e020785295e76181668a170251576b2ac919fd00e8aa02015b98dcb9",
+   "source": "4fe60a87cb629252994540d3686d16322c2d15bbe611e51b9abf41efb7cb7c79",
    "dest": "51d6364dc99e420fa56f06351435f1974fbe157ab0ec8b2980aa761a9b216d52"
   },
   "hooks/coordinator_stop.py": {
-   "source": "e86a5517a8e2a6a1110a49072ba5dbf50872b3d3db43419fbbc3dababc78d5c8",
-   "dest": "f6ecf628de896038390e7024327205b8269e57fd73623e1981c1065eeee88d8e"
+   "source": "769ce3671d140985e1d283d5154f8d5024c0fd679a6858effae69705f8e74307",
+   "dest": "7b2eebc848557cbe0409f7ca0ff3eb5eff886f62f6988a585fd0199f89282969"
   },
   "hooks/gh_rules.py": {
-   "source": "d4e9986989c6b095a3ae702f7e610c7dc2b436eb5e424b148728616a0a2630fd",
-   "dest": "3dceb86dbecd558d49e73e6932b11b2678cb42e125f8a37e4a8278be929ee616"
+   "source": "912ff375568f8195c4106785ca6bd3558b71676bda56a67a05ab4fc03cd72419",
+   "dest": "930834df491ebd830563b0ad2a8b80d668b51c0a8f56fc538bfb8e729b143dae"
   },
   "hooks/git_rules.py": {
-   "source": "29b4372b082ab7b620c9c727b007169263904f645649ff3f98e47cf5fef35b41",
-   "dest": "e95c4f3bcb306e7911897d717f2f020ba29d9c1b56f09b6d108ead04a8764511"
+   "source": "74ba0b36daac28b83ade152d41e69dd05f49850e433b5478ca3a31c5a41400ec",
+   "dest": "4483aa8ec55d9ad4df1471657307be8d5ade916eb943f589e3e35960227e04f5"
   },
   "hooks/kill_rules.py": {
    "source": "c75d9681292f8d4f38ba37e352e6cfebf4c35e9aa993e3f57789b32cde6e4209",
@@ -38,24 +42,28 @@
    "dest": "4c216d1cb9e11fe242d078cc4d996d34f6af0517a70c8953d91a008ea4f46dcf"
   },
   "hooks/session_reminder.py": {
-   "source": "f8d4c2a20766e690f6f78eeed3ab9f0aede61f40f1b027d0faef1dceaccb5c52",
-   "dest": "d6f8abc121e30a6ca7f86e106128b8225efb0b4ef7e0c5a2b192f351b4399989"
+   "source": "8451d032b80ee6021d2a0391b92c1a766944c1270f025ccf981d78ec5e82ce3f",
+   "dest": "b9295d3c44ad66d15b3421a8032ad3b165d91f2bf502db50eca8763ac3553a0c"
   },
   "hooks/spawn_gate.py": {
    "source": "14dbe5c563e9956c7164e47f4fe737b5eb977a5dbff489fa3cf623c07d02cfb5",
    "dest": "357e7bd1dede574ebc23ba0e1ca3f004e662bba1580e85a3a5654ccc2104dbc0"
   },
+  "hooks/test_coordinator_digest.py": {
+   "source": "10c8602be9a5ddf4df6d77d0bdc44b68111d35961e63d719202ae8bdd7b75cd1",
+   "dest": "dd94e24940e2a8093155d86c286918445d0bded92b83c940b2956639c258ca2f"
+  },
   "hooks/test_coordinator_stop.py": {
-   "source": "6db21b62f8730343ee52624cb48950982fb6156747e6b44aee9ce24611b4a7da",
-   "dest": "f991d676bf5a4a576d73731c7e193627109332bec197588292c0023fb6e3c284"
+   "source": "cd9ccac67d147d9be4d26e317a142f10fd487076233a48b015aec2b13ccd7c00",
+   "dest": "6daa77da1e982229dbb42d0cde8a55281d7c71a13b385f982a8c1cf2bcfd740f"
   },
   "hooks/test_gh_rules.py": {
-   "source": "883297a692de010eaf599d4a417324d842ef92eaf68c1d961677275113eccc7c",
-   "dest": "72fbe8a25c6a0f08e8ae920e1102c8b801a6cc9b7822f500774c2a577799eb4e"
+   "source": "210be97b2ef5e2cccb9292369da8e9fad247f66d5497dc772754146472383e7b",
+   "dest": "55ff19a1d4f8f9918d5d707923a25299099fc5795eccc25325753be673032c4d"
   },
   "hooks/test_git_rules.py": {
-   "source": "2a3cc6ae41fb2afb1524e6bb7f7118a068bc312e53696e89a7d4e5051d85af98",
-   "dest": "8ae9080bb25379ef369f9075dfc56ad3c3a72b2936981e098b1afd0ffe776d1e"
+   "source": "4a7bab9e7880c1f76c2abd6ed5c714971459316726f80c1b9532dfa7ccb85619",
+   "dest": "2fe55f1e833ad3cc9fbee46e297ac43f5d5dd52977660bdcadf9d352c5a32b90"
   },
   "hooks/test_kill_rules.py": {
    "source": "e4cdac6488292ef2eac1c83259eff3c5397e14bbfdb71fa745a15b21e22888ee",
@@ -66,40 +74,68 @@
    "dest": "8739caa1f4e4fa49cba89d3256469203c7a25f281c820eee01a2abfc6bd04075"
   },
   "hooks/test_session_reminder.py": {
-   "source": "25afd171d005186595a94a26efab46f8f51b513d34bd9400fc789f0a8f26cc9b",
-   "dest": "2af6733d321408acb8b8b8e50bc3d4077d83c309c04e07397f455364354d2409"
+   "source": "2334168d02249c43881fbfcdca281a6af81cc6fa24caa05f91b1e3bf1b55ca33",
+   "dest": "b3e8749ad613ede39502d790b4cfbfe85a927ff6b56122b573cb933f3a4de305"
   },
   "hooks/test_spawn_gate.py": {
    "source": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db",
    "dest": "bc41fd9427caad657f030ca693e1b20c7a7ced0627a65cbc0a645884b9553ae5"
   },
+  "hooks/test_waiter_guard.py": {
+   "source": "a105be22819953f91d79eb4a40595edb50c87c0d0519aecaf61b6a96b5afb6e0",
+   "dest": "fff661ebfdfcee89165d2954f9ed469a2bef617e0e8978ec56a86b133fe84388"
+  },
+  "hooks/test_wip_limit.py": {
+   "source": "665a3ae609a7cc4c4f6d25b1d616239b4005e0f5b6a44d0c350385027840be45",
+   "dest": "45fb2e2a9d58452b9bc21065b9df50567ddb2ef3dedac5f64a138dc05c874c1e"
+  },
   "hooks/waiter_guard.py": {
    "source": "fe5d1d5cf15b9f0ee6d4bf16d633852afe52bdccc3aa835664e960ee310bf420",
-   "dest": "e0d30381a93d5a9148b8107fe5093197aeae8a2dc778f10614325670eb0044e2"
+   "dest": "3291d36fb7b41ccca6278b3c7b9c7be463e3c5b93c3e793e5f2d1e285eb2abd1"
   },
   "hooks/watchdog.py": {
-   "source": "30e2f45a3d93a7e41b1f311a43287d07a4ffb00b1d49f9cd4f3d9e78254b21cf",
-   "dest": "3cb63d34a497e81432e03400187fbfb590d3e64bbd9cbd9abef261d8d4685b5a"
+   "source": "3f77fc9f8f7f76b4897b27f69745fc719294c786abbc4decbb8a763050137bcd",
+   "dest": "e56689483f0ebdb9c75949b4fdeb5168d56ce5971cff80a18e8c96eff5c9886f"
+  },
+  "hooks/wip_limit.py": {
+   "source": "94acbf9161c84eb015923eea0e89cbfc2077e16b19c25bcb2f29a108bdf49ce4",
+   "dest": "7856c24ccc9e5e4feea95937202d1c188ddc543f0b4638922d4f519b6d937e17"
   },
   "templates/project-kit/docs/process/helper-rules.md": {
-   "source": "cbd703fa16807ce139ee95a2e804bfb205cd609c4a1bb69790fc59d600e14565",
-   "dest": "6e152ddf619e4225655dba5433840d79453bfd887a915aad5d2f9c25562fbab6"
+   "source": "30c3d803896680bba52dfbc8611031194060f606b52c52652c0658a1e356753d",
+   "dest": "540f39f07afc1289b08b28333b662d0b7f84ba2fdcc25f032c50baf382e512bc"
   },
   "templates/project-kit/docs/process/landing.md": {
-   "source": "2fa1946cebd3af0289271ee2f3deeeafde32c57c6d2d3da7edda2ae5d991a25b",
-   "dest": "9f0ecafe7fd033258ba205aa5e39f46e1fe4392276fd62015bb1889cb174a36d"
+   "source": "922eba9c75058993b99739446575a1b9d5b91a291b8643c33eb432cb87752d07",
+   "dest": "951190d6431e77b935776b4ae9d73e3937df55f26865b231464f7b2e7c3d417f"
   },
   "templates/project-kit/scripts/prelanding.py": {
-   "source": "75563bfb0d800e7c72643b7045e6a1bf79b09b98fc6a521d377671e9c92dcebf",
-   "dest": "054bbcd241d4a201509578dadfd0a77ca0cb8ab3a3217b34e9ef21fad3a77102"
+   "source": "32af34c4f3418d29d1a27c28f19989cb4a084f454ea6d392db11af5ce1b3fd3b",
+   "dest": "6549b3f9931e0a4ba6532ed042ae212860a8d3c5df1a6e72f2e845a9c47f33d9"
   },
   "templates/project-kit/scripts/repo_lock.py": {
    "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",
    "dest": "27c1034ffc69caf4d5f39fbed5d20678032d6c45592402b8390ef95e3a61a577"
   },
+  "templates/project-kit/scripts/stale_revert.py": {
+   "source": "686a2f532110fef3d187858044dcf92d9d793fb99121af546c5f912ebc3a8e44",
+   "dest": "63ba41b11e6849ff598e6f0377f775b6faddd029dd4a5e113c2b0ca35189b213"
+  },
+  "templates/project-kit/scripts/test_stale_revert.py": {
+   "source": "a0d7b0c87e4e24eec093ba176a7f262cd6988000f03df73c2f4f2bc56429ddd2",
+   "dest": "c0ac71822948954ca54dfb91152149e559e8a41d75b3cb2b4ca29b13e0ba2b26"
+  },
   "templates/project-kit/scripts/tmpclean.py": {
    "source": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2",
-   "dest": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2"
+   "dest": "c074426e9c247099c2770a864876219ae4ff89ef964cf8682f8c7fb303aba0b0"
+  },
+  "templates/project-kit/scripts/waiter_reaper.py": {
+   "source": "fe068ea2ab7d8ba6353b482ab282b03259ede21611f52c1ca5f4af57cc7198ef",
+   "dest": "312120a4522227243bd99a32e111da19297ea76f5c610df4f72ee18c74c4134f"
+  },
+  "templates/project-kit/scripts/worktree_gc.py": {
+   "source": "4ef9e0d115fa37a4a6aec69a467ae4ecb98b1fe8e0402211fbcf3e2127bf956f",
+   "dest": "65dfbc82dc22bcb772028edf9c735463eb8e95413e024217f4eacee2f867a571"
   }
  }
 }
