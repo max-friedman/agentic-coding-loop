@@ -27,11 +27,11 @@
   },
   "hooks/gh_rules.py": {
    "source": "912ff375568f8195c4106785ca6bd3558b71676bda56a67a05ab4fc03cd72419",
-   "dest": "930834df491ebd830563b0ad2a8b80d668b51c0a8f56fc538bfb8e729b143dae"
+   "dest": "351c5564979690f6c391d6ce6248bf5b6d263edecb6669b5f668479669056a9c"
   },
   "hooks/git_rules.py": {
-   "source": "74ba0b36daac28b83ade152d41e69dd05f49850e433b5478ca3a31c5a41400ec",
-   "dest": "4483aa8ec55d9ad4df1471657307be8d5ade916eb943f589e3e35960227e04f5"
+   "source": "b1bc7e4a7aba686d5f79bb6fd8f537899aff82e4baf48a7b6439825e7420d53c",
+   "dest": "48427546298554b5ce63650d076cfac33617c94c685fbd117ffd85b61cdd3690"
   },
   "hooks/kill_rules.py": {
    "source": "c75d9681292f8d4f38ba37e352e6cfebf4c35e9aa993e3f57789b32cde6e4209",
@@ -62,8 +62,8 @@
    "dest": "55ff19a1d4f8f9918d5d707923a25299099fc5795eccc25325753be673032c4d"
   },
   "hooks/test_git_rules.py": {
-   "source": "4a7bab9e7880c1f76c2abd6ed5c714971459316726f80c1b9532dfa7ccb85619",
-   "dest": "2fe55f1e833ad3cc9fbee46e297ac43f5d5dd52977660bdcadf9d352c5a32b90"
+   "source": "e76e2972388d34696bde8010feb10074215b0bb6f7f3d024e312321d10ad67c7",
+   "dest": "ab389ac4d7c5f071aaeec714782584e7750d1ed41ea60955a2c223b3cb49e3a7"
   },
   "hooks/test_kill_rules.py": {
    "source": "e4cdac6488292ef2eac1c83259eff3c5397e14bbfdb71fa745a15b21e22888ee",
@@ -99,7 +99,7 @@
   },
   "hooks/wip_limit.py": {
    "source": "94acbf9161c84eb015923eea0e89cbfc2077e16b19c25bcb2f29a108bdf49ce4",
-   "dest": "7856c24ccc9e5e4feea95937202d1c188ddc543f0b4638922d4f519b6d937e17"
+   "dest": "830753ce2cb64928beb81225d0248cc2d494756d2edb601699173c621da10445"
   },
   "templates/project-kit/docs/process/helper-rules.md": {
    "source": "30c3d803896680bba52dfbc8611031194060f606b52c52652c0658a1e356753d",
@@ -107,7 +107,7 @@
   },
   "templates/project-kit/docs/process/landing.md": {
    "source": "922eba9c75058993b99739446575a1b9d5b91a291b8643c33eb432cb87752d07",
-   "dest": "951190d6431e77b935776b4ae9d73e3937df55f26865b231464f7b2e7c3d417f"
+   "dest": "7170df841360bfa9c638a58d8ffc6aa057f93f7cf300eb8669f3257f1b84c2c9"
   },
   "templates/project-kit/scripts/prelanding.py": {
    "source": "32af34c4f3418d29d1a27c28f19989cb4a084f454ea6d392db11af5ce1b3fd3b",
