@@ -44,3 +44,8 @@ recipe, if you need it:
 4. Red main holds features: while main fails a check, refuse pull requests that could affect the failing area unless
    the branch is a fix. Only failures main doesn't already have block a landing.
 5. After the merge, short checks run in the background and revert only a culprit; the full suite runs nightly.
+6. A held state: `hold <PR> --why "<reason>"` keeps a PR out of the queue (it removes the PR's entry unless it is
+   landing, and records the hold with its reason and time). `add` refuses a held PR, naming the reason, until
+   `add <PR> --unhold`, which releases the hold and queues it; `status` lists the holds with their reasons; anything
+   that queues PRs by itself (a watchdog's auto-queue of ready PRs) skips held ones. Dropping a PR isn't enough: a PR
+   dropped twice to land only after a release was queued again by the auto-queue and landed.

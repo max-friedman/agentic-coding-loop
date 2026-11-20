@@ -11,6 +11,23 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.5.0] — 2026-11-20
+
+Rules that say why, a named list of what needs no approval, and a land queue that can hold a PR. Kit docs and §F
+only; no protocol change, so existing state files need nothing.
+
+**Added**
+- The kit's PLAYBOOK splits the hard rules into **Safety** (only the owner waives one) and **Mechanics** (hook- or
+  script-enforced), each with its reason, and names what the coordinator does without approval. The helper rules give
+  every rule its reason, name the routine work a helper does without a go-ahead, and gain "Finishing work" and
+  "Communicating clearly", adapted from Anthropic's
+  [prompting guide for Claude Fable 5.2](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2).
+- §F: name what needs no approval; Safety vs Mechanics with reasons; a PR kept out on purpose is held, not dropped.
+  The kit's landing doc adds the queue's held state (`hold <PR> --why`, `add --unhold`, holds in `status`, skipped by
+  any auto-queue). Hook block messages say what they blocked, why, and what to do instead.
+- A lesson in `docs/PARALLEL_LANES.md`: route a crashing test process's crash log into the build directory and have the
+  check print the crashing frame.
+
 ## [1.4.0] — 2026-11-20
 
 Gates that can't be skipped, cleanup that finds what it missed, and a coordinator that doesn't wait. New capability

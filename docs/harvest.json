@@ -3,7 +3,7 @@
  "items": {
   "docs/PARALLEL_LANES.md": {
    "source": "cce0ce51976e117ddb7b674bdc3750003bc78e341a070a319e8b0da0e7183a81",
-   "dest": "f899fd665fe48de0ed5bfd02ec325c12e42f00655bc45828818e0803b20f04b4"
+   "dest": "495563ebf23f699e44e29e2a663f0d2927f0b4e12136f0df1711986174b67fa3"
   },
   "hooks/_shell.py": {
    "source": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3",
@@ -94,7 +94,7 @@
    "dest": "4ef47166f031d8842d70268d5c6204ad3e9029d4860cbaec852e55dd869b1170"
   },
   "hooks/watchdog.py": {
-   "source": "3f77fc9f8f7f76b4897b27f69745fc719294c786abbc4decbb8a763050137bcd",
+   "source": "a20364c82f341fd98ba670b603c0e19eb18b17e58b6c8c8aa67b6284aec5674f",
    "dest": "e56689483f0ebdb9c75949b4fdeb5168d56ce5971cff80a18e8c96eff5c9886f"
   },
   "hooks/wip_limit.py": {
@@ -102,12 +102,12 @@
    "dest": "830753ce2cb64928beb81225d0248cc2d494756d2edb601699173c621da10445"
   },
   "templates/project-kit/docs/process/helper-rules.md": {
-   "source": "30c3d803896680bba52dfbc8611031194060f606b52c52652c0658a1e356753d",
-   "dest": "540f39f07afc1289b08b28333b662d0b7f84ba2fdcc25f032c50baf382e512bc"
+   "source": "2fbb35f978eb69e0d6876f2e1ae8d93a046f0d669bb6a04df9f1d711ec1cd246",
+   "dest": "45adcc7bc27c7e65cdfc7f72aa9cce764284b1e68099a3deaebaa9e928837bdf"
   },
   "templates/project-kit/docs/process/landing.md": {
-   "source": "922eba9c75058993b99739446575a1b9d5b91a291b8643c33eb432cb87752d07",
-   "dest": "7170df841360bfa9c638a58d8ffc6aa057f93f7cf300eb8669f3257f1b84c2c9"
+   "source": "ec27b9f2c0a0f2a0748e5989d78d11d1b9cfb53091c30d694f74171215130183",
+   "dest": "073139c071e67648644bcb30382fe74add11266f27c7c25a65b12661d03d367c"
   },
   "templates/project-kit/scripts/prelanding.py": {
    "source": "32af34c4f3418d29d1a27c28f19989cb4a084f454ea6d392db11af5ce1b3fd3b",

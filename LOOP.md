@@ -690,6 +690,7 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 | **Refuse a stale merge**: a PR missing lines the default branch added to a file the PR also changes, unless the PR says the revert is intended. | A bad conflict resolution silently undoes merged work. |
 | **Never skip a gate.** No `--no-verify`, no stubbed check, no environment variable that turns a check off for one command. An override flag on the merge path belongs to the coordinator only, and every use is logged where the human reviews it. A wrong gate is fixed in the gate. | A gate a lane can skip is a suggestion. |
 | **A gate change is its own PR.** A PR that changes a gate (anything that decides what runs, what is skipped or what passes) together with product code is refused unless an independent reviewer — a fresh agent or the human, never the author or the coordinator that steered it — read the gate diff and the PR says so. The line in the PR is an honour check (the author can type it), so it only works paired with a reviewer the coordinator actually starts. | Changed together, the check and the code it checks are loosened in one step and reviewed as one. |
+| **A PR kept out on purpose is held, not dropped.** The queue has a held state with a reason: adding a held PR is refused until it is explicitly released, and anything that queues PRs by itself skips it. | A dropped PR looks ready again to the next automatic queuer, and lands before the moment it was waiting for. |
 | **Per-PR scratch files.** A PR description, log or result file is named after its PR or lives in its lane's worktree; never a shared fixed path. | Two lanes writing one `pr_body.md` put one PR's description on the other. |
 | **Selecting where a check runs fails closed.** When the list that says which checks need the strict target can't be read, everything goes to the strict target. | Read as empty, the list sends those checks where they are skipped, and a skip reads as a pass. |
 
@@ -727,6 +728,14 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
   and log it — date, decision, why, how to undo — in an assumptions log the human
   reviews in one pass. Zero lanes while ready work exists is never "waiting on the
   human"; the watchdog flags it.
+- **Name what needs no approval.** The coordinator and the lanes each get a written list of routine actions they
+  take without asking (landing tested PRs, one rerun of a flaky check, turning an approved and tested feature on
+  through its config knob), and of what they hand back. Without the list, agents ask for a go-ahead on work that
+  was already authorized and the lane idles until someone answers.
+- **Split the hard rules into Safety and Mechanics, each with its reason.** Safety rules (what reaches real
+  people, the human's data and devices, secrets, skipped gates) only the human waives; mechanics are enforced by
+  hooks whose block message says what it blocked, why, and what to do instead. A rule with its reason gets applied
+  to cases it doesn't name; a bare rule gets followed to the letter or argued away.
 - **One number per limit, and it lives in the mechanism.** The lane cap is the value
   the hook reads; a second number in notes or prompts drifts from it.
 - **Rules live in the written docs, not in one session's notes.** A rule the human
