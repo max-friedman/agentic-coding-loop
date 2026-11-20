@@ -20,6 +20,10 @@ A blocked call says what to do instead. Fix a wrong block in the hook, by pull r
   (`gh_rules.py`). `python3 scripts/prelanding.py` passes on the branch first.
 - **Kill by PID, never by pattern** (`kill_rules.py`); **no `pgrep -f` wait loop that matches itself**
   (`waiter_guard.py`).
+- **Never skip a gate**: no `--no-verify`, no stubbed check, no landing override from a helper (`git_rules.py`). A
+  gate change is its own pull request, reviewed by someone independent (`prelanding.py`).
+- **Worktrees only in the managed dirs** (`git_rules.worktree_dirs`), removed once the PR is queued (`git_rules.py`,
+  `scripts/worktree_gc.py`). **At most `wip_limit.max_open_prs` open product PRs** (`wip_limit.py`): land one first.
 - **A helper is spawned under the lane cap** (`admission_gate.py`; `lane_ledger.py` records running lanes). A spawn
   prompt carries `Lane: <kind>; Hotspot: <area>`; without it the spawn counts as the default kind, with a warning.
   `spawn_gate.py` can also require a model and the rules (`docs/process/helper-rules.md`): opt in through
@@ -45,3 +49,4 @@ A blocked call says what to do instead. Fix a wrong block in the hook, by pull r
 - Roles, spawning helpers, after a context loss → `docs/process/PLAYBOOK.md`
 - The rules every helper follows → `docs/process/helper-rules.md`
 - Landing: prelanding, the queue, red main → `docs/process/landing.md`
+- Decisions made without the owner, for them to review → `docs/process/assumptions-log.md`

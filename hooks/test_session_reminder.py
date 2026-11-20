@@ -26,7 +26,7 @@ def hook(source):
 
 print("session_reminder.py")
 text = s.reminder("compact", ["land.sh 633"])
-for want in ("Coordinator checklist", "After a context loss", "coordinator_session.py register", "Monitor", "check-in",
+for want in ("Coordinator checklist", "After a context loss", "coordinator_session.py register", "quiet watch", "check-in",
              "disk", "lane_ledger.py list", "land.sh 633"):
     check(f"the reminder mentions {want!r}", want in text, text)
 check("no landings: says none", "Landings running now: none." in s.reminder("resume", []))

@@ -3,7 +3,7 @@ Test helper: remove every temp directory this process makes with tempfile.mkdtem
 
 2026-10-05: $TMPDIR held ~28 GB in ~50,000 leftover dirs: the suites made them with mkdtemp and never removed them
 (each full run left hundreds). `tmpclean.install()` at the top of a test file keeps the tests unchanged and cleans up
-after them. A killed run (SIGKILL, timeout) still leaves its dirs behind: scripts/worktree_gc.py sweeps those.
+after them. A killed run (SIGKILL, timeout) still leaves its dirs behind; sweep those on a schedule.
 """
 from __future__ import annotations
 

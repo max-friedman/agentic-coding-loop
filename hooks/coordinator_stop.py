@@ -2,13 +2,13 @@
 """Stop (coordinator only): the coordinator's turn doesn't end while what wakes it is gone.
 
 Nothing wakes an idle session but a background task or a session cron, so the end of a turn is the last moment to
-notice that the event watcher expired or the check-in was never re-created. In the project behind this kit, re-arming
+notice that the quiet watch (the background task that wakes it) ended or the check-in was never re-created. In the project behind this kit, re-arming
 them slipped three times, each followed by another written rule; this hook replaced the rules. Claude Code's Stop input
 lists the session's `background_tasks` and `session_crons` to tell "done" from "paused waiting for background work"
 (https://code.claude.com/docs/en/hooks#stop-input).
 
 Opt-in: does nothing unless `coordinator.require_checks` is true in `.loop/config.json` (it assumes you run a
-coordinator session with an event watcher and a recurring check-in).
+coordinator session with a quiet watch and a recurring check-in).
 
 It blocks (`{"decision": "block", "reason": …}`: Claude gets the reason as its next instruction) when:
   (a) no in-flight background task matches `coordinator.monitor_pattern` (its description, command or name);
@@ -75,7 +75,7 @@ def reason(gone: list, cfg: dict) -> str:
     lines = ["Coordinator Stop hook (.claude/hooks/coordinator_stop.py): nothing will wake this session. Before ending "
              "the turn:"]
     if "monitor" in gone:
-        lines.append(f"- Re-arm the event watcher (no running background task matches /{c['monitor_pattern']}/): "
+        lines.append(f"- Restart the quiet watch (no running background task matches /{c['monitor_pattern']}/): "
                      f"{c['monitor_command']}.")
     if "checkin" in gone:
         lines.append(f"- Re-create the recurring check-in (no recurring cron's prompt matches /{c['checkin_pattern']}/): "

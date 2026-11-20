@@ -11,6 +11,40 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.4.0] — 2026-11-20
+
+Gates that can't be skipped, cleanup that finds what it missed, and a coordinator that doesn't wait. New capability
+in the kit and new rules in §F; no protocol change, so existing state files need nothing.
+
+**Added**
+- Two hooks. `wip_limit.py` blocks `gh pr create` while too many open PRs change product code
+  (`wip_limit.max_open_prs`, 7; drafts and reverts pass). `coordinator_digest.py` puts a few lines of facts in front
+  of every coordinator turn: running lanes against the floor, the heartbeat and the watchdog's flags, and how many
+  decisions in the assumptions log the owner hasn't reviewed.
+- `git_rules.py` blocks a skipped gate: `git commit --no-verify` / `-n`, `git push --no-verify`, and a landing
+  script's override flag from anyone but the coordinator. It blocks a helper's `git worktree add` outside the managed
+  dirs (`git_rules.worktree_dirs`) and warns on a command prefixed with a gate-changing environment variable.
+- `gh_rules.py` warns when a PR body comes from a shared scratch file instead of a per-PR one.
+- Opt-in "finish before starting" in `admission_gate.py`: no new feature lane while more than
+  `finish_before_start.max_waiting_prs` PRs wait to land; bug and process lanes still start.
+- `scripts/prelanding.py` refuses a branch that changes a gate together with product code unless an independent
+  reviewer is named (`Gate change: reviewed by ...`; on once `prelanding.code_paths` is set), and a stale merge that
+  undoes lines main gained since the branch forked (new `scripts/stale_revert.py`).
+- `scripts/worktree_gc.py` removes finished, clean, idle worktrees wherever they live, and
+  `scripts/waiter_reaper.py` kills orphaned Claude Code waiter shells. Schedule both next to the watchdog.
+- The watchdog flags `lanes_idle` (no lanes while ready work waits) and `rule_drift` (a private rule note newer
+  than the written rules), and writes `.loop/watchdog_flags.json` for the digest.
+- The kit ships `docs/process/assumptions-log.md`. §F, the kit's PLAYBOOK, helper rules and landing doc gain the rules
+  behind all this: never skip a gate, a gate change is its own PR, never wait on the human for a reversible call, one
+  number per limit, rules live in the docs, per-PR scratch files, worktrees only in managed dirs, a WIP limit, and a
+  check that picks where tests run fails closed.
+
+**Changed**
+- `waiter_guard.py` finds `pgrep` inside `$(...)` and past options that take a value (a `-u <user>` before `-f`).
+- The coordinator's default watch is a quiet background task with a check-in every two hours, not an event Monitor
+  every 30 minutes: idle wake-ups re-read the whole context. `coordinator_stop.py` and `session_reminder.py` say so.
+- `bootstrap_kit.py` copies no test files from the kit's `scripts/` either; the gate runs them here.
+
 ## [1.3.1] — 2026-11-19
 
 **Fixed**

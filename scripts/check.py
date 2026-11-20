@@ -355,6 +355,11 @@ def check_hooks() -> None:
                              capture_output=True, text=True, timeout=120)
         tail = (run.stderr or run.stdout).strip().splitlines()[-1:] or ["no output"]
         check(f"hooks/{name} passes", run.returncode == 0, tail[0])
+    kit_scripts = os.path.join(ROOT, "templates", "project-kit", "scripts")
+    for name in sorted(n for n in os.listdir(kit_scripts) if n.startswith("test_") and n.endswith(".py")):
+        run = subprocess.run([sys.executable, name], cwd=kit_scripts, capture_output=True, text=True, timeout=120)
+        tail = (run.stderr or run.stdout).strip().splitlines()[-1:] or ["no output"]
+        check(f"templates/project-kit/scripts/{name} passes", run.returncode == 0, tail[0])
     # One copy of each hook: the kit installs hooks/ (bootstrap_kit.py), so the template carries none of its own.
     kit_hooks = os.path.join(ROOT, "templates", "project-kit", ".claude", "hooks")
     check("hooks/ is the only copy of the hooks", not os.path.exists(kit_hooks),

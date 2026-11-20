@@ -19,12 +19,17 @@ lane can't hold a slot forever. The caps, the floors and the default kind are kn
 
 Fails CLOSED on its own errors, a config file that doesn't parse included: over-spawning is the expensive failure.
 A resource probe that can't be read does not block (the probe is not the thing guarded).
+
+Finish before starting (opt-in, `finish_before_start.max_waiting_prs` above 0): a feature spawn is refused while more
+open, non-draft pull requests than that wait to land (`gh pr list`; LOOP_GH_BIN overrides gh). Bug and process lanes
+pass: they are what unblocks landing. A PR list that can't be read does not block.
 """
 from __future__ import annotations
 
 import json
 import os
 import shutil
+import subprocess
 import sys
 from pathlib import Path
 
@@ -63,7 +68,34 @@ def check(tool_input: dict, cfg: dict | None = None, now: float | None = None) -
     held = {h for e in lanes for h in e.get("hotspots", [])} & hotspots
     if held:
         return f"Blocked: hotspot {', '.join(sorted(held))} is held by a running lane. Take the next item."
-    return None
+    return queue_refusal(kind, cfg)
+
+
+def open_ready_prs() -> list[int] | None:
+    """Open, non-draft pull requests of this repo, or None when gh can't tell."""
+    try:
+        r = subprocess.run([os.environ.get("LOOP_GH_BIN") or "gh", "pr", "list", "--state", "open", "--limit", "200",
+                            "--json", "number,isDraft"], capture_output=True, text=True, timeout=8,
+                           cwd=str(_loop.project_dir()))
+        if r.returncode:
+            return None
+        return [p["number"] for p in json.loads(r.stdout or "[]") if not p.get("isDraft")]
+    except (OSError, ValueError, KeyError, TypeError, subprocess.SubprocessError):
+        return None
+
+
+def queue_refusal(kind: str, cfg: dict) -> str | None:
+    """Finish before starting: a feature spawn while more than max_waiting_prs ready PRs wait to land."""
+    limit = int((cfg.get("finish_before_start") or {}).get("max_waiting_prs") or 0)
+    if limit <= 0 or kind != "feature":
+        return None
+    prs = open_ready_prs()
+    if prs is None or len(prs) <= limit:
+        return None
+    return (f"Blocked: finish before starting. {len(prs)} pull requests wait to land "
+            f"({', '.join(f'#{n}' for n in prs[:8])}{'…' if len(prs) > 8 else ''}), more than {limit} "
+            "(finish_before_start.max_waiting_prs). Point lanes at what unblocks landing (failed checks, flaky tests, "
+            "conflicts, build speed) as `Lane: bug` or `Lane: process` instead.")
 
 
 def warn(tool_input: dict, cfg: dict | None = None) -> str | None:

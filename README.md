@@ -29,7 +29,7 @@ agent over weeks, and want the work to keep adding up.
 
 1. **A one-command setup** that installs the whole working environment into any repo:
    the hooks, the settings, a starting `CLAUDE.md`, process docs and a state file.
-2. **Ten Claude Code hooks** that enforce the rules agents break. They cap how many
+2. **Twelve Claude Code hooks** that enforce the rules agents break. They cap how many
    agents run at once and stop them when disk or memory runs low. They block the git
    and shell commands that let one agent destroy another's work, and they keep agents
    out of anything a live service depends on.

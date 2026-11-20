@@ -40,17 +40,63 @@ DEFAULTS: dict = {
     },
     "gh_rules": {
         "block_pr_merge": False,          # True: block `gh pr merge` on this repo (land with scripts/land.sh); opt-in
+        "warn_shared_body_file": True,    # warn on a PR body read from a shared scratch path
+    },
+    "git_rules": {
+        "block_no_verify": True,          # block `git commit --no-verify`/`-n` and `git push --no-verify`
+        "landers": ["land.sh", "prelanding.py"],  # landing scripts whose override flags only the coordinator may pass
+        "coordinator_only_flags": ["--no-prelanding", "--skip-checks"],
+        "gate_env": ["PRELANDING_CHECKS", "WIP_LIMIT"],  # env vars that change a gate: set on a command, they warn
+        "worktree_dirs": [".claude/worktrees", "../{repo}-worktrees"],  # relative to the project; {repo}: its name
+        "block_stray_worktree": True,     # a helper's `git worktree add` outside worktree_dirs and $TMPDIR: blocked
+    },
+    "wip_limit": {
+        "max_open_prs": 7,                # `gh pr create` (not --draft) blocked at this many open product PRs; 0: off
+        "product_paths": [],              # prefixes that count as product code; empty: every path not exempt
+        "exempt_paths": ["docs/", "tests/", "test/"],  # a PR touching only these (and *.md) is exempt, not counted
+        "exempt_branches": ["revert-"],   # branch prefixes that are exempt and not counted
+    },
+    "finish_before_start": {
+        "max_waiting_prs": 0,             # >0: a feature spawn is refused while more open ready PRs wait; 0: off
     },
     "watchdog": {
         "min_free_disk_gb": 12,           # watchdog.py flags disk_low under this (it reads the file itself)
+        "lanes_idle_minutes": 30,         # lanes_idle: no lane running this long while ready work exists
+        "ready_file": "docs/ROADMAP.md",  # where ready work is listed (no file: lanes_idle is off)
+        "ready_pattern": r"\|\s*Ready\s*\|",  # each line matching this is one ready item
+        "rule_notes_dir": "",             # the coordinator's private notes (its memory dir); empty: rule_drift is off
+        "rule_note_pattern": r"^\s*type:\s*feedback\b",  # a note whose first lines match this records a rule
+        "rule_docs": ["docs/process", "CLAUDE.md"],  # where written rules live
+        "rule_drift_hours": 24,           # rule notes changed this recently and after rule_docs' last commit drift
+    },
+    "digest": {
+        "assumptions_log": "docs/process/assumptions-log.md",  # rows whose last cell starts with `open` are counted
+        "min_lanes": 2,                   # under this many running lanes, the digest says so
+    },
+    "worktree_gc": {
+        "idle_hours": 6,                  # scripts/worktree_gc.py removes a finished, clean worktree idle this long
+    },
+    "waiter_reaper": {
+        "max_age_hours": 6,               # scripts/waiter_reaper.py kills a Claude Code waiter shell older than this
+        "protected": [],                  # substrings of commands it never kills (your queue or scheduled-suite scripts)
+    },
+    "prelanding": {
+        "checks": [],                     # the commands scripts/prelanding.py runs (it fails when none is set)
+        "gate_paths": ["scripts/prelanding.py", "scripts/land.sh", ".claude/hooks/", ".claude/settings.json",
+                       ".githooks/", ".github/workflows/"],  # files that decide what runs or passes
+        "code_paths": [],                 # product code; a PR changing a gate and these needs an independent review line
+        "not_independent": ["coordinator", "author", "self", "me", "myself"],  # reviewer names that don't count
+        "stale_revert": True,             # refuse a branch that undoes lines main gained since it forked
     },
     "coordinator": {                      # coordinator_stop.py: what must keep running in the coordinator's session
         "require_checks": False,          # True: the coordinator's turn can't end without a watcher and a check-in; opt-in
         "monitor_pattern": "events|watch",  # a running background task whose description/command/name matches
         "checkin_pattern": "check-?in|checklist|heartbeat",  # a recurring session cron whose prompt matches
-        "monitor_command": "Monitor(description=\"events: the coordinator's event stream\", command=\"<your event "
-                           "stream command>\")",
-        "checkin_command": "CronCreate(cron=\"7,37 * * * *\", recurring=true, prompt=\"Coordinator check-in: run the "
+        # The quiet watch: a background Bash that exits only when something needs the coordinator (cheaper than a
+        # Monitor, whose every event wakes the session), and a sparse check-in (each idle wake re-reads the context).
+        "monitor_command": "Bash(run_in_background=true, description=\"events: the quiet watch\", command=\"<your wait "
+                           "script, which exits when something needs the coordinator>\")",
+        "checkin_command": "CronCreate(cron=\"17 */2 * * *\", recurring=true, prompt=\"Coordinator check-in: run the "
                            "checklist in docs/process/PLAYBOOK.md\")",
         "cooldown_minutes": 15,           # each condition blocks at most once per this many minutes
     },

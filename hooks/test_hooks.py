@@ -115,6 +115,24 @@ class AdmissionGate(Project):
         cfg["resources"]["scale_to_machine"] = False
         self.assertEqual(_loop.floors(cfg, 120, 8), (15, 6))
 
+    def test_finish_before_start(self):
+        saved = admission_gate.open_ready_prs
+        try:
+            admission_gate.open_ready_prs = lambda: [100, 101, 102, 103, 104, 105]
+            self.assertIsNone(admission_gate.check(self.spawn("Lane: feature; Hotspot: ui")), "off by default")
+            self.config(finish_before_start={"max_waiting_prs": 5})
+            msg = admission_gate.check(self.spawn("Lane: feature; Hotspot: ui"))
+            self.assertIn("6 pull requests wait to land", msg)
+            self.assertIn("#100", msg)
+            self.assertIsNone(admission_gate.check(self.spawn("Lane: bug; Hotspot: ui")))
+            self.assertIsNone(admission_gate.check(self.spawn("Lane: process; Hotspot: docs")))
+            admission_gate.open_ready_prs = lambda: [100, 101, 102, 103, 104]
+            self.assertIsNone(admission_gate.check(self.spawn("Lane: feature; Hotspot: ui")))
+            admission_gate.open_ready_prs = lambda: None
+            self.assertIsNone(admission_gate.check(self.spawn("Lane: feature; Hotspot: ui")), "unreadable: no block")
+        finally:
+            admission_gate.open_ready_prs = saved
+
     def test_bad_config_fails_closed(self):
         with open(os.path.join(self.dir, ".loop", "config.json"), "w") as fh:
             fh.write("{not json")
