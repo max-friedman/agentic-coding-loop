@@ -91,7 +91,7 @@
   },
   "hooks/waiter_guard.py": {
    "source": "fe5d1d5cf15b9f0ee6d4bf16d633852afe52bdccc3aa835664e960ee310bf420",
-   "dest": "3291d36fb7b41ccca6278b3c7b9c7be463e3c5b93c3e793e5f2d1e285eb2abd1"
+   "dest": "4ef47166f031d8842d70268d5c6204ad3e9029d4860cbaec852e55dd869b1170"
   },
   "hooks/watchdog.py": {
    "source": "3f77fc9f8f7f76b4897b27f69745fc719294c786abbc4decbb8a763050137bcd",
