@@ -24,7 +24,8 @@ only; no protocol change, so existing state files need nothing.
   [prompting guide for Claude Fable 5.2](https://platform.claude.com/docs/en/build-with-claude/prompt-engineering/prompting-claude-fable-5-2).
 - §F: name what needs no approval; Safety vs Mechanics with reasons; a PR kept out on purpose is held, not dropped.
   The kit's landing doc adds the queue's held state (`hold <PR> --why`, `add --unhold`, holds in `status`, skipped by
-  any auto-queue). Hook block messages say what they blocked, why, and what to do instead.
+  any auto-queue). `hooks/README.md` states the contract a hook's block message follows: what it blocked, why, and
+  what to do instead (no hook code changed).
 - A lesson in `docs/PARALLEL_LANES.md`: route a crashing test process's crash log into the build directory and have the
   check print the crashing frame.
 

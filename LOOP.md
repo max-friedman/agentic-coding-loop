@@ -729,8 +729,8 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
   reviews in one pass. Zero lanes while ready work exists is never "waiting on the
   human"; the watchdog flags it.
 - **Name what needs no approval.** The coordinator and the lanes each get a written list of routine actions they
-  take without asking (landing tested PRs, one rerun of a flaky check, turning an approved and tested feature on
-  through its config knob), and of what they hand back. Without the list, agents ask for a go-ahead on work that
+  take without asking (landing tested PRs, one rerun of a flaky check, turning on through its config knob a tested
+  feature the human already approved for enabling, logged), and of what they hand back. Without the list, agents ask for a go-ahead on work that
   was already authorized and the lane idles until someone answers.
 - **Split the hard rules into Safety and Mechanics, each with its reason.** Safety rules (what reaches real
   people, the human's data and devices, secrets, skipped gates) only the human waives; mechanics are enforced by

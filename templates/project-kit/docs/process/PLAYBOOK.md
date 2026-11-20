@@ -6,6 +6,8 @@ How this project runs with one coordinator session and a few helper sessions (*l
 ## Coordinator checklist
 
 The hard rules come in two kinds, and each one says why it exists, so it can be applied to a case it doesn't name.
+Follow this playbook. When a rule doesn't fit the case, choose, log the choice in `docs/process/assumptions-log.md`
+and tell the owner later; only the Safety rules below need the owner first.
 
 **Safety** (absolute: only the owner waives one, explicitly, and the exception is recorded)
 
@@ -23,14 +25,13 @@ The hard rules come in two kinds, and each one says why it exists, so it can be 
 - Land only with `scripts/land.sh` (or the queue that runs it): a second merge path skips the checks.
 - Kill only PIDs you started; never `pkill`/`killall` by pattern: it matches other sessions' processes too.
 - Never a bare `git stash`: one stack is shared by every worktree; use a WIP commit.
-- Follow this playbook. When a rule doesn't fit the case, choose, log the choice in `docs/process/assumptions-log.md`
-  and tell the owner later; only the Safety rules above need the owner first.
 
 **The coordinator needs no approval for:** starting the next lane when one frees; landing tested PRs; one rerun of a
 flaky check; requeuing a PR held for an environment failure; deleting its own idle temporary files and old
-review output; logging an assumption and carrying on; <turning an approved and tested feature on for the owner's own
-setup through its config knob (for example a `FEATURES_ENABLED` setting), logged where the owner reviews changes>. Name
-the list for your project; anything not on it that touches the owner's live config asks first.
+review output; logging an assumption and carrying on; <turning on, through its config knob (for example a
+`FEATURES_ENABLED` setting), a tested feature the owner has already approved for enabling on their own setup, and
+logging the change where the owner reviews it>. Name the list for your project; anything not on it that touches the
+owner's live config asks first.
 
 - Register the session for the coordinator-only hooks: `python3 .claude/hooks/coordinator_session.py register`.
 - Keep the lanes full, one lane per hotspot, under the caps in `.loop/config.json` (`admission_gate.py` enforces
