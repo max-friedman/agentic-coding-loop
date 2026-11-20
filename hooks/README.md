@@ -26,8 +26,10 @@ them, and `bootstrap_kit.py --test` runs them from here; the installer copies no
 
 `_shell.py` (command parsing) and `_loop.py` (the knobs, the `Lane:` line, the ledger)
 are shared helpers. Hooks follow Claude Code's contract: the call arrives as JSON on
-stdin; exit 2 with a message on stderr blocks it, and the message says what to do
-instead. Fail closed when the thing guarded can't be undone, open when it can.
+stdin; exit 2 with a message on stderr blocks it, and the message says what it
+blocked, why the rule exists, and what to do instead, so the agent can tell a
+deliberate block from an obstacle to work around. Fail closed when the thing
+guarded can't be undone, open when it can.
 
 ## The lane ledger
 

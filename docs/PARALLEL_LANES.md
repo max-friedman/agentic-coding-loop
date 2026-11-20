@@ -305,6 +305,7 @@ one; two crashes within an hour of an install pause the train.
 | **A lock held long with no progress is an alarm.** | 45 minutes with no new output = stuck. |
 | **Kill only PIDs you started.** | A helper's `pkill -f` killed the coordinator's waiters. A hook refuses pattern kills. |
 | **Never delete a directory a process still runs from.** | Deleting a lander's checkout mid-run crashed a service restart that ran from it. A hook refuses it. |
+| **A crashing test process leaves its crash log where the check can read it.** Route the runtime's crash log (a JVM's `-XX:ErrorFile`) into the build directory, and have the check copy it out and print the crashing frame. | A test JVM died with SIGABRT (exit 134) for weeks and was blamed on memory: its crash log went to the working directory of a throwaway checkout, deleted after each run. The first log that survived named a compiler bug. |
 | **Cold-restart long-lived emulators daily.** | A four-day-old one had become sluggish. |
 
 ### Disk hygiene
