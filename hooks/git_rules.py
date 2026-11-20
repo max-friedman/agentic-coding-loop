@@ -80,7 +80,8 @@ def check_stash(rest: list[str]) -> str | None:
 
 
 GATE_ENV_RE = re.compile(r"(^|_)(SKIP|NO_VERIFY|NO_GATE|DISABLE_GATES?|BYPASS)(_|$)")
-COMMIT_SHORT_WITH_ARG = set("mFCctS")  # commit's short options whose value follows (the rest of the cluster or the next word)
+COMMIT_SHORT_WITH_ARG = set("mFCct")  # commit's short options whose value follows (the rest of the cluster or the next word)
+COMMIT_SHORT_OPT_ARG = set("uS")  # optional value, attached only: `-uno`, `-Skeyid`; `-u` alone takes nothing
 COMMIT_LONG_WITH_ARG = {"--message", "--file", "--author", "--date", "--reuse-message", "--reedit-message", "--fixup",
                         "--squash", "--template", "--cleanup", "--trailer", "--pathspec-from-file"}
 
@@ -108,6 +109,8 @@ def commit_no_verify(rest: list[str]) -> bool:
             for j, ch in enumerate(a[1:], 1):
                 if ch == "n":
                     return True
+                if ch in COMMIT_SHORT_OPT_ARG:
+                    break  # the rest of the cluster is its value (`-uno` is untracked-files=no, not -n)
                 if ch in COMMIT_SHORT_WITH_ARG:
                     skip = j == len(a) - 1  # `-m x`: the value is the next word; `-mx`: it was the rest of this one
                     break
@@ -250,7 +253,7 @@ def check(cmd: str) -> str | None:
 def main() -> None:
     try:
         data = _shell.read_input()
-        cmd = (data.get("tool_input") or {}).get("command") or "" if data.get("tool_name") == "Bash" else ""
+        cmd = ((data.get("tool_input") or {}).get("command") or "") if data.get("tool_name") == "Bash" else ""
         cfg = _cfg()
         msg = (check(cmd) or skip_gate(cmd, data, cfg)) if cmd else None
         wt = worktree_warning(cmd, str(data.get("cwd") or ""), cfg) if cmd and not msg else None

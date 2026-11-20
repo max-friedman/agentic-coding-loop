@@ -14,7 +14,8 @@ Before the checks it refuses two things (knobs under `prelanding` in `.loop/conf
   <reviewer>` with someone independent: a fresh reviewer agent or the owner, never the author or the coordinator. A
   gate is any file that decides what runs, what is skipped or what passes (`prelanding.gate_paths`); product code is
   `prelanding.code_paths` (set it to turn the rule on). Reviewed together, the check and the code it checks can be
-  loosened in one step and nobody sees it. Split the gate change into its own PR.
+  loosened in one step and nobody sees it. Split the gate change into its own PR. The line is an honour check:
+  anyone can type it, so it means something only when the coordinator really had an independent reviewer read the diff.
 - **A stale merge** (exit 12, `scripts/stale_revert.py`): the branch removes lines that main added since it forked,
   usually a merge resolved to the old copy. Merge main again keeping both sides; if removing them is the point, say
   `Intentional revert: <what and why>` in the PR body.

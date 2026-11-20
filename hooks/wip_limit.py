@@ -7,7 +7,7 @@ re-merge and a re-check each time the default branch moved. The limit is a backs
 
 Product code: paths under `wip_limit.product_paths`, or, when that list is empty, every path except
 `wip_limit.exempt_paths` and Markdown files. Exempt (the new PR goes through, and isn't counted for others): a
-`--draft` PR, a branch whose changes touch no product code (docs-, tests- or scripts-only…), and branches starting
+`--draft` PR, a branch whose changes touch no product code (with the defaults: only docs/, tests/, test/ and *.md), and branches starting
 with one of `wip_limit.exempt_branches` (default `revert-`: a revert must never wait). `max_open_prs` 0 turns it off.
 
 The open-PR list comes from `gh pr list` (LOOP_GH_BIN overrides gh), cached for 60 s (WIP_LIMIT_CACHE overrides the

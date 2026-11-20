@@ -148,7 +148,8 @@ G = lambda c, **d: git_rules.skip_gate(c, d, CFG)  # noqa: E731
 for c in ["git commit --no-verify -m x", "git commit -n -m x", "git commit -anm 'x'", "git -C wt commit -n",
           "git push --no-verify origin HEAD", "cd wt && git add -A && git commit --no-verify -F body.md"]:
     check(f"blocks: {c!r}", G(c) is not None)
-for c in ["git commit -m 'never use -n or --no-verify'", "git commit -m -n", "git commit -F msg -a",
+for c in ["git commit -uno -m x", "git commit -u -m x", "git commit -auno -m x",
+          "git commit -S -m x", "git commit -Sabc123 -m x", "git commit -m 'never use -n or --no-verify'", "git commit -m -n", "git commit -F msg -a",
           "git push -n origin HEAD", "git commit -am x", "git commit --amend --no-edit", "git log -n 3",
           "echo git commit --no-verify"]:
     check(f"allows: {c!r}", G(c) is None, G(c))

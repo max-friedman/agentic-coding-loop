@@ -167,7 +167,7 @@ def warn_enabled() -> bool:
 def main() -> None:
     try:
         data = _shell.read_input()
-        cmd = (data.get("tool_input") or {}).get("command") or "" if data.get("tool_name") == "Bash" else ""
+        cmd = ((data.get("tool_input") or {}).get("command") or "") if data.get("tool_name") == "Bash" else ""
         msg = check(cmd, data.get("cwd")) if cmd else None
         warn = body_file_warning(cmd, data.get("cwd")) if cmd and not msg and warn_enabled() else None
     except Exception as e:  # noqa: BLE001 - fail-open
