@@ -23,7 +23,7 @@
   },
   "hooks/coordinator_stop.py": {
    "source": "769ce3671d140985e1d283d5154f8d5024c0fd679a6858effae69705f8e74307",
-   "dest": "7b2eebc848557cbe0409f7ca0ff3eb5eff886f62f6988a585fd0199f89282969"
+   "dest": "e41e1096b332b4083f5688cae33eef1daab2a647d8ac471a8d86b6a7c2729670"
   },
   "hooks/gh_rules.py": {
    "source": "912ff375568f8195c4106785ca6bd3558b71676bda56a67a05ab4fc03cd72419",
@@ -55,7 +55,7 @@
   },
   "hooks/test_coordinator_stop.py": {
    "source": "cd9ccac67d147d9be4d26e317a142f10fd487076233a48b015aec2b13ccd7c00",
-   "dest": "6daa77da1e982229dbb42d0cde8a55281d7c71a13b385f982a8c1cf2bcfd740f"
+   "dest": "bc730a4c051ace3d385d1f57c22f1d4c9c1ae27dcf3a3f03d212cff48bf45111"
   },
   "hooks/test_gh_rules.py": {
    "source": "210be97b2ef5e2cccb9292369da8e9fad247f66d5497dc772754146472383e7b",
@@ -95,7 +95,7 @@
   },
   "hooks/watchdog.py": {
    "source": "abfcdb41c81f434a63040e373168224e7778f81e173fbfe4ceee123b306c900f",
-   "dest": "0a723abdbbbe3b7a19ba29dc13c3d9a6a8f565286cbaa180c941e02423934570"
+   "dest": "7285605e168d4fd4e88119e706dc4f18bc60245e1b4efb70a196123376b407c3"
   },
   "hooks/wip_limit.py": {
    "source": "94acbf9161c84eb015923eea0e89cbfc2077e16b19c25bcb2f29a108bdf49ce4",
@@ -111,7 +111,7 @@
   },
   "templates/project-kit/scripts/prelanding.py": {
    "source": "fb850a737c79c5bd339d3bc4adb312a9c1bfdc2b9281b0d6bb274784c092e746",
-   "dest": "4e5557e627862bea8de545c21eb0eb6a4ff3a5682062641d86474525754ee130"
+   "dest": "dc57f2071f8b41f4b2e6699ee9cae46ea7c37d18311c5dfb2f02c7493e82f545"
   },
   "templates/project-kit/scripts/repo_lock.py": {
    "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",
