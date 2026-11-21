@@ -20,6 +20,47 @@ Before the checks it refuses two things (knobs under `prelanding` in `.loop/conf
   usually a merge resolved to the old copy. Merge main again keeping both sides; if removing them is the point, say
   `Intentional revert: <what and why>` in the PR body.
 
+After the checks pass, one more refusal (exit 13, no pass recorded):
+
+- **A required review line is missing.** `prelanding.review_lines` lists rules such as `{"name": "Fidelity",
+  "when_body": "^Cutover:", "when_paths": ["ui/"]}`: a PR whose body declares a cutover, or that changes `ui/`, needs
+  `Fidelity: OK (<reviewer>, ...)` from someone independent. Declare whatever your reviews cover (user-visible work, a
+  cutover, a migration). A cutover once recorded a prelanding pass with no review line at all, because the rule only
+  looked at changed paths and a cutover can be a one-line config change. Anything that queues PRs by itself calls
+  `prelanding.missing_review_lines()` and skips a PR that lacks a line: an auto-queue once queued a PR before its
+  review came back.
+
+## A cutover checks the build users run, not only the config
+
+A cutover switches features on for users. One once did it while the release pipeline sat paused for days and users
+still ran an old build: the config said "on", nothing changed for them, and nobody checked. `scripts/cutover_gate.py`
+runs from prelanding for every branch (a branch that isn't a cutover passes at once; a cutover: exit 14, after the
+other checks) and prints the pipeline's state. A PR is a cutover when its body matches `cutover.when_body`
+(`Cutover: <what it switches on>`) or it changes `cutover.when_paths`. It refuses when:
+
+1. **the release pipeline is paused** (`release.paused_file`): land the fix, let it pass its checks, resume the
+   pipeline (`release.resume_command`), wait for its build;
+2. **the build users run lacks the switched code**: a cutover that changes no shipped code (a config switch) needs the
+   published build (`release.published_file`) to contain every shipped change up to the cutover's base, where the
+   branch meets main. A cutover that changes shipped code ships in the next build, which check 1 keeps possible;
+3. **no recent whole-suite pass**: a run in `cutover.passes_file` within 24 h, on a commit containing the base, with no
+   failure or only known-red ones. Run the whole suite before the cutover, not after.
+
+The checklist, in order: the pipeline running → the build users run has main's shipped changes → a whole-suite pass
+in 24 h → the review line → land. After it lands, check that what users actually run is the published build.
+
+## Landing a reviewed PR: `scripts/review_land.py`
+
+`python3 scripts/review_land.py <PR> --line "Fidelity: OK (<reviewer>, <what they checked>)"` does the steps between a
+review and the landing, in order, and stops at the first one it can't do safely: it checks out the PR's exact head
+branch (reusing a clean worktree that has it, fast-forwarding a stale local branch, refusing one with commits the PR
+lacks, never the live checkout), merges main in when the branch is behind and pushes (a conflict stops with the
+files), writes the line into the body through a per-PR body file, runs prelanding there, and then runs
+`review_land.after` (`scripts/land.sh {pr}`, or your queue's add command). `--dry-run` says what it would do. Doing
+these steps by hand broke again and again on branch names: a stale local branch with the PR's name, the branch
+checked out in another worktree, a worktree made on the wrong branch. It writes only the line it is given; the review
+is still the reviewer's, and prelanding still judges the line.
+
 ## Never skip a gate
 
 No `--no-verify`, no stub, no env var that turns a check off on the command line (`git_rules.py` blocks or warns). An
@@ -49,3 +90,5 @@ recipe, if you need it:
    `add <PR> --unhold`, which releases the hold and queues it; `status` lists the holds with their reasons; anything
    that queues PRs by itself (a watchdog's auto-queue of ready PRs) skips held ones. Dropping a PR isn't enough: a PR
    dropped twice to land only after a release was queued again by the auto-queue and landed.
+7. The auto-queue also skips a PR missing a review line prelanding requires (`missing_review_lines()`): a review
+   can't be bypassed by queueing before it returns.

@@ -20,9 +20,9 @@ them, and `bootstrap_kit.py --test` runs them from here; the installer copies no
 | [`waiter_guard.py`](waiter_guard.py) | PreToolUse Bash | a wait loop whose `pgrep -f` pattern matches its own command line | fails open |
 | [`live_checkout.py`](live_checkout.py) | PreToolUse Bash, Edit, Write | edits and git writes in `LOOP_LIVE_CHECKOUT`, the checkout a live service runs from (unset: nothing guarded) | fails **closed** |
 | [`session_reminder.py`](session_reminder.py) | SessionStart compact, resume | prints the rebuild steps after a context loss | fails open |
-| [`coordinator_digest.py`](coordinator_digest.py) | UserPromptSubmit | adds a few lines of facts to each coordinator turn: running lanes against the floor, the heartbeat and the watchdog's open flags, the open rows of the assumptions log | fails open |
+| [`coordinator_digest.py`](coordinator_digest.py) | UserPromptSubmit | adds a few lines of facts to each coordinator turn: running lanes against the floor (from the ledger only), the heartbeat and the watchdog's open flags, the release pipeline (running or paused, the build users run), the open rows of the assumptions log | fails open |
 | [`coordinator_stop.py`](coordinator_stop.py) | Stop | **opt-in** (`coordinator.require_checks`): the coordinator's turn ending with no quiet watch running or no recurring check-in (`coordinator_session.py register` marks the coordinator) | fails open |
-| [`watchdog.py`](watchdog.py) | not a hook: the OS scheduler, every 15 min | flags low disk, a job that keeps failing to log in, a silent coordinator, its own missed runs, no lanes while ready work waits (`lanes_idle`), a private rule note newer than the written rules (`rule_drift`); writes `.loop/watchdog_flags.json` | prints what it can |
+| [`watchdog.py`](watchdog.py) | not a hook: the OS scheduler, every 15 min | flags low disk, a job that keeps failing to log in, a silent coordinator, its own missed runs, no lanes for 30 min, ready work or not, and `COORDINATOR STALLED` when the coordinator's last turn is that old too (`lanes_idle`), a private rule note newer than the written rules (`rule_drift`), a paused release pipeline (`release_paused`, then `release_stuck` to the human) and a build users run that lacks old shipped changes (`build_stale`); writes `.loop/watchdog_flags.json` | prints what it can |
 
 `_shell.py` (command parsing) and `_loop.py` (the knobs, the `Lane:` line, the ledger)
 are shared helpers. Hooks follow Claude Code's contract: the call arrives as JSON on
@@ -72,8 +72,12 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `gh_rules.block_pr_merge` | false | true: `gh_rules.py` blocks `gh pr merge` on this repo; PRs land with `scripts/land.sh`. A landing-process opinion, so off |
 | `coordinator.require_checks` | false | true: `coordinator_stop.py` ends no coordinator turn without a quiet watch and a recurring check-in. Assumes you run such a session, so off |
 | `watchdog.min_free_disk_gb` | 12 | `watchdog.py` flags `disk_low` under this |
-| `watchdog.lanes_idle_minutes` | 30 | `lanes_idle`: no lane in the ledger this long while ready work is listed |
-| `watchdog.ready_file`, `ready_pattern` | `docs/ROADMAP.md`, a table cell `Ready` | where ready work is listed, and the line that is one item (no file: `lanes_idle` is off) |
+| `watchdog.lanes_idle_minutes` | 30 | `lanes_idle`: no lane in the ledger this long, ready work or not; `COORDINATOR STALLED` when the coordinator's last turn (`.loop/coordinator_stop.json`) is this old too |
+| `watchdog.ready_file`, `ready_pattern` | `docs/ROADMAP.md`, a table cell `Ready` | where ready work is listed, and the line that is one item; `lanes_idle`'s detail counts them, or says the statuses are stale when there are none |
+| `release.paused_file`, `published_file` | empty (off) | the release pipeline's files: `{"at", "why"}` while it is paused, and `{"commit", "published", "version"}` naming the build users run. For an app, say, the store or sideload build; for a service, the deployed one |
+| `release.good_ref`, `shipped_paths`, `not_shipped_pattern` | `origin/main`; every path; tests | what the next build is cut from, and which changed files reach users through it |
+| `release.resume_command` | empty | the command that resumes the pipeline, quoted in the flag and the digest |
+| `release.stuck_hours`, `stale_days` | 24; 2 | `release_paused` this long is `release_stuck` (the human at once); `build_stale` when a shipped change this old is missing from the published build |
 | `watchdog.rule_notes_dir` | empty (off) | the coordinator's private notes (its memory directory); `rule_drift` flags a note matching `rule_note_pattern` (`type: feedback`) changed within `rule_drift_hours` (24) after the last commit to `rule_docs` (`docs/process`, `CLAUDE.md`) |
 | `git_rules.block_no_verify` | true | block `git commit --no-verify`/`-n` and `git push --no-verify`: never skip a gate; fix it, or fix the gate in its own PR |
 | `git_rules.landers`, `coordinator_only_flags` | `land.sh`, `prelanding.py`; `--no-prelanding`, `--skip-checks` | override flags of the landing scripts that only the registered coordinator may pass |
@@ -90,8 +94,26 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `prelanding.gate_paths`, `code_paths` | the landing scripts, hooks, settings, git hooks, CI; empty (off) | a branch changing a gate and product code needs `Gate change: reviewed by <reviewer>` naming someone independent |
 | `prelanding.not_independent` | coordinator, author, self, me, myself | reviewer names that don't count |
 | `prelanding.stale_revert` | true | refuse a branch that undoes lines main gained since it forked (`scripts/stale_revert.py`) |
+| `prelanding.review_lines` | none | rules `{"name", "when_body", "when_paths"}`: a PR whose body matches `when_body` or that changes `when_paths` needs `<name>: OK (<reviewer>, ...)` from someone independent (exit 13); an auto-queue skips it until then |
+| `cutover.when_body`, `when_paths` | `^\W*Cutover:` (on by default); none | what makes a PR a cutover for `scripts/cutover_gate.py` (prelanding exit 14): refused while the pipeline is paused, when a cutover that changes no shipped code would switch on code the build users run lacks, and without a recent whole-suite pass |
+| `cutover.passes_file`, `pass_max_age_hours`, `known_red_file`, `suite_command` | none; 24; none; none | the whole-suite runs your runner appends (`{"at", "commit", "full", "failed", "failures"}`), how recent a pass on the cutover's base must be, failures that don't count, and the command the refusal quotes. No passes file: a cutover is refused |
+| `review_land.worktree_dir`, `after` | `../{repo}-worktrees`; `scripts/land.sh {pr}` | where `scripts/review_land.py` makes its `review-<PR>` worktree, and what it runs once prelanding passes (your queue's add command, if you run one) |
 | `worktree_gc.idle_hours` | 6 | `scripts/worktree_gc.py` removes a clean, finished worktree idle this long, wherever it lives |
 | `waiter_reaper.max_age_hours`, `protected` | 6; none | `scripts/waiter_reaper.py` kills a Claude Code waiter shell older than this, except commands naming a protected string |
+
+Example: an app whose pipeline builds main about hourly and publishes the build its users install. The pipeline
+writes `.loop/release/paused.json` when a crash check stops it and `.loop/release/latest.json` each time it
+publishes; the suite runner appends its runs to `.loop/suite_runs.jsonl`; `config/features.json` switches features on.
+
+```json
+{
+  "release": {"paused_file": ".loop/release/paused.json", "published_file": ".loop/release/latest.json",
+              "shipped_paths": ["app/", "shared/"], "resume_command": "scripts/release.py --resume"},
+  "cutover": {"when_paths": ["config/features.json"], "passes_file": ".loop/suite_runs.jsonl",
+              "suite_command": "scripts/suite.sh --full"},
+  "prelanding": {"review_lines": [{"name": "Fidelity", "when_body": "^Cutover:", "when_paths": ["app/ui/"]}]}
+}
+```
 
 Environment: `LOOP_LIVE_CHECKOUT` (the guarded checkout), `LANE_LEDGER` (the ledger's
 path, default `.loop/lanes.json`), `CLAUDE_PROJECT_DIR` (set by Claude Code; paths

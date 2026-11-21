@@ -376,7 +376,7 @@ PROJECT_REFS = [
     (r"(?i)\bhermes\b", "the source project's name"),
     (r"\bTODO\b", "an unfinished promise"),
     (r"(?i)memory note|\bthe memory\b|MEMORY\.md|memory \"", "a citation of the author's private notes"),
-    (r"disk_headroom|land\.py|land_queue\.py|next_lanes\.py", "a source-project script the kit doesn't ship"),
+    (r"disk_headroom|\bland\.py|land_queue\.py|next_lanes\.py", "a source-project script the kit doesn't ship"),
 ]
 
 

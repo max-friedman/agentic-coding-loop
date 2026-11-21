@@ -62,6 +62,9 @@ def hook(d, home=tmp, raw=None):
 print("coordinator_stop.py")
 fresh()
 check("opt-in: off by default, nothing blocks", DEFAULT_CFG["coordinator"]["require_checks"] is False and decide(inp(background_tasks=[], session_crons=[]), cfg=DEFAULT_CFG) is None)
+st = json.loads(STATE.read_text())
+check("opt-in off: the turn end is still recorded (the watchdog reads it)", st.get("session_id") == SID
+      and st.get("last", {}).get("at"), st)
 check("all armed: the turn ends", decide(inp()) is None)
 why = decide(inp(background_tasks=[]))
 check("no watch: blocks, says how to restart it", why and "quiet watch" in why and "run_in_background" in why, why)

@@ -69,6 +69,16 @@ DEFAULTS: dict = {
         "rule_docs": ["docs/process", "CLAUDE.md"],  # where written rules live
         "rule_drift_hours": 24,           # rule notes changed this recently and after rule_docs' last commit drift
     },
+    "release": {                          # the release pipeline: how a merged change reaches users (off while unset)
+        "paused_file": "",                # JSON the pipeline writes while it is paused: {"at": epoch, "why": "..."}
+        "published_file": "",             # JSON naming the build users run: {"commit", "published": epoch, "version"}
+        "good_ref": "origin/main",        # what the next build is cut from
+        "shipped_paths": [],              # paths whose changes reach users through the build; empty: every path
+        "not_shipped_pattern": r"(^|/)tests?/|(^|/)test_[^/]*$",  # files that never ship (tests)
+        "resume_command": "",             # the command that resumes the pipeline (quoted in flags and the digest)
+        "stuck_hours": 24,                # watchdog.py: paused this long is release_stuck (to the human at once)
+        "stale_days": 2,                  # watchdog.py: build_stale when a shipped change this old isn't in the build
+    },
     "digest": {
         "assumptions_log": "docs/process/assumptions-log.md",  # rows whose last cell starts with `open` are counted
         "min_lanes": 2,                   # under this many running lanes, the digest says so
@@ -87,6 +97,20 @@ DEFAULTS: dict = {
         "code_paths": [],                 # product code; a PR changing a gate and these needs an independent review line
         "not_independent": ["coordinator", "author", "self", "me", "myself"],  # reviewer names that don't count
         "stale_revert": True,             # refuse a branch that undoes lines main gained since it forked
+        "review_lines": [],               # [{"name": "Fidelity", "when_body": "^Cutover:", "when_paths": ["ui/"]}]: such a
+                                          # PR needs `<name>: OK (<reviewer>, ...)` from someone independent (exit 13)
+    },
+    "cutover": {                          # scripts/cutover_gate.py (prelanding exit 14)
+        "when_body": r"^\W*Cutover:",    # a PR body matching this is a cutover
+        "when_paths": [],                 # so is a PR changing these (your feature-switch config)
+        "passes_file": "",                # JSON lines of whole-suite runs: {"at", "commit", "full", "failed", "failures"}
+        "pass_max_age_hours": 24,         # a cutover needs a passing run this recent on a commit containing its base
+        "known_red_file": "",             # {"scenarios": [...]}: failures that don't count against a run
+        "suite_command": "",              # how to run the whole suite (quoted in the refusal)
+    },
+    "review_land": {
+        "worktree_dir": "../{repo}-worktrees",  # scripts/review_land.py's review-<PR> worktree goes here
+        "after": "scripts/land.sh {pr}",  # run once prelanding passes ({pr}: the number); your queue's add command
     },
     "coordinator": {                      # coordinator_stop.py: what must keep running in the coordinator's session
         "require_checks": False,          # True: the coordinator's turn can't end without a watcher and a check-in; opt-in

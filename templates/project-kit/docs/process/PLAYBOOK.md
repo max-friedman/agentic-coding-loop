@@ -39,12 +39,19 @@ owner's live config asks first.
 - Keep one quiet watch running (a background task that exits only when something needs you) and a sparse check-in
   (a session cron every two hours): touch the heartbeat, land what is ready, refill lanes. Each idle wake-up re-reads
   the whole context, so routine events don't wake you.
+  **One quiet watch per session.** The kit ships no wait script; when you write yours, give it a per-session pid
+  lock (for example `.loop/wait-<session id>.pid`, taken with a no-clobber write and taken over when its pid is dead)
+  so a second start refuses and prints the running one's pid and `kill <pid>`. Start it from the harness (a
+  background task), never with `nohup` beside it: an untracked second copy wakes you twice and outlives the session.
 - One lane number: the cap in `.loop/config.json` is the number. Don't keep a second, remembered limit in notes or
   prompts; change the config, by pull request.
 - **Never wait on the owner.** Decide every reversible call yourself, act on it, and add a row to
   `docs/process/assumptions-log.md` (date, decision, why, how to revisit, `open`) the same hour; the owner reviews the
   open rows when they have time (`coordinator_digest.py` shows the count). Ask only for what cannot be undone. Zero
-  lanes while ready work exists is never "waiting on the owner": the watchdog flags it as `lanes_idle`.
+  lanes is never "waiting on the owner": the watchdog flags `lanes_idle` after 30 minutes with no lane, whether or
+  not the ready list has a ready row (a list whose statuses went stale once showed none, and the coordinator sat idle
+  for hours with nothing flagging it; fix the statuses first). It says `COORDINATOR STALLED` when your last turn
+  ended that long ago too: the heartbeat can't tell, since the wait script touches it whatever you do.
 - **A rule the owner gives you goes into these docs by pull request the same day**, not only into your private notes:
   notes die with the session and no hook enforces them. The watchdog flags `rule_drift` when a rule note is newer than
   the last commit here.
@@ -62,6 +69,13 @@ follow every rule in it" (`.claude/hooks/spawn_gate.py` checks for the last two 
 <What the coordinator looks at on each check-in: open pull requests, the land queue, the watchdog's flags, free disk.>
 Schedule next to the watchdog: `python3 scripts/worktree_gc.py --apply` (finished worktrees, anywhere) and
 `python3 scripts/waiter_reaper.py --apply` (orphaned waiter shells).
+
+The release pipeline (the `release` knobs in `.loop/config.json`; off while unset) is watched too, because a paused
+one looks like a quiet day: `release_paused` (the cause and `release.resume_command`; yours to fix: resume it once the
+fix has passed its checks), `release_stuck` after `release.stuck_hours` (it reaches the owner at once), and
+`build_stale` (the build users run lacks a shipped change over `release.stale_days` old). The digest's `Release:` line
+shows the same state on every turn. A pipeline once sat paused ten days, unseen, while a cutover switched features on
+for users still on the old build.
 
 ## After a context loss
 

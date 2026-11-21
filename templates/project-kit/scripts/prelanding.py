@@ -17,9 +17,22 @@ Two guards run before the checks (knobs under "prelanding" in .loop/config.json)
   changed and reviewed together. Split the gate change into its own PR when you can.
 - The stale-merge guard (`stale_revert`, scripts/stale_revert.py): a branch that undoes lines main gained since it
   forked is refused (exit 12) unless the body or a commit says `Intentional revert: <what and why>`.
+After the checks (so a hand-back has their results too), one more:
+- A required review line (`review_lines`). Each rule names a line, the PR bodies (`when_body`, a regex) and changed
+  paths (`when_paths`) that need it: e.g. `{"name": "Fidelity", "when_body": "^Cutover:", "when_paths": ["ui/"]}`
+  means a PR declaring a cutover, or changing ui/, needs `Fidelity: OK (<reviewer>, ...)` naming someone independent.
+  Missing, or naming the author or the coordinator: refused (exit 13), no pass recorded. A cutover once passed with
+  no review line at all. Anything that queues PRs by itself calls `missing_review_lines()` and skips a PR that lacks
+  one: an auto-queue once queued a PR before its review came back.
 The PR body comes from `gh pr view` for the current branch (PRELANDING_BODY overrides it; no PR: an empty body).
 
-Exit: 0 passed · 1 checks failed or conflicts · 11 gate change without an independent review · 12 stale merge
+- A cutover that isn't ready (scripts/cutover_gate.py): the release pipeline paused, the build users run lacking
+  the shipped changes a config cutover switches on, or no whole-suite pass in 24 h on its base (exit 14).
+The knobs and the checks come from the main checkout's .loop/config.json (it is git-ignored, so the scratch worktree
+has none).
+
+Exit: 0 passed · 1 checks failed or conflicts · 11 gate change without an independent review · 12 stale merge ·
+13 a required review line missing · 14 a cutover not ready
 """
 from __future__ import annotations
 
@@ -37,15 +50,26 @@ def git(*args: str, cwd: str | None = None) -> str:
     return subprocess.run(["git", *args], cwd=cwd, capture_output=True, text=True, check=True).stdout.strip()
 
 
+def main_checkout() -> Path:
+    """The main checkout: its .loop/ (git-ignored, so not in the scratch worktree) holds the knobs and the records.
+    The first entry of `git worktree list` (the main worktree); with a bare repository and worktrees only, that entry
+    is the bare repo, so the current worktree's top level is used instead."""
+    first = next((line[len("worktree "):] for line in git("worktree", "list", "--porcelain").splitlines()
+                  if line.startswith("worktree ")), "")
+    bare = "\nbare" in ("\n" + git("worktree", "list", "--porcelain").split("\n\n")[0])
+    if first and not bare:
+        return Path(first).resolve()
+    return Path(git("rev-parse", "--show-toplevel")).resolve()
+
+
 def record_dir() -> Path:
-    common = Path(git("rev-parse", "--git-common-dir")).resolve()
-    return common.parent / ".loop" / "prelanding"
+    return main_checkout() / ".loop" / "prelanding"
 
 
 DEFAULTS = {"gate_paths": ["scripts/prelanding.py", "scripts/land.sh", ".claude/hooks/", ".claude/settings.json",
                            ".githooks/", ".github/workflows/"],
             "code_paths": [], "not_independent": ["coordinator", "author", "self", "me", "myself"],
-            "stale_revert": True}  # as hooks/_loop.py's "prelanding"
+            "stale_revert": True, "review_lines": []}  # as hooks/_loop.py's "prelanding"
 GATE_CHANGE_LINE = re.compile(r"^\W*Gate change:\s*reviewed by\s+(.+?)\s*$", re.I | re.M)
 
 
@@ -90,6 +114,43 @@ def gate_change_refusal(files: list[str], body: str, cfg: dict) -> str:
             "`Gate change: reviewed by <reviewer>` to the PR body (never the author or the coordinator).")
 
 
+def cut_configured(root: str) -> bool:
+    """The project set a `cutover` or `release` section in .loop/config.json."""
+    try:
+        cfg = json.loads(Path(root, ".loop", "config.json").read_text())
+    except (OSError, ValueError):
+        return False
+    return any(isinstance(cfg.get(k), dict) and cfg[k] for k in ("cutover", "release"))
+
+
+def review_line(name: str) -> re.Pattern:
+    return re.compile(r"^[ \t>*_-]*" + re.escape(name) + r":\**[ \t]*OK\b[ \t]*\(([^,)]+)", re.I | re.M)
+
+
+def missing_review_lines(files: list[str], body: str, cfg: dict) -> list[str]:
+    """Why the PR can't land yet, one entry per required review line it lacks (empty: none missing)."""
+    bad = {w.lower() for w in cfg["not_independent"]}
+    out = []
+    for rule in cfg.get("review_lines") or []:
+        name = str(rule.get("name") or "").strip()
+        if not name:
+            continue
+        by_body = bool(rule.get("when_body")) and re.search(rule["when_body"], body or "", re.I | re.M)
+        by_path = [f for f in files if rule.get("when_paths") and f.startswith(tuple(rule["when_paths"]))]
+        if not by_body and not by_path:
+            continue
+        why = "its body matches " + repr(rule["when_body"]) if by_body else f"it changes {', '.join(by_path[:3])}"
+        m = review_line(name).search(body or "")
+        who = m.group(1).strip() if m else ""
+        if who and not ({w.strip(".,;()").lower() for w in who.split()} & bad):
+            continue
+        said = f" (it names `{who}`, which isn't independent)" if who else ""
+        out.append(f"this PR needs `{name}: OK (<reviewer>, ...)` because {why}{said}. Have a fresh reviewer agent or "
+                   "the owner review it and put their line in the body (never the author or the coordinator); "
+                   "scripts/review_land.py does that and reruns this")
+    return out
+
+
 def main() -> int:
     head = git("rev-parse", "HEAD")
     rec = record_dir() / head
@@ -104,7 +165,8 @@ def main() -> int:
         if merge.returncode:
             print("prelanding: the branch conflicts with origin/main; merge main in and rerun")
             return 1
-        cfg = knobs(wt)
+        root = str(main_checkout())
+        cfg = knobs(root)  # .loop/ is git-ignored: read it from the main checkout, not the scratch worktree
         changed = git("diff", "--name-only", "origin/main...HEAD", cwd=wt).split()
         body = pr_body()
         why = gate_change_refusal(changed, body, cfg)
@@ -121,7 +183,7 @@ def main() -> int:
             if why:
                 print(f"prelanding: {why}")
                 return 12
-        cmds = checks(wt)
+        cmds = checks(root)
         if not cmds:
             print('prelanding: no checks configured, so nothing would be verified. Set PRELANDING_CHECKS or '
                   '"prelanding": {"checks": ["<your test command>"]} in .loop/config.json')
@@ -134,6 +196,27 @@ def main() -> int:
         if failed:
             print("prelanding: FAILED: " + "; ".join(failed))
             return 1
+        missing = missing_review_lines(changed, body, cfg)
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        try:
+            import cutover_gate
+        except ImportError:
+            cutover_gate = None
+        if cutover_gate:
+            # The branch itself, not the merged tree: a cutover's base is where the branch meets main.
+            cut = cutover_gate.refusal(Path.cwd(), changed, body, "origin/main", head=head, root=Path(root),
+                                       say=lambda m: print(f"prelanding: {m}"))
+        else:
+            print("prelanding: warning: scripts/cutover_gate.py is missing, so cutovers aren't checked")
+            cut = ("the cutover knobs are configured but scripts/cutover_gate.py is missing: reinstall it "
+                   "(bootstrap_kit.py --force) rather than land a cutover unchecked") if cut_configured(root) else ""
+        if missing or cut:
+            print("prelanding: the checks passed; no pass recorded until:")
+            for why in missing:
+                print(f"prelanding: {why}")
+            if cut:
+                print(f"prelanding: {cut}")
+            return 13 if missing else 14
     finally:
         subprocess.run(["git", "worktree", "remove", "--force", wt], capture_output=True)
     rec.parent.mkdir(parents=True, exist_ok=True)
