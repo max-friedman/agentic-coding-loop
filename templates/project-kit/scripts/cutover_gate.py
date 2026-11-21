@@ -9,7 +9,7 @@ had to be run by hand at the last minute.
     python3 scripts/cutover_gate.py            # this checkout's HEAD against origin/main
     python3 scripts/cutover_gate.py --base X   # against another base
 
-A cutover is a PR whose body matches `cutover.when_body` (default `^Cutover:`) or that changes `cutover.when_paths`
+A cutover is a PR whose body matches `cutover.when_body` (default `^\W*Cutover:`, so on by default) or that changes `cutover.when_paths`
 (your feature-switch config, say). For one, three checks, each refusing with what to do:
 
 1. the release pipeline isn't paused (`release.paused_file`): land the fix, let it pass its checks, then resume it
@@ -142,6 +142,15 @@ def suite_pass(base: str, now: float, runs: list[dict], red: set[str], max_age_s
                has: Callable[[str, str], bool]) -> tuple[bool, str]:
     """(passed, what was found): the newest whole-suite run within max_age_s on a commit containing base that passed."""
     seen = []
+    bad = []
+    for i, r in enumerate(runs, 1):
+        try:
+            float(r.get("at") or 0), int(r.get("failed") or 0)
+        except (TypeError, ValueError):
+            bad.append(i)
+    if bad:
+        return False, (f"the passes file has malformed run(s) at line(s) {', '.join(map(str, bad[:5]))} (`at` must be "
+                       "epoch seconds, `failed` a number): fix the runner that writes it, then run this again")
     for r in sorted(runs, key=lambda r: float(r.get("at") or 0), reverse=True):
         if not r.get("full"):
             continue

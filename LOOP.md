@@ -733,7 +733,7 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
   it for hours).
 - **Detect a stalled coordinator from its turns, not its heartbeat.** A heartbeat
   its own wait script touches stays fresh while the coordinator does nothing; the
-  time since its last turn ended does not. One wait script per session: a second
+  time since its last turn ended does not. One wait script per session: the project's wait script takes a per-session lock, so a second
   copy refuses to start.
 - **A paused release pipeline must alert.** The watchdog flags a pause at once (to
   the coordinator, with the cause and the resume command), reaches the human after

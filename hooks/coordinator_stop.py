@@ -111,13 +111,14 @@ def decide(data: dict, now: float, marker_path: Optional[Path] = None, state: Op
     if not cs.is_coordinator(data, marker_path):
         return None
     cfg = cfg or _loop.config()
-    if not cfg["coordinator"].get("require_checks"):
-        return None
-    cooldown = float(cfg["coordinator"]["cooldown_minutes"]) * 60
     sp = state or state_path()
     st = load_state(sp, data["session_id"])
     seen = present(data, cfg)
-    st["last"] = dict(seen, at=int(now))
+    st["last"] = dict(seen, at=int(now))  # always, opt-in or not: the watchdog reads it to tell a stalled coordinator
+    if not cfg["coordinator"].get("require_checks"):
+        save_state(sp, st)
+        return None
+    cooldown = float(cfg["coordinator"]["cooldown_minutes"]) * 60
     gone = [] if data.get("stop_hook_active") else \
         [c for c, ok in seen.items() if not ok and now - float(st["blocked"].get(c) or 0) >= cooldown]
     for c in gone:

@@ -51,8 +51,15 @@ def git(*args: str, cwd: str | None = None) -> str:
 
 
 def main_checkout() -> Path:
-    """The main checkout: its .loop/ (git-ignored, so not in the scratch worktree) holds the knobs and the records."""
-    return Path(git("rev-parse", "--git-common-dir")).resolve().parent
+    """The main checkout: its .loop/ (git-ignored, so not in the scratch worktree) holds the knobs and the records.
+    The first entry of `git worktree list` (the main worktree); with a bare repository and worktrees only, that entry
+    is the bare repo, so the current worktree's top level is used instead."""
+    first = next((line[len("worktree "):] for line in git("worktree", "list", "--porcelain").splitlines()
+                  if line.startswith("worktree ")), "")
+    bare = "\nbare" in ("\n" + git("worktree", "list", "--porcelain").split("\n\n")[0])
+    if first and not bare:
+        return Path(first).resolve()
+    return Path(git("rev-parse", "--show-toplevel")).resolve()
 
 
 def record_dir() -> Path:
@@ -105,6 +112,15 @@ def gate_change_refusal(files: list[str], body: str, cfg: dict) -> str:
             f"({', '.join(code[:3])}{'…' if len(code) > 3 else ''}){said}. A gate change is reviewed on its own: split "
             "it into its own PR (best), or have a fresh reviewer agent or the owner read the gate diff and add "
             "`Gate change: reviewed by <reviewer>` to the PR body (never the author or the coordinator).")
+
+
+def cut_configured(root: str) -> bool:
+    """The project set a `cutover` or `release` section in .loop/config.json."""
+    try:
+        cfg = json.loads(Path(root, ".loop", "config.json").read_text())
+    except (OSError, ValueError):
+        return False
+    return any(isinstance(cfg.get(k), dict) and cfg[k] for k in ("cutover", "release"))
 
 
 def review_line(name: str) -> re.Pattern:
@@ -186,9 +202,14 @@ def main() -> int:
             import cutover_gate
         except ImportError:
             cutover_gate = None
-        # The branch itself, not the merged tree: a cutover's base is where the branch meets main.
-        cut = cutover_gate.refusal(Path.cwd(), changed, body, "origin/main", head=head, root=Path(root),
-                                   say=lambda m: print(f"prelanding: {m}")) if cutover_gate else ""
+        if cutover_gate:
+            # The branch itself, not the merged tree: a cutover's base is where the branch meets main.
+            cut = cutover_gate.refusal(Path.cwd(), changed, body, "origin/main", head=head, root=Path(root),
+                                       say=lambda m: print(f"prelanding: {m}"))
+        else:
+            print("prelanding: warning: scripts/cutover_gate.py is missing, so cutovers aren't checked")
+            cut = ("the cutover knobs are configured but scripts/cutover_gate.py is missing: reinstall it "
+                   "(bootstrap_kit.py --force) rather than land a cutover unchecked") if cut_configured(root) else ""
         if missing or cut:
             print("prelanding: the checks passed; no pass recorded until:")
             for why in missing:

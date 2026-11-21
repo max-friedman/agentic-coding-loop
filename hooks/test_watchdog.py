@@ -37,9 +37,16 @@ f = wd.check_lanes_idle(now, 0, 2, {"idle_since": now - 9999}, cfg, now - 40 * 6
 check("no coordinator turn for 30 min either: COORDINATOR STALLED", f.startswith("COORDINATOR STALLED") and "40 min ago" in f, f)
 f = wd.check_lanes_idle(now, 0, 2, {"idle_since": now - 9999}, cfg, now - 60).get("lanes_idle", "")
 check("a recent coordinator turn: idle, not stalled", f and "STALLED" not in f and "1 min ago" in f, f)
-stop = tmp / "coordinator_stop.json"
-stop.write_text(json.dumps({"last": {"at": now - 5}}))
-check("the Stop hook's record gives the last turn", wd.last_turn(stop) == now - 5 and wd.last_turn(tmp / "none") is None)
+stop, mark = tmp / "coordinator_stop.json", tmp / "coordinator_session.json"
+mark.write_text(json.dumps({"session_id": "S1", "at": now - 600}))
+stop.write_text(json.dumps({"session_id": "S1", "last": {"at": now - 5}}))
+check("the Stop hook's record gives the last turn", wd.last_turn(stop, mark) == now - 5
+      and wd.last_turn(tmp / "none", mark) is None)
+stop.write_text(json.dumps({"session_id": "S0", "last": {"at": now - 5}}))
+check("another session's record: unknown, never STALLED", wd.last_turn(stop, mark) is None)
+stop.write_text(json.dumps({"session_id": "S1", "last": {"at": now - 900}}))
+check("a record older than the session's registration: unknown", wd.last_turn(stop, mark) is None)
+check("no registered coordinator: unknown", wd.last_turn(stop, tmp / "none") is None)
 check("an unreadable ledger: never", wd.check_lanes_idle(now, None, 3, {"idle_since": now - 9999}, cfg) == {})
 road = tmp / "ROADMAP.md"
 road.write_text("| row | status |\n|---|---|\n| A1 | Ready |\n| A2 | Done |\n| A3 |  Ready  |\n")

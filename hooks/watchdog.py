@@ -61,6 +61,7 @@ HEARTBEAT = STATE / "coordinator.heartbeat"
 STAMP = STATE / "watchdog.stamp"
 FLAGS = STATE / "watchdog_flags.json"
 LANES = STATE / "lanes.json"
+COORD_MARK = STATE / "coordinator_session.json"  # coordinator_session.py register: {"session_id", "at"}
 COORD_STOP = STATE / "coordinator_stop.json"  # coordinator_stop.py: {"last": {"at": the coordinator's last turn end}}
 DEFAULTS = {"min_free_disk_gb": 12, "lanes_idle_minutes": 30, "ready_file": "docs/ROADMAP.md",
             "ready_pattern": r"\|\s*Ready\s*\|", "rule_notes_dir": "", "rule_note_pattern": r"^\s*type:\s*feedback\b",
@@ -110,12 +111,22 @@ def ready_items(cfg: dict) -> int | None:
     return sum(1 for line in text.splitlines() if rx.search(line))
 
 
-def last_turn(path: Path = COORD_STOP) -> float | None:
-    """When the coordinator's last turn ended (coordinator_stop.py's record); None when unknown."""
+def last_turn(path: Path = COORD_STOP, marker: Path = COORD_MARK) -> float | None:
+    """When the registered coordinator's last turn ended (coordinator_stop.py's record); None when unknown, or when the
+    record is another session's or older than this session's registration (a stale record would say STALLED falsely)."""
+    rec, mark = _read(path), _read(marker)
     try:
-        return float((_read(path).get("last") or {}).get("at")) or None
+        at = float((rec.get("last") or {}).get("at")) or None
     except (TypeError, ValueError):
         return None
+    if at is None or not mark.get("session_id") or rec.get("session_id") != mark.get("session_id"):
+        return None
+    try:
+        if mark.get("at") and at < float(mark["at"]):
+            return None
+    except (TypeError, ValueError):
+        pass
+    return at
 
 
 def check_lanes_idle(now: float, lanes: int | None, ready: int | None, prev: dict, cfg: dict,

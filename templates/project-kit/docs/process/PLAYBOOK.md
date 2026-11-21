@@ -39,9 +39,10 @@ owner's live config asks first.
 - Keep one quiet watch running (a background task that exits only when something needs you) and a sparse check-in
   (a session cron every two hours): touch the heartbeat, land what is ready, refill lanes. Each idle wake-up re-reads
   the whole context, so routine events don't wake you.
-  **One quiet watch per session**: its wait script takes a per-session pid lock (`.loop/wait-<session id>.pid`) and a
-  second start refuses, printing the running one's pid and `kill <pid>`. Start it from the harness (a background
-  task), never with `nohup` beside it: an untracked second copy wakes you twice and outlives the session.
+  **One quiet watch per session.** The kit ships no wait script; when you write yours, give it a per-session pid
+  lock (for example `.loop/wait-<session id>.pid`, taken with a no-clobber write and taken over when its pid is dead)
+  so a second start refuses and prints the running one's pid and `kill <pid>`. Start it from the harness (a
+  background task), never with `nohup` beside it: an untracked second copy wakes you twice and outlives the session.
 - One lane number: the cap in `.loop/config.json` is the number. Don't keep a second, remembered limit in notes or
   prompts; change the config, by pull request.
 - **Never wait on the owner.** Decide every reversible call yourself, act on it, and add a row to

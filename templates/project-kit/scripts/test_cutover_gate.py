@@ -119,6 +119,10 @@ class Gate(unittest.TestCase):
         self.passes([{"at": NOW - 60, "commit": self.main, "full": True, "failed": 2}])
         self.assertIn("unnamed", self.why())
 
+    def test_a_malformed_run_refuses_clearly(self):
+        self.passes([{"at": "yesterday", "commit": self.main, "full": True, "failed": 0}])
+        self.assertIn("malformed run(s) at line(s) 1", self.why())
+
     def test_no_passes_file_refuses(self):
         self.config({"passes_file": ""})
         why = self.why()
