@@ -40,6 +40,7 @@ A blocked call says what to do instead. Fix a wrong block in the hook, by pull r
 - Tests: `<test command>` (pick the smallest set that covers the change; say which and why).
 - Before handing back: `python3 scripts/prelanding.py`.
 - Land: `scripts/land.sh <PR>`.
+- Land a reviewed PR (its review line, its exact branch up to main, prelanding, land): `python3 scripts/review_land.py <PR> --line "<Name>: OK (<reviewer>, ...)"`.
 - Fast checks before landing: `python3 scripts/prelanding.py` runs the commands listed in `.loop/config.json` under `prelanding.checks`.
 - Running lanes: `python3 .claude/hooks/lane_ledger.py list`. Caps, floors and gates: `.loop/config.json`.
 - Watchdog (from the OS scheduler, every 15 minutes): `python3 scripts/watchdog.py`.

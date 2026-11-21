@@ -8,9 +8,14 @@ turns Claude Code starts by itself (a cron, a background task ending), as facts,
              "UNDER THE FLOOR" below `digest.min_lanes`
   watch      the heartbeat's age (.loop/coordinator.heartbeat) and the watchdog's open flags and last run
              (.loop/watchdog_flags.json, which scripts/watchdog.py writes)
+  release    with the `release` knobs set: the pipeline running or PAUSED (its age, cause and `release.resume_command`),
+             and the build users run (`release.published_file`): its version and age. A pipeline once sat paused ten
+             days with nobody looking
   owner      `Assumed, unreviewed: N`: the rows of the assumptions log (`digest.assumptions_log`) whose last cell starts
              with `open`. The coordinator never waits on the owner: it decides, logs the call there, and keeps going;
              the owner reviews the open rows when they have time.
+The lane count comes from the ledger alone, never from a watchdog flag's text: a flag's detail is the ledger as the
+watchdog read it up to 15 minutes ago, and once named a lane that had already ended.
 Local files only (no git, gh or ps): a few ms. Only the registered coordinator (coordinator_session.py), never its
 subagents or helper sessions. Its own error: fails open (exit 1, nothing added); a source it can't read is left out.
 """
@@ -80,6 +85,36 @@ def lanes_line(cfg: dict, now: float) -> str:
     return line
 
 
+def release_line(cfg: dict, now: float, root: Path) -> Optional[str]:
+    """The release pipeline from its files; None when the release knobs are unset or neither file exists."""
+    rc = cfg.get("release") or {}
+    pf, bf = rc.get("paused_file") or "", rc.get("published_file") or ""
+    paused = read_json(root / pf) if pf else None
+    pub = read_json(root / bf) if bf else None
+    if not isinstance(paused, dict) and not isinstance(pub, dict):
+        return None
+    line = "Release: "
+    if isinstance(paused, dict):
+        try:
+            at = float(paused.get("at") or now)
+        except (TypeError, ValueError):
+            at = now
+        why = str(paused.get("why") or "no cause recorded")[:60]
+        line += (f"PAUSED {mins(now - at)} ({why}): resume once the fix passed its checks"
+                 + (f": {rc['resume_command']}" if rc.get("resume_command") else "") + "; ")
+    else:
+        line += "running; "
+    if isinstance(pub, dict):
+        line += f"users run {pub.get('version') or str(pub.get('commit') or '?')[:9]}"
+        try:
+            line += f", published {mins(now - float(pub['published']))} ago" if pub.get("published") else ""
+        except (TypeError, ValueError):
+            pass
+    else:
+        line += "nothing published"
+    return line
+
+
 def digest(cfg: dict, now: float, root: Optional[Path] = None) -> list:
     root = root or _loop.project_dir()
     lines = [lanes_line(cfg, now)]
@@ -98,6 +133,9 @@ def digest(cfg: dict, now: float, root: Optional[Path] = None) -> list:
     else:
         watch += "; watchdog: no record (.loop/watchdog_flags.json)"
     lines.append(watch)
+    rel = release_line(cfg, now, root)
+    if rel:
+        lines.append(rel)
     log = cfg["digest"]["assumptions_log"]
     n = open_assumptions(root / log)
     if n is not None:

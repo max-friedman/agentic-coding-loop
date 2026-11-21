@@ -36,5 +36,28 @@ class GateChange(unittest.TestCase):
         self.assertEqual(prelanding.gate_change_refusal(FILES, "", prelanding.DEFAULTS), "")
 
 
+RULES = {**prelanding.DEFAULTS, "review_lines": [{"name": "Fidelity", "when_body": "^Cutover:", "when_paths": ["ui/"]}]}
+
+
+class ReviewLines(unittest.TestCase):
+    def test_a_cutover_body_without_the_line_is_refused(self):
+        why = prelanding.missing_review_lines(["config/flags.json"], "Cutover: the new screen\n", RULES)
+        self.assertEqual(len(why), 1)
+        self.assertIn("Fidelity: OK", why[0])
+
+    def test_a_listed_path_needs_it_too(self):
+        self.assertIn("ui/home.py", prelanding.missing_review_lines(["ui/home.py"], "", RULES)[0])
+
+    def test_an_independent_ok_passes_and_the_author_does_not(self):
+        body = "Cutover: x\nFidelity: OK (fresh-reviewer, sheet 1a2b)\n"
+        self.assertEqual(prelanding.missing_review_lines([], body, RULES), [])
+        self.assertIn("isn't independent", prelanding.missing_review_lines([], "Cutover: x\nFidelity: OK (author)", RULES)[0])
+        self.assertTrue(prelanding.missing_review_lines([], "Cutover: x\nFidelity: pending", RULES))
+
+    def test_nothing_required_otherwise(self):
+        self.assertEqual(prelanding.missing_review_lines(["src/a.py"], "A change.", RULES), [])
+        self.assertEqual(prelanding.missing_review_lines(["ui/a.py"], "Cutover: x", prelanding.DEFAULTS), [])
+
+
 if __name__ == "__main__":
     unittest.main()

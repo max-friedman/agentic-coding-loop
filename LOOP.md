@@ -690,6 +690,8 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
 | **Refuse a stale merge**: a PR missing lines the default branch added to a file the PR also changes, unless the PR says the revert is intended. | A bad conflict resolution silently undoes merged work. |
 | **Never skip a gate.** No `--no-verify`, no stubbed check, no environment variable that turns a check off for one command. An override flag on the merge path belongs to the coordinator only, and every use is logged where the human reviews it. A wrong gate is fixed in the gate. | A gate a lane can skip is a suggestion. |
 | **A gate change is its own PR.** A PR that changes a gate (anything that decides what runs, what is skipped or what passes) together with product code is refused unless an independent reviewer — a fresh agent or the human, never the author or the coordinator that steered it — read the gate diff and the PR says so. The line in the PR is an honour check (the author can type it), so it only works paired with a reviewer the coordinator actually starts. | Changed together, the check and the code it checks are loosened in one step and reviewed as one. |
+| **Reviews can't be bypassed by queueing.** A PR that declares a change needing review (user-visible work, a cutover) can't pass the gate without the independent reviewer's line, whether the trigger is a changed path or a line in the description; anything that queues PRs by itself skips a PR still missing its line. A script, not hand steps, takes a reviewed PR to the merge path: its exact branch, the default branch merged in, the line written, the gate rerun. | A cutover can be a one-line config change that no path rule catches; an auto-queue that doesn't wait for the review lands the PR before the verdict. |
+| **A cutover checks the shipped build, not just the config.** A PR that switches features on is refused while the release pipeline is paused, when the build users run lacks the code it switches on, or without a recent whole-suite pass on a commit that contains it. | A switch flipped in config for users on an old build changes nothing for them, and reads as done. |
 | **A PR kept out on purpose is held, not dropped.** The queue has a held state with a reason: adding a held PR is refused until it is explicitly released, and anything that queues PRs by itself skips it. | A dropped PR looks ready again to the next automatic queuer, and lands before the moment it was waiting for. |
 | **Per-PR scratch files.** A PR description, log or result file is named after its PR or lives in its lane's worktree; never a shared fixed path. | Two lanes writing one `pr_body.md` put one PR's description on the other. |
 | **Selecting where a check runs fails closed.** When the list that says which checks need the strict target can't be read, everything goes to the strict target. | Read as empty, the list sends those checks where they are skipped, and a skip reads as a pass. |
@@ -726,8 +728,17 @@ that path fast and honest. It adds to §0–§E; it never relaxes them.
   asked`, reviewed together.
 - **Never wait on the human for a reversible call.** Pick the recommendation, act,
   and log it — date, decision, why, how to undo — in an assumptions log the human
-  reviews in one pass. Zero lanes while ready work exists is never "waiting on the
-  human"; the watchdog flags it.
+  reviews in one pass. Zero lanes is never "waiting on the human"; the watchdog
+  flags it whether or not the ready list shows ready work (stale statuses once hid
+  it for hours).
+- **Detect a stalled coordinator from its turns, not its heartbeat.** A heartbeat
+  its own wait script touches stays fresh while the coordinator does nothing; the
+  time since its last turn ended does not. One wait script per session: a second
+  copy refuses to start.
+- **A paused release pipeline must alert.** The watchdog flags a pause at once (to
+  the coordinator, with the cause and the resume command), reaches the human after
+  a day, and flags a build users run that lacks shipped changes days old. A paused
+  pipeline looks like a quiet day.
 - **Name what needs no approval.** The coordinator and the lanes each get a written list of routine actions they
   take without asking (landing tested PRs, one rerun of a flaky check, turning on through its config knob a tested
   feature the human already approved for enabling, logged), and of what they hand back. Without the list, agents ask for a go-ahead on work that

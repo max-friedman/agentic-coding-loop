@@ -14,8 +14,8 @@
    "dest": "fe7439691b090214ff390188675c41608ab817d11804d7e2daa6ef557c18d72c"
   },
   "hooks/coordinator_digest.py": {
-   "source": "c4114670882e368a3a3550bd22325cdb634a6471bb3090b739ed51ae35d6118e",
-   "dest": "f4e801e43510aa09476f29a960c86102f85540763e426e9a49d28d522876f1a8"
+   "source": "779d0ae1924d2915c1552d12c47125246a631e11e1fdb727fc1159731ce73429",
+   "dest": "cdd57087c6c20131418706609bc033fc5d019321e87355f003ef9d6d3664fc9f"
   },
   "hooks/coordinator_session.py": {
    "source": "4fe60a87cb629252994540d3686d16322c2d15bbe611e51b9abf41efb7cb7c79",
@@ -50,8 +50,8 @@
    "dest": "357e7bd1dede574ebc23ba0e1ca3f004e662bba1580e85a3a5654ccc2104dbc0"
   },
   "hooks/test_coordinator_digest.py": {
-   "source": "10c8602be9a5ddf4df6d77d0bdc44b68111d35961e63d719202ae8bdd7b75cd1",
-   "dest": "dd94e24940e2a8093155d86c286918445d0bded92b83c940b2956639c258ca2f"
+   "source": "35d3953dd1c370978478e27b881a73fb353ef2aece6bd4d0c09b596382679054",
+   "dest": "c027ff693b779986d0c7efd97a5080436d130d6f6b5d5a1de43309fdfb320fd0"
   },
   "hooks/test_coordinator_stop.py": {
    "source": "cd9ccac67d147d9be4d26e317a142f10fd487076233a48b015aec2b13ccd7c00",
@@ -94,8 +94,8 @@
    "dest": "4ef47166f031d8842d70268d5c6204ad3e9029d4860cbaec852e55dd869b1170"
   },
   "hooks/watchdog.py": {
-   "source": "a20364c82f341fd98ba670b603c0e19eb18b17e58b6c8c8aa67b6284aec5674f",
-   "dest": "e56689483f0ebdb9c75949b4fdeb5168d56ce5971cff80a18e8c96eff5c9886f"
+   "source": "abfcdb41c81f434a63040e373168224e7778f81e173fbfe4ceee123b306c900f",
+   "dest": "0a723abdbbbe3b7a19ba29dc13c3d9a6a8f565286cbaa180c941e02423934570"
   },
   "hooks/wip_limit.py": {
    "source": "94acbf9161c84eb015923eea0e89cbfc2077e16b19c25bcb2f29a108bdf49ce4",
@@ -107,11 +107,11 @@
   },
   "templates/project-kit/docs/process/landing.md": {
    "source": "ec27b9f2c0a0f2a0748e5989d78d11d1b9cfb53091c30d694f74171215130183",
-   "dest": "073139c071e67648644bcb30382fe74add11266f27c7c25a65b12661d03d367c"
+   "dest": "3fb3a5288a14be075b133231eb4725e1cc99837b985dc46c003dd67782983bf8"
   },
   "templates/project-kit/scripts/prelanding.py": {
-   "source": "32af34c4f3418d29d1a27c28f19989cb4a084f454ea6d392db11af5ce1b3fd3b",
-   "dest": "6549b3f9931e0a4ba6532ed042ae212860a8d3c5df1a6e72f2e845a9c47f33d9"
+   "source": "fb850a737c79c5bd339d3bc4adb312a9c1bfdc2b9281b0d6bb274784c092e746",
+   "dest": "4e5557e627862bea8de545c21eb0eb6a4ff3a5682062641d86474525754ee130"
   },
   "templates/project-kit/scripts/repo_lock.py": {
    "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",

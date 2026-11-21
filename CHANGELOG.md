@@ -11,6 +11,36 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.6.0] — 2026-11-20
+
+A paused release pipeline that alerts, a cutover gate that checks the build users run, reviews an auto-queue can't
+skip, and a stalled coordinator the watchdog can see. Opt-in knobs and kit scripts; no protocol change, so existing
+state files need nothing.
+
+**Added**
+- `watchdog.py`: `release_paused` (the cause and the resume command, coordinator only), `release_stuck` after
+  `release.stuck_hours` (the human at once), and `build_stale` (the build users run lacks shipped changes over
+  `release.stale_days` old), from the new `release` knobs; off while unset. `lanes_idle` now fires on 0 lanes whether
+  or not the ready list shows ready work, and says `COORDINATOR STALLED` when the coordinator's last turn
+  (`.loop/coordinator_stop.json`) is as old: a heartbeat its wait script touches can't tell.
+- `coordinator_digest.py`: a `Release:` line (running or paused, the build users run and its age). The lane count
+  stays from the ledger only.
+- Kit `scripts/cutover_gate.py`, run by prelanding (exit 14): a cutover (`Cutover:` in the body, or `cutover.when_paths`)
+  is refused while the pipeline is paused, when a config cutover would switch on code the published build lacks, and
+  without a whole-suite pass in 24 h on a commit containing its base. An ordered cutover checklist in the kit's
+  landing doc.
+- Kit prelanding: `prelanding.review_lines` requires an independent reviewer's line (`Fidelity: OK (<reviewer>, ...)`)
+  for PRs that declare or touch what it lists (exit 13); `missing_review_lines()` lets an auto-queue skip them.
+- Kit `scripts/review_land.py <PR> --line "..."`: the PR's exact branch (reusing, fast-forwarding or refusing local
+  copies), main merged in, the review line written through a per-PR body file, prelanding, then `review_land.after`
+  (`scripts/land.sh {pr}` or your queue).
+- §F: reviews can't be bypassed by queueing; a cutover checks the shipped build; a paused release pipeline must alert;
+  detect a stalled coordinator from its turns. The kit PLAYBOOK: one quiet watch per session (a per-session pid lock).
+
+**Fixed**
+- Kit prelanding read `.loop/config.json` from its scratch worktree, where the git-ignored file never is, so
+  configured checks and knobs were ignored; it reads the main checkout's now.
+
 ## [1.5.0] — 2026-11-20
 
 Rules that say why, a named list of what needs no approval, and a land queue that can hold a PR. Kit docs and §F

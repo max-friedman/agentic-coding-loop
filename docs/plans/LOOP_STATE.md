@@ -31,7 +31,7 @@ Protocol: [`LOOP.md`](../../LOOP.md). Project rules: [`AGENTS.md`](../../AGENTS.
   green **on `main`**, not only on branches. Still not *enforced*: `gate` is not a
   required status check (NEEDS-OWNER 2), and R3 measured what that has cost.
 - **Artifact:** two plugins declared in `.claude-plugin/marketplace.json` —
-  `loop` 1.5.0 (`LOOP.md`; 7 skills; 5 templates and the project kit) and
+  `loop` 1.6.0 (`LOOP.md`; 7 skills; 5 templates and the project kit) and
   `loop-ux-roast` 0.1.0 (`domains/ux-roast/`).
 - **Headline:** the docs promised that a merge changes nothing downstream until a
   release. Every documented path except the plugin fetches `LOOP.md` from `main`,

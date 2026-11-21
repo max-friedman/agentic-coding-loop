@@ -34,6 +34,18 @@ lines = cd.digest(cfg, now)
 check("no ledger: 0 lanes, under the floor", "Lanes: 0 of 5" in lines[0] and "UNDER THE FLOOR" in lines[0], lines)
 check("no heartbeat, no watchdog record: says so", "Heartbeat: missing" in lines[1] and "no record" in lines[1], lines)
 check("no assumptions log: no owner line", not any("Assumed" in x for x in lines), lines)
+check("no release knobs: no release line", not any(x.startswith("Release:") for x in lines), lines)
+rcfg = {**cfg, "release": {**cfg["release"], "paused_file": "rel/paused.json", "published_file": "rel/latest.json",
+                           "resume_command": "make resume"}}
+check("release knobs but no files yet: no line", not any(x.startswith("Release:") for x in cd.digest(rcfg, now)))
+(PROJ / "rel").mkdir()
+(PROJ / "rel" / "latest.json").write_text(json.dumps({"commit": "a" * 40, "version": "1.4.2", "published": now - 600}))
+rl = [x for x in cd.digest(rcfg, now) if x.startswith("Release:")]
+check("running: the build users run and its age", rl == ["Release: running; users run 1.4.2, published 10 min ago"], rl)
+(PROJ / "rel" / "paused.json").write_text(json.dumps({"at": now - 7200, "why": "crash loop on start"}))
+rl = [x for x in cd.digest(rcfg, now) if x.startswith("Release:")]
+check("paused: its age, cause and the resume command", rl and rl[0].startswith("Release: PAUSED 2.0 h (crash loop on start)")
+      and "make resume" in rl[0] and "users run 1.4.2" in rl[0], rl)
 
 (L / "lanes.json").write_text(json.dumps({"lanes": [
     {"kind": "feature", "hotspots": ["api"], "updated": now}, {"kind": "bug", "hotspots": [], "updated": now},
