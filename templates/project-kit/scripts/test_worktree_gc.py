@@ -79,6 +79,23 @@ class Plan(unittest.TestCase):
         self.assertEqual(self.planned(now=self.old), {"clean": self.planned(now=self.old)["clean"]})
         self.assertEqual(self.planned(now=time.time()), {}, "nothing is idle yet")
 
+    def test_a_waiting_items_detached_worktree_goes_after_minutes(self):
+        wt = self.d / "repo-worktrees" / "item-1"
+        self.g(self.root, "worktree", "add", "-q", "--detach", str(wt), "origin/main")
+        branch = self.add("item-2")  # on a branch: never "recreatable"
+        Path(self.root, ".loop").mkdir(exist_ok=True)
+        cfg = Path(self.root, ".loop", "config.json")
+        soon = time.time() + 30 * 60  # 30 min idle: under idle_hours
+        self.assertEqual(self.planned(now=soon), {}, "off without recreatable_prefixes")
+        cfg.write_text(json.dumps({"worktree_gc": {"recreatable_prefixes": ["item-"]}}))
+        got = self.planned(now=soon)
+        self.assertEqual(list(got), ["item-1"], got)
+        self.assertIn("made again when it builds", got["item-1"])
+        self.assertEqual(self.planned(now=time.time() + 60), {}, "not idle yet: 10 min")
+        (wt / "scratch.txt").write_text("x\n")
+        self.assertEqual(self.planned(now=soon), {}, "dirty: kept")
+        self.assertTrue(branch.exists())
+
     def test_the_main_checkout_is_never_listed(self):
         self.assertEqual(self.planned(), {})
 

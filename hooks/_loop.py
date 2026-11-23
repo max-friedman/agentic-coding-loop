@@ -26,6 +26,9 @@ DEFAULTS: dict = {
         "require_lane_line": False,       # True: a spawn with no Lane: line is blocked instead of defaulted
         "stale_hours": 6,                 # a ledger entry this old counts as ended (a crashed lane can't hold a slot)
         "read_only_types": ["Explore", "Plan", "claude-code-guide", "web-fetch"],  # never counted, never gated
+        "max_build_helpers": 0,           # >0: at most this many running lanes may use the build slot (see spawn_gate.uses_build); 0: off
+        "override_file": ".loop/lane_override.json",  # an owner-approved, expiring raise of one kind's cap (see cap_override)
+        "override_ceiling": 4,            # an override never raises a kind's cap above this
     },
     "resources": {
         "min_free_disk_gb": 15,           # block a spawn under this much free disk
@@ -37,6 +40,9 @@ DEFAULTS: dict = {
         "require_rules": False,           # True: a spawn prompt must carry one of rules_markers
         "rules_markers": [["helper-rules.md"], ["playbook", "prelanding"]],  # alternatives; each: phrases all present
         "require_no_notify": False,       # True: a RemoteTrigger prompt must say it won't notify the owner
+        "require_local_need": False,      # True: a LOCAL writing spawn must declare `Needs: local (<why>)`, else go to a cloud lane
+        "local_exempt_env": ["CLAUDE_CODE_REMOTE"],  # env vars that, truthy, mean the spawn is already in the cloud (or its own lane)
+        "cloud_hint": "Send it to a cloud lane instead (a one-off remote run of the same task).",  # added to the refusal
     },
     "gh_rules": {
         "block_pr_merge": False,          # True: block `gh pr merge` on this repo (land with scripts/land.sh); opt-in
@@ -61,6 +67,8 @@ DEFAULTS: dict = {
     },
     "watchdog": {
         "min_free_disk_gb": 12,           # watchdog.py flags disk_low under this (it reads the file itself)
+        "cleanup_command": "",            # run once per low-disk episode when free disk falls under auto_cleanup_gb; empty: off
+        "auto_cleanup_gb": 15,            # under this (the spawn floor) the cleanup runs, before disk_low can open
         "lanes_idle_minutes": 30,         # lanes_idle: no lane running this long while ready work exists
         "ready_file": "docs/ROADMAP.md",  # where ready work is listed (no file: lanes_idle is off)
         "ready_pattern": r"\|\s*Ready\s*\|",  # each line matching this is one ready item
@@ -127,6 +135,39 @@ DEFAULTS: dict = {
 }
 
 LANE_LINE = re.compile(r"Lane:\s*(\w+)\s*(?:;\s*Hotspot:\s*([\w,\- ]+))?", re.I)
+# `Needs: local (<why>)` on a line of its own (markup like `- **Needs:** local` is fine); "localhost" is not "local".
+LOCAL_NEED = re.compile(r"^[ \t>*_-]*needs[*_]*[ \t]*:[ \t`*_]*local\b([^\n]*)", re.I | re.M)
+NO_BUILD = re.compile(r"\bno[ -]build\b", re.I)
+
+
+def needs_local(text: str) -> bool:
+    """The prompt declares `Needs: local`: the work must run on this machine (a build, a device, a local service)."""
+    return bool(LOCAL_NEED.search(text or ""))
+
+
+def uses_build(text: str) -> bool:
+    """A `Needs: local` helper that will use the build slot: unless its own line says `no build`."""
+    m = LOCAL_NEED.search(text or "")
+    return bool(m) and not NO_BUILD.search(m.group(1))
+
+
+def cap_override(kind: str, cfg: dict, now: float | None = None) -> tuple[int, str] | None:
+    """An owner-approved, expiring raise of one kind's cap: `lanes.override_file` holds {"kind", "max", "until" (epoch),
+    "why"}. -> (the raised cap, why) while `until` is in the future and `max` is above the configured cap, else None.
+    A missing, unreadable, malformed or expired file means no override: it fails toward the normal cap. The raise never
+    goes above `lanes.override_ceiling`, and `lanes.total` still holds."""
+    lanes = cfg["lanes"]
+    try:
+        p = Path(lanes.get("override_file") or "")
+        p = p if p.is_absolute() else project_dir() / p
+        d = json.loads(p.read_text(encoding="utf-8"))
+        until, n = float(d["until"]), int(d["max"])
+        if str(d["kind"]).lower() != kind or (time.time() if now is None else now) >= until:
+            return None
+    except Exception:  # noqa: BLE001 - no override
+        return None
+    n = min(n, int(lanes.get("override_ceiling", 4)))
+    return (n, str(d.get("why") or "owner-approved override")) if n > int(lanes["caps"].get(kind, 0)) else None
 
 
 def project_dir() -> Path:

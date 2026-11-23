@@ -11,6 +11,40 @@ Versioning is [semantic](https://semver.org): MAJOR for a change to the protocol
 that existing state files or rounds must adapt to (1.0 renamed `NEEDS-MAX` to `NEEDS-OWNER`), MINOR for new capability, PATCH
 for wording and fixes.
 
+## [1.7.0] — 2026-11-23
+
+Cloud-first spawns and a budget for the build slot, fail-fast PR body checks and batch prelanding, and disk that stays
+above the floor by itself. Everything new is opt-in or inert until configured, except two kit defaults noted below; no
+protocol change, so existing state files need nothing.
+
+**Added**
+- `spawn_gate.py`: `spawn_gate.require_local_need` (cloud first): a local writing Agent spawn must carry a line of its
+  own `Needs: local (<why>)`, else it is refused with `spawn_gate.cloud_hint`. Exempt: read-only prompts and types, forks,
+  `isolation: remote`, and a spawn from a cloud session (`spawn_gate.local_exempt_env`, default `CLAUDE_CODE_REMOTE`).
+- `admission_gate.py`, `lane_ledger.py`: `lanes.max_build_helpers` (build-slot budget): a spawn that declares
+  `Needs: local` without `no build` is refused while that many running lanes already use the build slot (new `build`
+  flag in the ledger, shown by `lane_ledger.py list`). And `lanes.override_file`: an owner-approved, expiring raise of one
+  lane kind's cap, up to `lanes.override_ceiling`; missing, unreadable or expired means the normal cap.
+- `watchdog.py`: `watchdog.cleanup_command` runs itself once per low-disk episode when free disk is under
+  `watchdog.auto_cleanup_gb` (15), and `disk_low` opens only if the disk is still under its floor afterwards; a run made
+  above the floor is followed by one more if the disk then falls under it.
+- Kit `scripts/prelanding.py`: fail-fast body checks before any worktree or check (a gate change without its review
+  line, a review line that names the author, an unreadable `Intentional revert:` line), `--body-only [--pr N] [--body FILE]`,
+  and `--batch PR...` (one run for several PRs, a pass per head, red bisected by halves; gates, `alone_paths` and
+  conflicting PRs run alone; `--plan`, `--json`).
+- Kit `scripts/throwaway_worktrees.py`: at most `prelanding.max_throwaways` (2) scratch worktrees at once, removed on
+  SIGTERM and SIGHUP too, and a sweep of stale ones. Kit `worktree_gc.py`: `worktree_gc.recreatable_prefixes` removes a
+  waiting work item's detached, clean worktree after ten idle minutes.
+- Kit docs: landing (fail fast, disk, batch prelanding, a bigger merge train, the helper's worktree goes at the merge),
+  helper rules (`Needs: local`, `--body-only` first), PLAYBOOK (cloud first). `docs/PARALLEL_LANES.md` §15: the week's
+  lessons, including two rules for a project's feedback loop (a fix approves itself and a screen change goes to the owner
+  as a before/after; the owner's own feedback builds before automated feedback).
+
+**Changed**
+- Kit prelanding now runs the body checks before it makes its worktree, and puts the worktree under `.loop/throwaways/`
+  of the main checkout instead of the system temp dir. A configured `prelanding.checks` is unchanged.
+- The merge-train size in `docs/PARALLEL_LANES.md` is six, not four (one culprit in six costs about five extra runs).
+
 ## [1.6.0] — 2026-11-20
 
 A paused release pipeline that alerts, a cutover gate that checks the build users run, reviews an auto-queue can't

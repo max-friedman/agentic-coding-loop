@@ -2,7 +2,7 @@
 """PostToolUse (Agent|Task) and SubagentStop hook: keeps the lane ledger `.loop/lanes.json` that admission_gate.py
 counts against the caps.
 
-- PostToolUse on a spawn adds an entry: {id, kind, hotspots, description, session_id, started, updated}. The kind and
+- PostToolUse on a spawn adds an entry: {id, kind, hotspots, description, session_id, started, updated, build}. The kind and
   hotspots come from the prompt's `Lane: <kind>; Hotspot: <areas>` line, the same parse the gate uses (no line: the
   default kind). Read-only agent types and `Lane: none` aren't recorded. A spawn whose response says it already
   finished (a foreground subagent: its SubagentStop fired before this PostToolUse) isn't recorded either.
@@ -68,7 +68,8 @@ def on_spawn(data: dict, cfg: dict, now: float, path=None) -> dict | None:
     ttl = float(cfg["lanes"]["stale_hours"]) * 3600
     entry = {"id": agent or f"spawn-{uuid.uuid4().hex[:8]}", "agent_id": agent, "kind": kind,
              "hotspots": sorted(hotspots), "description": str(inp.get("description") or "")[:80],
-             "session_id": data.get("session_id"), "started": now, "updated": now}
+             "session_id": data.get("session_id"), "started": now, "updated": now,
+             "build": _loop.uses_build(str(inp.get("prompt") or ""))}
     with _loop.locked_ledger(path) as doc:
         doc["lanes"] = [e for e in doc["lanes"] if now - float(e.get("updated", 0)) < ttl]
         if agent and agent in doc["stopped"]:
@@ -114,7 +115,7 @@ def cli(argv: list[str]) -> int:
         lanes = _loop.running(cfg)
         for e in lanes:
             age = int((time.time() - float(e.get("started", 0))) / 60)
-            print(f"{e.get('id')}  {e.get('kind')}  hotspots={','.join(e.get('hotspots') or []) or 'none'}  "
+            print(f"{e.get('id')}  {e.get('kind')}  hotspots={','.join(e.get('hotspots') or []) or 'none'}{'  build' if e.get('build') else ''}  "
                   f"{age} min  {e.get('description', '')}")
         print(f"{len(lanes)} running (cap {cfg['lanes']['total']})")
         return 0

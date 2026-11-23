@@ -8,6 +8,18 @@ One way onto main, so every change passes the same checks.
 `PRELANDING_CHECKS` or `prelanding.checks` in `.loop/config.json` (no default: with none set it fails rather than pass on nothing; list your project's fast checks, separated by
 `;`), and records the pass for the branch's head commit in `.loop/prelanding/`. Hand back only after it passes.
 
+**Fail fast.** Everything readable from the PR body and the file list is checked before the scratch worktree or any
+check, all at once, each with its fix: a gate change without its review line, a review line that is there but names
+the author or the coordinator, an `Intentional revert:` line that is bulleted, quoted or bold (the stale-merge guard
+reads only a plain line). A typo then costs seconds instead of a whole run. `prelanding.py --body-only [--pr N] [--body
+FILE]` runs just these. A *missing* review line is not among them: it is added after an independent review, so the checks
+still run first and its refusal (exit 13) comes after them.
+
+**Disk.** The scratch worktree lives under `.loop/throwaways/` and is made only once the run holds one of
+`prelanding.max_throwaways` (2) places (`scripts/throwaway_worktrees.py`), so queued runs don't each hold a full
+checkout while they wait for the build slot. It is removed however the run ends, SIGTERM and SIGHUP included, and a
+stale one a kill left (idle 2 h, owner gone) is swept at the start of the next run.
+
 Before the checks it refuses two things (knobs under `prelanding` in `.loop/config.json`):
 
 - **A gate changed together with product code** (exit 11), unless the PR body says `Gate change: reviewed by
@@ -67,6 +79,20 @@ No `--no-verify`, no stub, no env var that turns a check off on the command line
 override flag on the landing scripts exists for the coordinator only (`git_rules.coordinator_only_flags`), and each use
 should be logged where the owner reviews it. A wrong gate is fixed in the gate, in its own pull request.
 
+## Batch prelanding
+
+`python3 scripts/prelanding.py --batch 12 15 19` checks several PRs in one run, because one run per PR delivers PRs to
+the queue one at a time and a batch of landings rarely forms. It merges `origin/main` and the PRs, in order, into one
+scratch worktree and runs the checks once. Green records a pass for each head (the record says which PRs it was checked
+with). Red is bisected by halves, each half its own run, so the innocent PRs still get passes and only the culprit
+fails, with its own output. The per-PR rules above run first, per PR, with their usual exit codes (the outcome is
+`refused`). A PR that changes a gate or a path in `prelanding.alone_paths` (a protocol, a migration: whatever lands by
+itself), or that conflicts with an earlier PR in the batch, runs on its own. At most `prelanding.batch_max` (6) PRs
+share a run. A failure whose output contains `prelanding.env_marker` ("ENVIRONMENT, not your PR") is the machine's,
+so it blames nobody and isn't bisected. `--plan` says which runs it would make without running them; `--json FILE`
+writes each PR's outcome; the exit is 0 only if every PR passed. Bigger batches save more when green and cost more
+when red: one culprit among six costs 1 + 2 + 2 (+ 2) runs against six alone.
+
 ## land.sh
 
 A starter version of the landing pattern, not the queue the source project runs. `scripts/land.sh <PR>` refuses a pull request whose head has no recorded prelanding pass, takes the merge lock
@@ -81,7 +107,10 @@ recipe, if you need it:
 1. A queue file (`.loop/land_queue.json`) of pull requests whose prelanding passed; `add <PR>` appends.
 2. One worker takes the head of the queue, merges main into it, reruns the checks, merges under the merge lock, and
    deploys main to the live checkout.
-3. Batch: when several are queued, test them merged together once; on a failure, split and retest.
+3. Batch: when several are queued, test them merged together once (up to six; `prelanding.py --batch` does the
+   checking, see above); on a failure, split and retest. Let the queue's worker run the batch prelanding for entries
+   added as "needs prelanding" (one job at a time, not while a nightly or a pause holds the queue), and never stale-block
+   an entry that waits for that job.
 4. Red main holds features: while main fails a check, refuse pull requests that could affect the failing area unless
    the branch is a fix. Only failures main doesn't already have block a landing.
 5. After the merge, short checks run in the background and revert only a culprit; the full suite runs nightly.
@@ -92,3 +121,5 @@ recipe, if you need it:
    dropped twice to land only after a release was queued again by the auto-queue and landed.
 7. The auto-queue also skips a PR missing a review line prelanding requires (`missing_review_lines()`): a review
    can't be bypassed by queueing before it returns.
+8. After a PR merges, its helper's worktree goes with it: removed when clean and idle, or else only its build output.
+   A finished lane that kept a full checkout was most of a 33 GB worktrees directory.

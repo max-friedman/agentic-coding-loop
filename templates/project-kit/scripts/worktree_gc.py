@@ -18,6 +18,11 @@ A worktree on a branch goes when all of these hold:
 A detached worktree goes once idle and clean if its commit is on origin/main.
 Never removed: the main checkout, a locked worktree, one with a `.gc-keep` file, one a process has open (`lsof`, when it
 is installed), and one whose branch or path a running lane holds in the lane ledger (.loop/lanes.json).
+A recreatable worktree goes sooner: one whose directory name starts with a `worktree_gc.recreatable_prefixes` entry
+(default none) is detached and clean, and has been idle `worktree_gc.recreatable_idle_minutes` (10). Its owner made it
+for a work item that is now waiting (for an approval, an answer, a queue slot), still as the planning step left it, and
+makes it again when the item builds; in the project this came from, 37 such idle checkouts held 30 GB. A worktree on a
+branch, a dirty one or one a process has open is never "recreatable".
 A worktree outside `git_rules.worktree_dirs` is named "outside the managed dirs" either way. Each removal is one JSON
 line in .loop/worktree_gc.jsonl. Any git error on a worktree keeps it.
 """
@@ -45,7 +50,7 @@ def knobs(root: str) -> dict:
         cfg = {}
     own = cfg.get("worktree_gc") if isinstance(cfg.get("worktree_gc"), dict) else {}
     dirs = (cfg.get("git_rules") or {}).get("worktree_dirs", [".claude/worktrees", "../{repo}-worktrees"])
-    return {"idle_hours": 6, **own, "worktree_dirs": dirs}
+    return {"idle_hours": 6, "recreatable_prefixes": [], "recreatable_idle_minutes": 10, **own, "worktree_dirs": dirs}
 
 
 def worktrees(root: str) -> list[dict]:
@@ -127,6 +132,12 @@ def managed(path: str, root: str, dirs: list[str]) -> bool:
     return "/.claude/worktrees/" in path
 
 
+def recreatable(wt: dict, cfg: dict) -> bool:
+    """A detached worktree named with one of `worktree_gc.recreatable_prefixes`: its owner makes it again when needed."""
+    prefixes = tuple(p for p in cfg.get("recreatable_prefixes") or [] if p)
+    return bool(prefixes) and not wt["branch"] and os.path.basename(wt["path"]).startswith(prefixes)
+
+
 def plan(root: str, now: float | None = None, prs=closed_prs) -> list[dict]:
     """The worktrees to remove, each with a `why`."""
     now = time.time() if now is None else now
@@ -142,7 +153,15 @@ def plan(root: str, now: float | None = None, prs=closed_prs) -> list[dict]:
         if wt["branch"] in held or path in held:
             continue
         idle = idle_s(path, now)
-        if idle is None or idle < float(cfg["idle_hours"]) * 3600:
+        if idle is None:
+            continue
+        if recreatable(wt, cfg) and idle >= float(cfg["recreatable_idle_minutes"]) * 60:
+            status = git(path, "status", "--porcelain")
+            if status is not None and not status.strip() and not busy(path):
+                out.append({**wt, "why": f"idle {idle / 60:.0f} min, clean and detached: a waiting item's worktree is made "
+                                         "again when it builds"})
+                continue
+        if idle < float(cfg["idle_hours"]) * 3600:
             continue
         status = git(path, "status", "--porcelain")
         if status is None or status.strip():
