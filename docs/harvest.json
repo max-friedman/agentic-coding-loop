@@ -3,15 +3,15 @@
  "items": {
   "docs/PARALLEL_LANES.md": {
    "source": "cce0ce51976e117ddb7b674bdc3750003bc78e341a070a319e8b0da0e7183a81",
-   "dest": "495563ebf23f699e44e29e2a663f0d2927f0b4e12136f0df1711986174b67fa3"
+   "dest": "d3bf3aa0ebcf7a7ba488090dfa407955baa9f2daed12f803d907e4835fd33c0c"
   },
   "hooks/_shell.py": {
    "source": "14e1b93440cc6afcbb2e1687266ab6ea9909ef81edab45384e1f4964caa25ef3",
    "dest": "fb5b5338292a7db782d2918d4a79bd58b794dfaac55839eafe2f5dda24eee300"
   },
   "hooks/admission_gate.py": {
-   "source": "efd8ddd07b82f123540bf68d92997febc1b27ce251ffb80aa6fd359a40da5744",
-   "dest": "fe7439691b090214ff390188675c41608ab817d11804d7e2daa6ef557c18d72c"
+   "source": "4860b1e17a12536cf9002c6c920f7ee147b20a19b92ca2a7b1d1057956708642",
+   "dest": "b5048e17228455c5100a9775aee5a372412bae02e63e5fa0f229a3b3d6528005"
   },
   "hooks/coordinator_digest.py": {
    "source": "779d0ae1924d2915c1552d12c47125246a631e11e1fdb727fc1159731ce73429",
@@ -46,8 +46,8 @@
    "dest": "b9295d3c44ad66d15b3421a8032ad3b165d91f2bf502db50eca8763ac3553a0c"
   },
   "hooks/spawn_gate.py": {
-   "source": "14dbe5c563e9956c7164e47f4fe737b5eb977a5dbff489fa3cf623c07d02cfb5",
-   "dest": "357e7bd1dede574ebc23ba0e1ca3f004e662bba1580e85a3a5654ccc2104dbc0"
+   "source": "ab3678aba1ff0981585e783425744d1e92ced2a8a44fae3903f3eb2b584175c4",
+   "dest": "b343c9b9c5ad276b7c7e57c01f0e3b89bd057de45bc8718a8029573756467f23"
   },
   "hooks/test_coordinator_digest.py": {
    "source": "35d3953dd1c370978478e27b881a73fb353ef2aece6bd4d0c09b596382679054",
@@ -78,8 +78,8 @@
    "dest": "b3e8749ad613ede39502d790b4cfbfe85a927ff6b56122b573cb933f3a4de305"
   },
   "hooks/test_spawn_gate.py": {
-   "source": "552d6cd41ab47bf4cc0b347e422fcce1b5e22129a628eca6516b9dd90035a9db",
-   "dest": "bc41fd9427caad657f030ca693e1b20c7a7ced0627a65cbc0a645884b9553ae5"
+   "source": "d7638e2d6ad432b8e28dc0313b732dd33faa53d1353e94fecfaf95e0f74d06af",
+   "dest": "a3dccae482fa19cda50756b79f9a32b4bf0443c00d33e3132654de85d830b12b"
   },
   "hooks/test_waiter_guard.py": {
    "source": "a105be22819953f91d79eb4a40595edb50c87c0d0519aecaf61b6a96b5afb6e0",
@@ -94,8 +94,8 @@
    "dest": "4ef47166f031d8842d70268d5c6204ad3e9029d4860cbaec852e55dd869b1170"
   },
   "hooks/watchdog.py": {
-   "source": "abfcdb41c81f434a63040e373168224e7778f81e173fbfe4ceee123b306c900f",
-   "dest": "7285605e168d4fd4e88119e706dc4f18bc60245e1b4efb70a196123376b407c3"
+   "source": "89037016bd899ab211e74c1d159bf2ce862736a486cb35b09c7e85ce2b17b7a6",
+   "dest": "06edc30c28b01bf655a1f96be648602d02604902f8b6cd46b9b204f4efd232c9"
   },
   "hooks/wip_limit.py": {
    "source": "94acbf9161c84eb015923eea0e89cbfc2077e16b19c25bcb2f29a108bdf49ce4",
@@ -103,15 +103,15 @@
   },
   "templates/project-kit/docs/process/helper-rules.md": {
    "source": "2fbb35f978eb69e0d6876f2e1ae8d93a046f0d669bb6a04df9f1d711ec1cd246",
-   "dest": "45adcc7bc27c7e65cdfc7f72aa9cce764284b1e68099a3deaebaa9e928837bdf"
+   "dest": "747bc9a1dc236bac60a88bdffa41667eb3259c9cd107d3ab6401f8ddb7eb92d2"
   },
   "templates/project-kit/docs/process/landing.md": {
-   "source": "ec27b9f2c0a0f2a0748e5989d78d11d1b9cfb53091c30d694f74171215130183",
-   "dest": "3fb3a5288a14be075b133231eb4725e1cc99837b985dc46c003dd67782983bf8"
+   "source": "452d7f3d0dfea6a23bd1b07836741b168da88235f7de1c806c01061c36571584",
+   "dest": "da1debbb99e178af432b65d9d6a7d0ee50529462174e083d2db19fe94dafdbf8"
   },
   "templates/project-kit/scripts/prelanding.py": {
-   "source": "fb850a737c79c5bd339d3bc4adb312a9c1bfdc2b9281b0d6bb274784c092e746",
-   "dest": "dc57f2071f8b41f4b2e6699ee9cae46ea7c37d18311c5dfb2f02c7493e82f545"
+   "source": "a870c56ffdc711592cf99fa6da43c8965355470ed09825767f5ec1fcfaf2953b",
+   "dest": "b330251180afa5f1653da4aac9ccea40497d3550c6066996ca5c89c532cd7ee7"
   },
   "templates/project-kit/scripts/repo_lock.py": {
    "source": "4b095fe9f1b38e0f67df684c48a0d099f4fba7822e3461c4eb4a9eb4803edb76",
@@ -134,8 +134,8 @@
    "dest": "312120a4522227243bd99a32e111da19297ea76f5c610df4f72ee18c74c4134f"
   },
   "templates/project-kit/scripts/worktree_gc.py": {
-   "source": "4ef9e0d115fa37a4a6aec69a467ae4ecb98b1fe8e0402211fbcf3e2127bf956f",
-   "dest": "65dfbc82dc22bcb772028edf9c735463eb8e95413e024217f4eacee2f867a571"
+   "source": "646948cccc671850a8f26728424ad24062e3c56d5064eedd8348ce76f24badda",
+   "dest": "34711d444ed9bba23d8b8fbb7f2d66187ffef61cb6059ebf4a88d26db8048ab8"
   }
  }
 }
