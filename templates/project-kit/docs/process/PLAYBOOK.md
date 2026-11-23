@@ -62,7 +62,10 @@ owner's live config asks first.
 
 The prompt carries the task, the model, `Lane: <kind>; Hotspot: <area>`, and "Read docs/process/helper-rules.md and
 follow every rule in it" (`.claude/hooks/spawn_gate.py` checks for the last two once `spawn_gate.require_model` and
-`require_rules` are on in `.loop/config.json`). One task per helper, in its own worktree.
+`require_rules` are on in `.loop/config.json`). One task per helper, in its own worktree. **Cloud first:** work that
+needs nothing from this machine (docs, scripts, tests, research) goes to a cloud lane; a local helper declares
+`Needs: local (<why>)` (`spawn_gate.require_local_need`), and `lanes.max_build_helpers` caps how many local helpers use
+the one build slot at a time.
 
 ## Watching
 

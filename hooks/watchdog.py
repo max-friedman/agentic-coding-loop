@@ -8,7 +8,15 @@ unseen for hours or days in the project behind §F:
 
   disk_low         free disk under the floor the scheduled suite needs (it once
                    skipped its device stage at 4 GB free, and the disk hit zero
-                   mid-landing the same day)
+                   mid-landing the same day). With `watchdog.cleanup_command` set, the
+                   watchdog runs it itself once per low-disk episode as soon as free
+                   disk is under `watchdog.auto_cleanup_gb` (15, the spawn floor), so
+                   the owner is not the one who frees space, and disk_low opens only if
+                   the disk is still under the floor after the run (the result goes in
+                   the flag's detail). A run made between the floor and that level is
+                   followed by one more if the disk then falls under the floor. The
+                   record (.loop/watchdog_flags.json, "disk_cleanup") goes when the
+                   disk is back above auto_cleanup_gb, so the next episode runs it again.
   job_auth         an unattended job keeps failing on its login (one ran "green"
                    on schedule for a week while every run failed to authenticate)
   coordinator_silent  the coordinator's heartbeat is stale while work waits
@@ -63,7 +71,7 @@ FLAGS = STATE / "watchdog_flags.json"
 LANES = STATE / "lanes.json"
 COORD_MARK = STATE / "coordinator_session.json"  # coordinator_session.py register: {"session_id", "at"}
 COORD_STOP = STATE / "coordinator_stop.json"  # coordinator_stop.py: {"last": {"at": the coordinator's last turn end}}
-DEFAULTS = {"min_free_disk_gb": 12, "lanes_idle_minutes": 30, "ready_file": "docs/ROADMAP.md",
+DEFAULTS = {"min_free_disk_gb": 12, "cleanup_command": "", "auto_cleanup_gb": 15, "lanes_idle_minutes": 30, "ready_file": "docs/ROADMAP.md",
             "ready_pattern": r"\|\s*Ready\s*\|", "rule_notes_dir": "", "rule_note_pattern": r"^\s*type:\s*feedback\b",
             "rule_docs": ["docs/process", "CLAUDE.md"], "rule_drift_hours": 24}  # as hooks/_loop.py's "watchdog"
 RELEASE_DEFAULTS = {"paused_file": "", "published_file": "", "good_ref": "origin/main", "shipped_paths": [],
@@ -274,11 +282,42 @@ def check_rule_drift(now: float, notes: list[tuple[str, float]] | None, docs_at:
                           "rule into the process docs, by pull request, today"}
 
 
+CLEANUP_TIMEOUT_S = 900
+
+
+def run_cleanup(command: str) -> str:
+    """Run the project's cleanup command; -> one line saying how it went."""
+    try:
+        r = subprocess.run(command, shell=True, capture_output=True, text=True, timeout=CLEANUP_TIMEOUT_S)
+    except (OSError, subprocess.SubprocessError) as e:
+        return f"failed ({type(e).__name__})"
+    tail = (r.stdout.strip().splitlines() or [""])[-1][:120]
+    return ("ok" if r.returncode == 0 else f"failed (exit {r.returncode})") + (f": {tail}" if tail else "")
+
+
+def disk_cleanup(now: float, free: float, rec: dict | None, cfg: dict, run=run_cleanup) -> tuple[dict | None, bool]:
+    """Run `watchdog.cleanup_command` once per low-disk episode. rec: the last run's {at, line, low} (low: the disk was
+    under the floor then). Under `auto_cleanup_gb` a record stands in for "already ran this episode", except that a run
+    made between the floor and that level is followed by one more when the disk then falls under the floor. The record
+    goes when the disk is back above auto_cleanup_gb. -> (the record, whether it ran now)."""
+    if free >= float(cfg["auto_cleanup_gb"]) or not cfg["cleanup_command"]:
+        return None, False
+    low = free < float(cfg["min_free_disk_gb"])
+    if rec and (rec.get("low", True) or not low):
+        return rec, False
+    return {"at": int(now), "line": run(cfg["cleanup_command"]), "low": low}, True
+
+
 def flags(now: float) -> dict[str, str]:
     out: dict[str, str] = {}
+    prev = _read(FLAGS)
     free = shutil.disk_usage(Path.home()).free / 1e9
+    cleanup, ran = disk_cleanup(now, free, prev.get("disk_cleanup"), CFG)
+    if ran:
+        free = shutil.disk_usage(Path.home()).free / 1e9  # what the run left
     if free < DISK_FLOOR_GB:
-        out["disk_low"] = f"{free:.1f} GB free (floor {DISK_FLOOR_GB:.0f})"
+        out["disk_low"] = f"{free:.1f} GB free (floor {DISK_FLOOR_GB:.0f})" + (
+            f"; cleanup {cleanup['line']}" if cleanup else "")
 
     if EVENTS.exists():
         events = [json.loads(line) for line in EVENTS.read_text().splitlines() if line.strip()]
@@ -297,10 +336,11 @@ def flags(now: float) -> dict[str, str]:
     if STAMP.exists() and now - STAMP.stat().st_mtime > 3 * 15 * 60:
         out["watchdog_stale"] = "the previous watchdog runs did not happen; check the scheduler"
 
-    prev = _read(FLAGS)
     out.update(check_lanes_idle(now, running_lanes(LANES, now), ready_items(CFG), prev, CFG, last_turn()))
     FLAGS_STATE.clear()
     FLAGS_STATE.update({k: v for k, v in prev.items() if k == "idle_since"})
+    if cleanup:
+        FLAGS_STATE["disk_cleanup"] = cleanup
     notes = rule_notes(CFG)
     out.update(check_rule_drift(now, notes, docs_changed_at(CFG) if notes else None, CFG))
     out.update(check_release(now, release_info(RCFG), RCFG))

@@ -9,6 +9,9 @@ sys.path.insert(0, HERE)
 import _loop  # noqa: E402
 import spawn_gate  # noqa: E402
 
+# Cloud first: these tests describe a local session (the hook lets every spawn from a cloud session through).
+os.environ.pop("CLAUDE_CODE_REMOTE", None)
+
 fails = []
 
 
@@ -20,6 +23,8 @@ def check(name, ok, detail=""):
 
 ON = _loop.config()
 ON["spawn_gate"].update(require_model=True, require_rules=True, require_no_notify=True)
+CLOUD = _loop.config()
+CLOUD["spawn_gate"].update(require_rules=True, require_local_need=True)
 OFF = _loop.DEFAULTS
 PROJECT = tempfile.mkdtemp(prefix="spawn-gate-test-")
 os.makedirs(os.path.join(PROJECT, ".loop"))
@@ -105,6 +110,34 @@ for name, ((tool, inp), wants) in blocked.items():
     check(f"blocks: {name} (says {', '.join(wants)})", msg and all(w in msg for w in wants), msg)
 msg = spawn_gate.check(*agent(model=None), ON) or ""
 check("only what's missing is listed", "helper rules" not in msg, msg)
+
+# Cloud first: a local writing helper declares `Needs: local`, or goes to a cloud lane (opt-in).
+LOCAL = RULES
+WITH = RULES + "\nNeeds: local (device run)."
+check("cloud first is off by default", spawn_gate.check(*agent(LOCAL), ON) is None)
+msg = spawn_gate.check(*agent(LOCAL), CLOUD) or ""
+check("blocks: a local helper without `Needs: local`, with the cloud hint",
+      "Needs: local" in msg and "cloud lane" in msg and "require_local_need" in msg, msg)
+msg = spawn_gate.check(*agent("Build X."), CLOUD) or ""
+check("a spawn missing the rules also lists the Needs line", "helper rules" in msg and "Needs: local" in msg, msg)
+for name, prompt in {"Needs: cloud": LOCAL + "\nNeeds: cloud", "Needs: locally": LOCAL + "\nNeeds: locally",
+                     "a passing mention": LOCAL + " Don't add Needs: local to this one.",
+                     "mid-line": LOCAL + " Lane: process; Needs: local (device)"}.items():
+    check(f"blocks: {name} isn't Needs: local", "cloud first" in (spawn_gate.check(*agent(prompt), CLOUD) or ""), name)
+for name, inp in {"the line": agent(WITH), "markup": agent(LOCAL + "\n- **Needs:** `Local` (device)"),
+                  "a read-only prompt": agent("Read-only: find X.", model="haiku"),
+                  "an Explore type": agent("Find X.", model="haiku", kind="Explore"),
+                  "a fork": agent("carry on", model=None, kind="fork"),
+                  "a cloud lane (RemoteTrigger)": trigger("create", LOCAL + " " + NO_NOTIFY),
+                  "isolation remote": ("Agent", {**agent(LOCAL)[1], "isolation": "remote"})}.items():
+    check(f"cloud first allows {name}", spawn_gate.check(*inp, CLOUD) is None, spawn_gate.check(*inp, CLOUD))
+os.environ["CLAUDE_CODE_REMOTE"] = "true"
+check("cloud first doesn't gate a spawn from a cloud session", spawn_gate.check(*agent(LOCAL), CLOUD) is None)
+os.environ.pop("CLAUDE_CODE_REMOTE")
+check("uses_build: Needs: local counts unless it says no build",
+      _loop.uses_build("x\nNeeds: local (build)") and _loop.uses_build("needs: local") and not _loop.uses_build("Build X.")
+      and not _loop.uses_build("Needs: local (live service, no build)") and not _loop.uses_build("Needs: cloud")
+      and _loop.uses_build("Needs: local (device)\nlater: no build talk on another line"))
 
 r, dt = hook(*agent(model=None))
 check("missing model (config on): exit 2, names the knob",

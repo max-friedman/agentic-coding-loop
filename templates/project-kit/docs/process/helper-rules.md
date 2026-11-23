@@ -14,6 +14,11 @@ followed to the letter or argued away. Keep the reason when you add a rule.
   never anywhere else, and you remove it (`git worktree remove <path>`) once your PR is queued. Worktrees elsewhere are
   forgotten and fill the disk. `git_rules.py` blocks a helper's `git worktree add` outside them;
   `scripts/worktree_gc.py` removes finished ones anywhere.
+- **Declare what only this machine can do.** When `spawn_gate.require_local_need` is on, a local helper that writes
+  carries a line of its own, `Needs: local (<why>)`: a build, a device, a local service. Docs, scripts, tests and
+  research run in cloud lanes instead, so the machine's one build slot serves only what needs it (queued helpers each
+  wait a whole build behind the others). Add `, no build` when the helper won't use the build slot;
+  `lanes.max_build_helpers` counts the ones that do.
 - Never edit the live checkout: the running service loads it, so a stray edit is an unreviewed deploy. Set work aside
   with a WIP commit, not `git stash`: the stash stack is shared by every worktree, so a pop can take another session's
   changes (a tagged `git stash push -m <tag>`, restored by sha, is the only stash the hook allows).
@@ -39,6 +44,8 @@ followed to the letter or argued away. Keep the reason when you add a rule.
 
 ## The pull request and landing
 
+- Run `python3 scripts/prelanding.py --body-only` as soon as the PR body is written: it checks the body's lines (gate
+  change, review lines, `Intentional revert:`) in seconds, so a typo doesn't cost a whole run.
 - Run `python3 scripts/prelanding.py` on your final head before handing back. A stale or badly resolved merge that
   undoes lines main gained is refused there; merge main again keeping both sides (or say `Intentional revert: <why>`).
 - Your own work is never reviewed by you: user-visible results and gate changes get a fresh reviewer that did not
@@ -47,7 +54,8 @@ followed to the letter or argued away. Keep the reason when you add a rule.
   the checks the first one runs.
 - **No go-ahead needed** for this work; do it and report it: merge `origin/main` into your own branch; run prelanding
   and your named checks; regenerate your own fixtures and golden files; rerun a flaky check once; open a ready PR;
-  queue it after prelanding passed; remove your own worktree and build output; start your own read-only reviewer.
+  queue it after prelanding passed; remove your own worktree and build output (the disk is the first thing a pile of
+  helpers runs out of); start your own read-only reviewer.
   Hand back to the coordinator only for what this file reserves (an independent review line, a gate-change review)
   and <your project's reserved items: the owner's own device, a missing design>. Asking for a go-ahead on listed work
   idles the lane until someone answers.

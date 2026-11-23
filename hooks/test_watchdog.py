@@ -56,6 +56,21 @@ led.write_text(json.dumps({"lanes": [{"updated": now}, {"updated": now - 7 * 360
 check("the ledger's stale entries don't count", wd.running_lanes(led, now) == 1)
 check("no ledger: 0 lanes", wd.running_lanes(tmp / "none.json", now) == 0)
 
+print("watchdog.py: disk cleanup")
+dc = {**cfg, "cleanup_command": "echo freed", "min_free_disk_gb": 12, "auto_cleanup_gb": 15}
+calls = []
+run = lambda c: calls.append(c) or "ok"  # noqa: E731
+check("off without a command", wd.disk_cleanup(now, 5, None, cfg, run) == (None, False) and not calls)
+check("above auto_cleanup_gb: nothing, and the record goes", wd.disk_cleanup(now, 16, {"at": 1, "low": True}, dc, run) == (None, False))
+rec, ran = wd.disk_cleanup(now, 13, None, dc, run)
+check("between the floor and auto_cleanup_gb: runs once", ran and rec["low"] is False and len(calls) == 1, rec)
+check("…not again while still there", wd.disk_cleanup(now + 900, 13, rec, dc, run) == (rec, False) and len(calls) == 1)
+rec2, ran = wd.disk_cleanup(now + 900, 9, rec, dc, run)
+check("…but once more when it falls under the floor", ran and rec2["low"] is True and len(calls) == 2, rec2)
+check("…and then not again this episode", wd.disk_cleanup(now + 1800, 9, rec2, dc, run) == (rec2, False) and len(calls) == 2)
+check("run_cleanup reports the last line", wd.run_cleanup("echo a; echo freed 3 GB") == "ok: freed 3 GB"
+      and wd.run_cleanup("exit 3").startswith("failed (exit 3)"))
+
 print("watchdog.py: rule_drift")
 notes = tmp / "notes"
 notes.mkdir()

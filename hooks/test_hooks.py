@@ -97,6 +97,42 @@ class AdmissionGate(Project):
             json.dump({"lanes": lanes * 5}, fh)
         self.assertIn("cap 5", admission_gate.check(self.spawn("Lane: bug; Hotspot: ui")))
 
+    def test_build_slot_budget(self):
+        lanes = [{"kind": "feature", "hotspots": [], "updated": time.time(), "build": b} for b in (True, True, False)]
+        with open(os.path.join(self.dir, ".loop", "lanes.json"), "w") as fh:
+            json.dump({"lanes": lanes}, fh)
+        heavy, light = "Lane: feature; Hotspot: ui\nNeeds: local (device)", "Lane: feature; Hotspot: ui\nNeeds: local (docs, no build)"
+        self.assertIsNone(admission_gate.check(self.spawn(heavy)), "off by default")
+        self.config(lanes={"max_build_helpers": 2})
+        self.assertIn("build-slot budget", admission_gate.check(self.spawn(heavy)))
+        self.assertIsNone(admission_gate.check(self.spawn(light)), "no build: not counted")
+        self.assertIsNone(admission_gate.check(self.spawn("Lane: feature; Hotspot: ui")), "no Needs line: not counted")
+        self.config(lanes={"max_build_helpers": 3})
+        self.assertIsNone(admission_gate.check(self.spawn(heavy)))
+
+    def test_owner_override_raises_one_kinds_cap(self):
+        lanes = [{"kind": "bug", "hotspots": [f"h{i}"], "updated": time.time()} for i in range(2)]
+        with open(os.path.join(self.dir, ".loop", "lanes.json"), "w") as fh:
+            json.dump({"lanes": lanes}, fh)
+        path = os.path.join(self.dir, ".loop", "lane_override.json")
+        spawn = self.spawn("Lane: bug; Hotspot: z")
+        self.assertIn("cap 1", admission_gate.check(spawn))
+        for doc, ok in [({"kind": "bug", "max": 3, "until": time.time() + 600, "why": "launch week"}, True),
+                        ({"kind": "bug", "max": 3, "until": time.time() - 1, "why": "x"}, False),   # expired
+                        ({"kind": "feature", "max": 3, "until": time.time() + 600}, False),         # another kind
+                        ({"kind": "bug", "max": 2, "until": time.time() + 600}, False),            # still full
+                        ({"kind": "bug", "max": 99, "until": time.time() + 600}, False)]:          # capped at the ceiling: 4 > 2 lanes
+            with open(path, "w") as fh:
+                json.dump(doc, fh)
+            msg = admission_gate.check(spawn)
+            if doc["max"] == 99:
+                self.assertIsNone(msg)
+            else:
+                self.assertEqual(msg is None, ok, (doc, msg))
+        with open(path, "w") as fh:
+            fh.write("{")
+        self.assertIn("cap 1", admission_gate.check(spawn), "unreadable: the normal cap")
+
     def test_resource_floors_default_and_config(self):
         self.free = 14e9
         self.assertIn("free disk, floor 15", admission_gate.check(self.spawn("Lane: feature; Hotspot: ui")))

@@ -193,7 +193,7 @@ commit is set — never on a quiet log.
 ### Batching, and why it keeps getting blocked
 
 With one build slot and one device pool, running each PR alone (10–40 minutes each)
-was the bottleneck. A merge train lands up to four compatible PRs as one build and one
+was the bottleneck. A merge train lands up to six compatible PRs as one build and one
 device run on the merged result, and bisects a red batch by halves. This is the
 bors-style shape rather than speculative parallel pipelines, because speculative runs
 need spare CI capacity and this project had none: a green batch of N costs one run, a
@@ -628,6 +628,57 @@ an opt-in shape, not as a proven one.
 
 ---
 
+## 15. The week after 1.6.0
+
+Another week of the same project, mostly about throughput and the disk. Each item became a mechanism or a rule.
+
+### Cloud first, and a budget for the one build slot
+
+Local helpers had been started for work that needed nothing from the machine (docs, scripts, tests, research), and
+each one that built queued on the one build slot and waited 15-20 minutes a build behind the others. A spawn hook now
+refuses a local writing helper unless its prompt says `Needs: local (<why>)` on a line of its own, and points at the
+cloud-lane recipe; read-only agents, forks and spawns made from a cloud session are exempt. A second limit counts the
+helpers that declared a build (the ledger's `build` flag) against a small budget, because three builds in flight is
+as many as one slot serves. `Needs: local (..., no build)` is the honest way to say "local, but not the slot".
+
+### Fail fast, then batch
+
+A wrong label in a PR body, a made-up check name, a stale review line, a bulleted `Intentional revert:` were each
+found only after the whole run, and each cost a full cycle, more than once in a day. All of them are readable from the
+body and the file list, so prelanding now reports every one, with the fix, before it makes a worktree
+(`--body-only` runs just that, in seconds). Separately, one run per PR delivered PRs to the queue one at a time, so
+the merge train rarely formed: `--batch` checks several PRs merged onto main in one run, records a pass per head, and
+bisects a red run by halves so only the culprit fails. Rules that kept it honest: a gate change, a path the project
+lands alone, and a conflict with an earlier PR each run alone; an environment failure blames nobody; a batch pass is
+never carried to a landing without the PRs it was checked with. The queue's worker runs the batch job for entries
+that ask for it, one at a time.
+
+### The disk, again
+
+The machine kept falling to 8-12 GB free; its worktrees directory held 33 GB in 36 worktrees. Causes and fixes: six
+queued prelanding runs each held a full checkout while they waited for the build slot (a run now takes one of two
+places first); a killed run left its checkout behind (the owner's pid is written beside it, SIGTERM and SIGHUP run the
+removal, and a sweep takes what a SIGKILL leaves); a merged PR's helper worktree stayed for days (it goes at the
+merge); a worktree made for a waiting work item and still as planning left it holds a full checkout the loop would
+make again (it goes after ten idle minutes). And the watchdog no longer waits for `disk_low` and then for the owner: at
+the spawn floor it runs the project's cleanup command itself, once per episode, and `disk_low` opens only if that
+wasn't enough.
+
+### The owner's attention
+
+Two rules for a project's feedback loop, from the owner's own words: *the plans were so complicated I could not tell
+what they did.*
+
+- **A fix approves itself; a change to what a user sees goes to the owner as a before/after.** Every fix plan is
+  approved at once, with a daily cap and a breaker. A fix that changes what a screen shows is built as a draft up to
+  its recorded screenshots, and the owner gets one plain sentence and the two pictures side by side, with Approve and
+  Hold. Still the owner's: features, anything touching the live setup, the loop's own safety code and the gates,
+  reverts, and a user-facing change no screenshot shows. These are checked on the plan and again on the built diff. Plan
+  messages are three plain sentences at most; files, steps and test lists stay in the packet and the PR.
+- **The owner's own feedback builds before simulated or automated feedback.** Order: urgent, then the owner's own
+  reports, then automated ones (simulated users, explorer runs), each group in approval order; automated reports still
+  build when no report of the owner's waits.
+
 ## Where each lesson went
 
 | lesson here | now in |
@@ -647,6 +698,8 @@ an opt-in shape, not as a proven one.
 | Don't block on the owner; never stub a gate (§14) | Hard rules · principle 16 · `## Decided, not asked` |
 | Invariants every lane reads, lane self-review (§14) | §F *Roles* and *The one way onto the default branch* |
 | Goal loops (§14) | §F *Goal loops*, opt-in and unproven |
+| Cloud first, the build-slot budget, fail-fast body checks, batch prelanding, throwaway caps, auto cleanup (§15) | [`hooks/`](../hooks) · the kit's `prelanding.py`, `throwaway_worktrees.py`, `worktree_gc.py`, `docs/process/landing.md` |
+| An owner's own feedback first; fixes auto-approve, screen changes go to the owner as before/after (§15) | Here only, until a second project runs a feedback loop. |
 | Spawning prompts, model tiers, thrift windows, retros, pauses, upgrades | Here only. Project practice, not yet a pattern across projects. |
 
 ## What's not verified

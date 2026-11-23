@@ -12,7 +12,7 @@ them, and `bootstrap_kit.py --test` runs them from here; the installer copies no
 |---|---|---|---|
 | [`admission_gate.py`](admission_gate.py) | PreToolUse Agent, Task | a spawn past the lane caps, onto a held hotspot, under the disk floor or over the swap ceiling. **Opt-in** (`finish_before_start.max_waiting_prs`): a feature spawn while too many PRs wait to land | fails **closed** |
 | [`lane_ledger.py`](lane_ledger.py) | PostToolUse Agent, Task; SubagentStop | records a spawned lane in `.loop/lanes.json`, removes it when the subagent stops; entries past the TTL count as ended | fails open |
-| [`spawn_gate.py`](spawn_gate.py) | PreToolUse Agent, Task, RemoteTrigger | opt-in: a spawn without a `model`, without the rules, or a cloud lane without the no-notify line | fails open |
+| [`spawn_gate.py`](spawn_gate.py) | PreToolUse Agent, Task, RemoteTrigger | opt-in: a spawn without a `model`, without the rules, a local writing helper without `Needs: local`, or a cloud lane without the no-notify line | fails open |
 | [`git_rules.py`](git_rules.py) | PreToolUse Bash | a bare `git stash`, `pop`, `clear`, an `apply`/`drop` naming no entry; `git merge` chained with `add`/`commit`; a skipped gate (`--no-verify`, or a landing override flag from anyone but the coordinator); a helper's `git worktree add` outside the managed dirs. Warns on a gate-changing env prefix. A tagged `git stash push -m <tag>` is allowed | fails open |
 | [`gh_rules.py`](gh_rules.py) | PreToolUse Bash | a PR based on a branch other than main. Warns on a PR body read from a shared scratch file. **Opt-in** (`gh_rules.block_pr_merge`): `gh pr merge` on this repo (land with `scripts/land.sh`) | fails open |
 | [`wip_limit.py`](wip_limit.py) | PreToolUse Bash | `gh pr create` (not `--draft`) while `wip_limit.max_open_prs` open PRs already change product code | fails open |
@@ -58,6 +58,8 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `lanes.require_lane_line` | false | true: a spawn with no `Lane:` line is blocked, not defaulted with a warning |
 | `lanes.stale_hours` | 6 | a ledger entry this old counts as ended |
 | `lanes.read_only_types` | Explore, Plan, claude-code-guide, web-fetch | agent types never counted or gated |
+| `lanes.max_build_helpers` | 0 (off) | above 0: a spawn whose prompt has `Needs: local` without `no build` is refused while this many running lanes already use the build slot (the ledger's `build` flag); more only queue behind one build |
+| `lanes.override_file`, `override_ceiling` | `.loop/lane_override.json`; 4 | an owner-approved, expiring raise of one kind's cap: `{"kind": "bug", "max": 3, "until": <epoch>, "why": "..."}` lifts that kind's cap to `max` (at most the ceiling) until it expires. A missing, unreadable or expired file means the normal cap; `lanes.total` still holds. Only the owner writes it |
 | `resources.min_free_disk_gb` | 15 | block a spawn under this much free disk. `admission_gate` stays on by default; lower this if 15 GB is too much for your disk (a default is already cut to 10% of a small disk), or raise it for builds that need more |
 | `resources.max_swap_used_gb` | 6 | block a spawn over this much swap in use |
 | `resources.scale_to_machine` | true | lowers a default (not a value you set) on a smaller machine: disk floor to at most 10% of the disk, swap ceiling to at most 3/8 of RAM. The defaults come from a 16 GB laptop with a 228 GB disk, where nothing changes |
@@ -65,6 +67,8 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `spawn_gate.require_rules` | false | a spawn prompt must carry one of `rules_markers` (read-only prompts and types are exempt) |
 | `spawn_gate.rules_markers` | `[["helper-rules.md"], ["playbook", "prelanding"]]` | alternatives; each is a list of phrases that must all appear |
 | `spawn_gate.require_no_notify` | false | a RemoteTrigger prompt must say it sends the owner no notifications |
+| `spawn_gate.require_local_need` | false | cloud first: a local Agent spawn that writes must carry a line of its own `Needs: local (<why>)`, else it is refused with `spawn_gate.cloud_hint` (read-only prompts and types, forks, `isolation: remote` and spawns from a cloud session are exempt) |
+| `spawn_gate.local_exempt_env` | `["CLAUDE_CODE_REMOTE"]` | env vars that, truthy, mean the spawn is already in the cloud |
 | `coordinator.monitor_pattern` | `events\|watch` | a running background task matching it counts as the quiet watch |
 | `coordinator.checkin_pattern` | `check-?in\|checklist\|heartbeat` | a recurring session cron whose prompt matches counts as the check-in |
 | `coordinator.monitor_command`, `checkin_command` | placeholders | the calls the Stop hook quotes when one is missing |
@@ -72,6 +76,7 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `gh_rules.block_pr_merge` | false | true: `gh_rules.py` blocks `gh pr merge` on this repo; PRs land with `scripts/land.sh`. A landing-process opinion, so off |
 | `coordinator.require_checks` | false | true: `coordinator_stop.py` ends no coordinator turn without a quiet watch and a recurring check-in. Assumes you run such a session, so off |
 | `watchdog.min_free_disk_gb` | 12 | `watchdog.py` flags `disk_low` under this |
+| `watchdog.cleanup_command`, `auto_cleanup_gb` | empty (off); 15 | the command the watchdog runs itself, once per low-disk episode, when free disk falls under `auto_cleanup_gb` (your spawn floor); `disk_low` opens only if the disk is still under its floor after it. A run made between the floor and that level is followed by one more if the disk then falls under the floor |
 | `watchdog.lanes_idle_minutes` | 30 | `lanes_idle`: no lane in the ledger this long, ready work or not; `COORDINATOR STALLED` when the coordinator's last turn (`.loop/coordinator_stop.json`) is this old too |
 | `watchdog.ready_file`, `ready_pattern` | `docs/ROADMAP.md`, a table cell `Ready` | where ready work is listed, and the line that is one item; `lanes_idle`'s detail counts them, or says the statuses are stale when there are none |
 | `release.paused_file`, `published_file` | empty (off) | the release pipeline's files: `{"at", "why"}` while it is paused, and `{"commit", "published", "version"}` naming the build users run. For an app, say, the store or sideload build; for a service, the deployed one |
@@ -95,6 +100,9 @@ values are per machine. `LOOP_CONFIG` points at another file.
 | `prelanding.not_independent` | coordinator, author, self, me, myself | reviewer names that don't count |
 | `prelanding.stale_revert` | true | refuse a branch that undoes lines main gained since it forked (`scripts/stale_revert.py`) |
 | `prelanding.review_lines` | none | rules `{"name", "when_body", "when_paths"}`: a PR whose body matches `when_body` or that changes `when_paths` needs `<name>: OK (<reviewer>, ...)` from someone independent (exit 13); an auto-queue skips it until then |
+| `prelanding.max_throwaways` | 2 | scratch worktrees prelanding may hold at once (`scripts/throwaway_worktrees.py`); a run waits for a place before it makes its checkout |
+| `prelanding.batch_max`, `alone_paths`, `env_marker` | 6; none; `ENVIRONMENT, not your PR` | `prelanding.py --batch`: PRs per run; paths whose PRs always run alone (a gate always does); a string a check prints when the failure is the machine's, which blames nobody and isn't bisected |
+| `worktree_gc.recreatable_prefixes`, `recreatable_idle_minutes` | none; 10 | a detached, clean worktree whose directory starts with one of these goes after this many idle minutes: its owner made it for a waiting work item and makes it again when the item builds |
 | `cutover.when_body`, `when_paths` | `^\W*Cutover:` (on by default); none | what makes a PR a cutover for `scripts/cutover_gate.py` (prelanding exit 14): refused while the pipeline is paused, when a cutover that changes no shipped code would switch on code the build users run lacks, and without a recent whole-suite pass |
 | `cutover.passes_file`, `pass_max_age_hours`, `known_red_file`, `suite_command` | none; 24; none; none | the whole-suite runs your runner appends (`{"at", "commit", "full", "failed", "failures"}`), how recent a pass on the cutover's base must be, failures that don't count, and the command the refusal quotes. No passes file: a cutover is refused |
 | `review_land.worktree_dir`, `after` | `../{repo}-worktrees`; `scripts/land.sh {pr}` | where `scripts/review_land.py` makes its `review-<PR>` worktree, and what it runs once prelanding passes (your queue's add command, if you run one) |

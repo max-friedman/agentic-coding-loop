@@ -9,6 +9,12 @@ wants in `.loop/config.json` under `spawn_gate` (hooks/README.md lists the knobs
 - `require_rules`: the prompt carries the rules. `rules_markers` lists alternatives; each is a list of phrases that
   must all appear (case-insensitive). Default: it names `helper-rules.md`, or it names the playbook and `prelanding`.
 - `require_no_notify`: a cloud lane (RemoteTrigger) says it won't notify the owner (it mentions "notif" and "owner").
+- `require_local_need` (cloud first): a LOCAL Agent spawn that writes (not read-only, not a fork, not `isolation:
+  remote`) must declare `Needs: local (<why>)` on a line of its own, why being what only this machine can do (a build,
+  a device, a local service). Everything else (docs, scripts, tests, research) goes to a cloud lane, so the machine's
+  one build slot serves only what needs it. Without the line the spawn is refused with `spawn_gate.cloud_hint`. Not
+  gated: a spawn made from a cloud session (an env var in `local_exempt_env` is truthy, default `CLAUDE_CODE_REMOTE`).
+  `Needs: local (..., no build)` says the helper won't use the build slot, which `lanes.max_build_helpers` counts.
 
 With none on (the default), the hook allows every spawn. Exempt from the rules check: a read-only prompt ("read-only",
 "blind review", "do not read any other files") and the read-only agent types (`lanes.read_only_types`). A `fork`
@@ -61,6 +67,25 @@ def read_only(text: str) -> bool:
     return any(p in t for p in READ_ONLY_PHRASES)
 
 
+def in_cloud(g: dict) -> bool:
+    """A spawn made from a cloud session (or another lane that is not this machine's): an exempt env var is truthy."""
+    return any(os.getenv(v, "").strip().lower() in ("1", "true", "yes") for v in g["local_exempt_env"])
+
+
+def local_refusal(kind: str, prompt: str, g: dict, read_only_types: set, isolation: str = "") -> str | None:
+    """Cloud first: why a local writing helper may not run here, or None. `isolation: remote` runs in the cloud."""
+    if not g["require_local_need"] or isolation.strip().lower() == "remote":
+        return None
+    if kind in read_only_types or read_only(prompt) or _loop.needs_local(prompt) or in_cloud(g):
+        return None
+    return ("Blocked by .claude/hooks/spawn_gate.py (cloud first): this local helper's prompt doesn't declare "
+            "`Needs: local (<why>)` on a line of its own. Local helpers are for work that must build or run on this "
+            "machine; docs, scripts, tests and research run in cloud lanes, so the machine's build slot serves only "
+            "what needs it. " + g["cloud_hint"] + " If it really needs this machine, add the line (`, no build` when "
+            "it won't use the build slot). Read-only research or review is exempt when its prompt says \"read-only\". "
+            "(spawn_gate.require_local_need in .loop/config.json)")
+
+
 def check(tool: str, inp: dict, cfg: dict | None = None) -> str | None:
     cfg = cfg or _loop.config()
     g = cfg["spawn_gate"]
@@ -76,6 +101,10 @@ def check(tool: str, inp: dict, cfg: dict | None = None) -> str | None:
         if g["require_rules"] and kind not in read_only_types and not read_only(prompt):
             missing += missing_rules(prompt, g["rules_markers"])
         what = "this subagent spawn"
+        if not missing:
+            return local_refusal(kind, prompt, g, read_only_types, str(inp.get("isolation") or ""))
+        if local_refusal(kind, prompt, g, read_only_types, str(inp.get("isolation") or "")):
+            missing.append("a `Needs: local (<why>)` line, or none and a cloud lane instead (spawn_gate.require_local_need)")
     elif tool == "RemoteTrigger":
         action = str(inp.get("action") or "").strip().lower()
         if action not in ("create", "run"):

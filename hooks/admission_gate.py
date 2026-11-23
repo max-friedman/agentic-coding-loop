@@ -17,6 +17,14 @@ when a spawn starts, SubagentStop removes it, and an entry older than `lanes.sta
 lane can't hold a slot forever. The caps, the floors and the default kind are knobs in `.loop/config.json`
 (hooks/README.md lists them).
 
+Build-slot budget (opt-in, `lanes.max_build_helpers` above 0): a spawn whose prompt has `Needs: local` without `no build`
+uses the machine's one build slot; one more is refused while that many running lanes do.
+
+An owner-approved, expiring raise of one kind's cap (`lanes.override_file`, default `.loop/lane_override.json`:
+`{"kind": "bug", "max": 3, "until": <epoch>, "why": "..."}`) lifts that kind's cap to `max` (at most
+`lanes.override_ceiling`) until it expires; a missing, unreadable or expired file means the normal cap, and the total
+cap still holds. Only the owner writes it.
+
 Fails CLOSED on its own errors, a config file that doesn't parse included: over-spawning is the expensive failure.
 A resource probe that can't be read does not block (the probe is not the thing guarded).
 
@@ -57,18 +65,41 @@ def check(tool_input: dict, cfg: dict | None = None, now: float | None = None) -
         return f"Blocked: {swap:.1f} GB swap used, ceiling {max_swap:g}. Let a lane finish first."
 
     lanes = _loop.running(cfg, now)
+    if msg := build_refusal(tool_input, lanes, cfg):
+        return msg
     total = int(cfg["lanes"]["total"])
     if len(lanes) >= total:
         return (f"Blocked: {len(lanes)} lanes running, cap {total}. Wait for one to hand back "
                 "(`python3 .claude/hooks/lane_ledger.py list` shows them).")
     cap = int(cfg["lanes"]["caps"].get(kind, 0))
+    raised = _loop.cap_override(kind, cfg, now)
+    if raised:
+        cap = raised[0]
     same = [e for e in lanes if e.get("kind") == kind]
     if len(same) >= cap:
-        return f"Blocked: {len(same)} {kind} lanes running, cap {cap} (lanes.caps in .loop/config.json)."
+        return (f"Blocked: {len(same)} {kind} lanes running, cap {cap}"
+                + (f" (raised by the owner's override: {raised[1]})" if raised else " (lanes.caps in .loop/config.json)") + ".")
     held = {h for e in lanes for h in e.get("hotspots", [])} & hotspots
     if held:
         return f"Blocked: hotspot {', '.join(sorted(held))} is held by a running lane. Take the next item."
     return queue_refusal(kind, cfg)
+
+
+def build_refusal(tool_input: dict, lanes: list[dict], cfg: dict) -> str | None:
+    """The build-slot budget (opt-in, `lanes.max_build_helpers` above 0): a spawn that declares `Needs: local` without
+    `no build` is refused while that many running lanes already use the build slot (the ledger's `build` flag). More
+    only queue on the one slot, and each waits a whole build behind the others."""
+    cap = int(cfg["lanes"].get("max_build_helpers") or 0)
+    if cap <= 0 or not _loop.uses_build(str(tool_input.get("prompt") or "")):
+        return None
+    users = [e for e in lanes if e.get("build")]
+    if len(users) < cap:
+        return None
+    names = ", ".join(str(e.get("description") or e.get("id")) for e in users[:6])
+    return (f"Blocked: build-slot budget. {len(users)} running lanes use the build slot ({names}), the budget is {cap} "
+            "(lanes.max_build_helpers). More only queue on the one slot. Send work that needs no build to a cloud lane, "
+            "say `Needs: local (..., no build)` if this helper won't build, batch ready PRs into one landing, or wait "
+            "for a lane to end.")
 
 
 def open_ready_prs() -> list[int] | None:
