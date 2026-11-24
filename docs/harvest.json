@@ -125,9 +125,17 @@
    "source": "a0d7b0c87e4e24eec093ba176a7f262cd6988000f03df73c2f4f2bc56429ddd2",
    "dest": "c0ac71822948954ca54dfb91152149e559e8a41d75b3cb2b4ca29b13e0ba2b26"
   },
+  "templates/project-kit/scripts/test_verify_queue.py": {
+   "source": "2193e500cf80b6d19d749347ffc3704836601123a4698e2d16d1d390bf276eff",
+   "dest": "2193e500cf80b6d19d749347ffc3704836601123a4698e2d16d1d390bf276eff"
+  },
   "templates/project-kit/scripts/tmpclean.py": {
    "source": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2",
-   "dest": "c074426e9c247099c2770a864876219ae4ff89ef964cf8682f8c7fb303aba0b0"
+   "dest": "3bd54640b447aaf67851cba42c07cf9ec5ba459376e4367d933d0e9fe9eaada2"
+  },
+  "templates/project-kit/scripts/verify_queue.py": {
+   "source": "08a9513d1cc8ebb541679956aabfbedc622b7136776674a559874fabedd475d7",
+   "dest": "08a9513d1cc8ebb541679956aabfbedc622b7136776674a559874fabedd475d7"
   },
   "templates/project-kit/scripts/waiter_reaper.py": {
    "source": "fe068ea2ab7d8ba6353b482ab282b03259ede21611f52c1ca5f4af57cc7198ef",
